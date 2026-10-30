@@ -1,0 +1,33 @@
+# Los datos del partido NO son redistribuibles (ver terminos de la competicion).
+# El repo de entrega es publico: nada de esto puede entrar.
+data/
+*.mp4
+*_atd.txt
+*_homography.csv
+*_smart_tagging.xml
+
+# Salidas
+out/
+*.csv
+!vendor/evaluation/gt/*.csv
+evaluation/results/
+reports/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+dist/
+build/
+.ipynb_checkpoints/
+
+# Entorno
+.DS_Store
+.env
+
+# Baselines oficiales de referencia (vendorizados, no son datos del partido)
+!vendor/evaluation/results/*.csv.gz

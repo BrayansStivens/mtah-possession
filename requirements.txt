@@ -1,0 +1,7 @@
+# Dependencias pinneadas: el entregable exige que este repo regenere el CSV exacto.
+# El scorer oficial solo necesita numpy y pandas; mantenemos esa linea base.
+numpy==2.5.4
+pandas==3.0.6
+
+# Opcional, solo para el modelo supervisado (models/). El pipeline geometrico no lo necesita.
+scikit-learn==1.8.0
