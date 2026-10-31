@@ -20,9 +20,27 @@ transicion, duracion minima). Se re-derivaron ese dia con `training/recalibrate.
   del reto (`training/convention.py`). Los centros de clase son medianas medidas ahi. El
   resto se eligio o se confirmo por busqueda por coordenadas maximizando spellF1 medio en
   4 partidos de AJUSTE (J03WMX, J03WN1, J03WOH, J03WOY) y se comprobo en 3 de VALIDACION
-  (J03WPY, J03WQQ, J03WR9) que no se habian tocado: ajuste 0.3905, validacion 0.3957.
-  Con dos semillas de degradacion nuevas la mejora frente a la version anterior fue
-  +0.004 y +0.009 de spellF1: pequena, pero del mismo signo en las tres.
+  (J03WPY, J03WQQ, J03WR9) que no se habian tocado. Frente a la version anterior la
+  mejora fue de +0.004 y +0.009 de spellF1 en dos semillas de degradacion nuevas:
+  pequena, pero del mismo signo en las tres.
+
+  Con este fichero **tal cual esta**, semilla 0 de degradacion: ajuste 0.3878,
+  validacion 0.4081, los siete 0.3965. (Hasta el 31-10 aqui se leia "ajuste 0.3905,
+  validacion 0.3957". El 0.3905 era correcto; el 0.3957 no salia de este fichero sino
+  del volcado de `recalibrate.py`, que guarda los tres centros de clase sin redondear.
+  Redondeados como estan abajo dan 0.3968. Son 0.001 de suerte en el redondeo, no un
+  error de medida, pero el numero citado tiene que ser el que produce el fichero.)
+
+**Validacion del procedimiento, 29 al 31-10.** Se midio el descenso por coordenadas
+entero, no una configuracion: el mismo procedimiento sobre los 35 splits posibles de 4
+partidos de ajuste / 3 de validacion. Gana **+1.7 pp** (IC 95 % [+1.4, +2.1]) en los
+partidos que cada descenso no uso para ajustarse y +3.3 pp en los que si, luego
+aproximadamente la mitad de la ganancia es sobreajuste. No vale decir que no se
+sobreajusto. Siete hiperparametros se clavaban en un borde de su lista de valores, asi
+que se amplio la rejilla (64 -> 82 valores) y se repitieron los 35 splits: +0.62 pp en el
+ajuste y **-0.13 pp** en validacion, mejorando en 14/35. Por eso la rejilla de
+`training/recalibrate.py` se queda como esta. El detalle no vive en este repo, que es el
+de entrega, sino en el material de trabajo del equipo (`VALIDACION-CRUZADA.md`).
 
 Cada valor lleva al lado de donde sale. RULES.md exige que el documento tecnico pueda
 explicar cualquier dato externo que entre en el metodo, y SUBMISSION.md que liste cada
@@ -37,16 +55,35 @@ DEFAULT = {
     # Anchos de ventana de suavizado centrado, en frames (25 fps). Hasta el 28-10 eran
     # +-50 los cuatro, elegidos por AUC en la ventana publica. Re-derivados en el arnes
     # IDSSE (barrido 6/12/25/50/100, mas 200 para la forma):
-    #   actividad  +-12  (6:.3754 12:.3761 25:.3755 50:.3747 100:.3657). La senal de balon
-    #              parado quiere ventana corta: +-2 s se comia las posesiones cortas.
+    #   actividad  +-50  (6:.3754 12:.3761 25:.3755 50:.3747 100:.3657). **12 -> 50 el
+    #              31-10.** Ese barrido es plano: entre 6 y 50 hay 0.14 pp y el 12 ganaba
+    #              al 50 por 0.0014, que no distingue nada. Tres medidas independientes
+    #              eligen 50 y ninguna elige 12: (a) en los 35 splits el descenso elige 12
+    #              en 1/35 -- 3/35 con la rejilla ampliada -- y la moda es 50; (b) poner 50
+    #              y no tocar nada mas da +1.11 pp de media en los 3 partidos de validacion,
+    #              con las tres semillas de degradacion del mismo signo (+1.14 / +1.40 /
+    #              +0.81) y mejorando en 5 de los 7 partidos; (c) en el ajuste el cambio es
+    #              neutro, +0.12 pp de media, no la perdida que sugeria el barrido.
+    #              AVISO DE PROCEDENCIA: 50 coincide con el valor que habia antes del 28-10,
+    #              que salia de la ventana publica y por tanto era inadmisible. La
+    #              coincidencia es solo eso. El 50 de ahora se justifica con los partidos
+    #              del IDSSE, en (a), (b) y (c), sin mirar la ventana publica; si la medida
+    #              hubiera dado otro numero, iria otro numero.
     #   vel. balon +-6   (6:.3871 12:.3848 25:.3838 50:.3770). Cuanto mas corta mejor;
-    #              2 y 4 dan +0.001, ruido.
+    #              2 y 4 dan +0.001, ruido. Con la rejilla ampliada hacia abajo la moda baja
+    #              a 3 (15/35) y 1 (12/35), pero ese brazo no mejora en validacion: se queda.
     #   control    +-50  (6:.3304 12:.3419 25:.3608 50:.3761 100:.3735). Al reves: con el
     #              balon ausente en rachas de 10 s de mediana, el nanmean necesita ventana
-    #              ancha para puentear los huecos. Confirmado, no cambia.
-    #   forma      +-200 (12:.3769 ... 100:.3816 200:.3838; 300:.3871 450:.3867 ya bajan).
-    #              Es una senal lenta y debil (AUC 0.63): solo sirve como prior de 8 s.
-    "activity_smooth": 12,
+    #              ancha para puentear los huecos. Confirmado, no cambia: 31/35 splits lo
+    #              eligen, el mas estable de los cuatro.
+    #   forma      +-200 (12:.3769 ... 100:.3816 200:.3838; 300:.3871 450:.3867).
+    #              CORRECCION del 31-10: aqui se leia que 300 y 450 "ya bajan" y es falso,
+    #              esos dos numeros son mas altos que el de 200. La rejilla ampliada tambien
+    #              los prefiere (300 en 16/35, 450 en 11/35). Se queda en 200 igualmente,
+    #              porque ese brazo gana +0.62 pp en el ajuste y -0.13 pp en los partidos
+    #              que no vio: lo que elige no generaliza. Es una senal lenta y debil
+    #              (AUC 0.63): solo sirve como prior de 8 s.
+    "activity_smooth": 50,
     "ball_speed_smooth": 6,
     "control_smooth": 50,
     "shape_smooth": 200,
@@ -66,8 +103,16 @@ DEFAULT = {
     # La tasa objetivo sale de los 7 partidos del IDSSE (training/idsse.py), que son
     # partidos completos y por tanto tienen la mezcla de clases correcta:
     #     41.5  51.7  44.3  47.6  40.7  46.5  41.9   ->  media 44.9%, rango 40.7-51.7
-    # El valor 1.26 es el que hace que el pipeline completo prediga D en el 45.3% de los
-    # frames puntuados, que es la tasa esperada.
+    # El valor 1.26 es el que hace que el pipeline completo prediga D en la tasa esperada.
+    # Medido el 31-10 sobre los 158.857 frames puntuados del ATD: **44.9 %**, contra la
+    # media de 44.9 % de los siete partidos del IDSSE. Clavado.
+    #
+    # Aqui se leia "45.3 %" y era otro numero que el fichero ya no producia: con
+    # activity_smooth en 12, como estaba hasta el 31-10, la tasa medida es 45.8 %. El
+    # suavizado de la actividad y este centro estan acoplados -- el centro se fija por
+    # percentil sobre la senal suavizada -- asi que cambiar la ventana mueve la tasa. La
+    # movio a favor: de 45.8 % a 44.9 %, acercandola al objetivo. Si se vuelve a tocar
+    # activity_smooth, hay que volver a medir esta tasa.
     #
     # Los dos ingredientes son independientes de la ventana publica: la tasa viene de
     # datos externos y la distribucion de actividad se mide sobre los 158.857 frames
