@@ -128,6 +128,16 @@ DEFAULT = {
     "activity_scale_ms": 0.45,
     "activity_weight": 1.0,        # arnes IDSSE: 0.5/1.0/1.5/2.5 -> .3793/.3905/.3753/.3599
 
+    # CONVENCION PARA LOS TRES CENTROS DE CLASE (este, control_center y shape_center):
+    # se escriben redondeados a dos o tres cifras significativas, y si se re-derivan con
+    # training/recalibrate.py se redondean igual antes de pegarlos aqui. El script los
+    # vuelca con dieciseis digitos, pero son la mediana de una senal float32 sobre partidos
+    # degradados con una semilla: a partir de la tercera cifra cambian con la semilla, asi
+    # que escribirlos enteros aparenta una precision que la medida no tiene. Comprobado el
+    # 31-10 que redondeados y sin redondear dan el mismo spellF1 a cuatro decimales en
+    # ajuste, validacion y los siete partidos. (Hasta ese dia el docstring citaba un numero
+    # de validacion que solo salia con los centros sin redondear; por eso esta nota.)
+    #
     # Cruce de medianas por clase sobre los 4 partidos de ajuste del IDSSE, degradados:
     # vivo 6.279 m/s, muerto 0.000 -> 3.14. (Antes 4.10, de la ventana publica.) El muerto
     # da 0 porque el balon parado de verdad no se mueve; en la ventana publica salia 1.84
