@@ -1,0 +1,49 @@
+config,tabla,categoria,porcentaje,n_frames_o_posesiones
+actual,error_por_racha_sin_balon,balon visible,15.58,592654
+actual,error_por_racha_sin_balon,1-25 fr,11.91,512
+actual,error_por_racha_sin_balon,26-125 fr,23.19,854
+actual,error_por_racha_sin_balon,126-500 fr,26.09,131727
+actual,error_por_racha_sin_balon,>500 fr,27.56,276897
+actual,error_por_distancia_a_transicion,0-12 fr,52.17,64788
+actual,error_por_distancia_a_transicion,13-25 fr,45.58,62778
+actual,error_por_distancia_a_transicion,26-75 fr,31.16,201171
+actual,error_por_distancia_a_transicion,76-250 fr,15.16,382358
+actual,error_por_distancia_a_transicion,>250 fr,6.93,291549
+actual,confusion_pct_fila,real H -> pred H,66.85,195259
+actual,confusion_pct_fila,real H -> pred A,22.71,66338
+actual,confusion_pct_fila,real H -> pred D,10.44,30481
+actual,confusion_pct_fila,real A -> pred H,19.47,50833
+actual,confusion_pct_fila,real A -> pred A,73.21,191093
+actual,confusion_pct_fila,real A -> pred D,7.32,19101
+actual,confusion_pct_fila,real D -> pred H,3.62,16264
+actual,confusion_pct_fila,real D -> pred A,4.51,20263
+actual,confusion_pct_fila,real D -> pred D,91.87,413012
+actual,recall_posesiones_por_duracion,<2 s,1.33,301
+actual,recall_posesiones_por_duracion,2-5 s,12.74,463
+actual,recall_posesiones_por_duracion,5-10 s,36.36,451
+actual,recall_posesiones_por_duracion,10-20 s,51.27,394
+actual,recall_posesiones_por_duracion,>20 s,62.8,336
+recalibrado,error_por_racha_sin_balon,balon visible,14.16,592654
+recalibrado,error_por_racha_sin_balon,1-25 fr,4.1,512
+recalibrado,error_por_racha_sin_balon,26-125 fr,19.56,854
+recalibrado,error_por_racha_sin_balon,126-500 fr,25.72,131727
+recalibrado,error_por_racha_sin_balon,>500 fr,27.19,276897
+recalibrado,error_por_distancia_a_transicion,0-12 fr,48.5,64788
+recalibrado,error_por_distancia_a_transicion,13-25 fr,41.66,62778
+recalibrado,error_por_distancia_a_transicion,26-75 fr,30.48,201171
+recalibrado,error_por_distancia_a_transicion,76-250 fr,14.22,382358
+recalibrado,error_por_distancia_a_transicion,>250 fr,6.86,291549
+recalibrado,confusion_pct_fila,real H -> pred H,73.71,215290
+recalibrado,confusion_pct_fila,real H -> pred A,16.7,48775
+recalibrado,confusion_pct_fila,real H -> pred D,9.59,28013
+recalibrado,confusion_pct_fila,real A -> pred H,23.86,62285
+recalibrado,confusion_pct_fila,real A -> pred A,68.97,180022
+recalibrado,confusion_pct_fila,real A -> pred D,7.17,18720
+recalibrado,confusion_pct_fila,real D -> pred H,4.21,18920
+recalibrado,confusion_pct_fila,real D -> pred A,3.68,16536
+recalibrado,confusion_pct_fila,real D -> pred D,92.11,414083
+recalibrado,recall_posesiones_por_duracion,<2 s,3.32,301
+recalibrado,recall_posesiones_por_duracion,2-5 s,11.02,463
+recalibrado,recall_posesiones_por_duracion,5-10 s,34.81,451
+recalibrado,recall_posesiones_por_duracion,10-20 s,54.31,394
+recalibrado,recall_posesiones_por_duracion,>20 s,65.18,336

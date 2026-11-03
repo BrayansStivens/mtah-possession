@@ -10,6 +10,9 @@ data/
 out/
 *.csv
 !vendor/evaluation/gt/*.csv
+# Las tablas de resultados del material de trabajo si entran (son salidas del modelo y
+# agregados sobre partidos publicos, nunca datos del partido).
+!trabajo/**/*.csv
 evaluation/results/
 reports/
 

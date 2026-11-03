@@ -1,0 +1,107 @@
+{
+  "config": {
+    "control_tau_m": 3.0,
+    "count_radii_m": [
+      2.0,
+      5.0
+    ],
+    "activity_smooth": 12,
+    "ball_speed_smooth": 6,
+    "control_smooth": 50,
+    "shape_smooth": 200,
+    "activity_center_ms": 1.26,
+    "activity_scale_ms": 0.45,
+    "activity_weight": 1.0,
+    "ball_speed_center_ms": 3.139409065246582,
+    "ball_speed_scale_ms": 2.0,
+    "ball_speed_weight": 0.6,
+    "ball_unseen_logit": 0.5,
+    "ball_out_logit": 2.5,
+    "control_center": 0.008297741413116455,
+    "control_weight": 6.0,
+    "shape_center": 0.975781112909317,
+    "shape_weight": 1.6,
+    "prob_floor": 0.02,
+    "switch_turnover": 40,
+    "switch_to_dead": 34.0,
+    "switch_from_dead": 14.0,
+    "min_duration_frames": 12
+  },
+  "centres_detail": {
+    "ball_speed_alive": 6.278818130493164,
+    "ball_speed_dead": 0.0,
+    "control_H": 0.21219801902770996,
+    "control_A": -0.19560253620147705,
+    "shape_H": 1.0463383197784424,
+    "shape_A": 0.9052239060401917
+  },
+  "tune": [
+    "J03WMX",
+    "J03WN1",
+    "J03WOH",
+    "J03WOY"
+  ],
+  "hold": [
+    "J03WPY",
+    "J03WQQ",
+    "J03WR9"
+  ],
+  "scores": {
+    "original_pre_sesion": {
+      "tune": [
+        0.31098973700103366,
+        0.7014564958805048
+      ],
+      "hold": [
+        0.32715299892948696,
+        0.7031007526869066
+      ],
+      "all": [
+        0.31791684925608504,
+        0.7021611773689627
+      ]
+    },
+    "actual_config_py": {
+      "tune": [
+        0.37138028188745176,
+        0.7640548280291977
+      ],
+      "hold": [
+        0.38371839233414723,
+        0.7729073371314573
+      ],
+      "all": [
+        0.37666804350746413,
+        0.7678487605015947
+      ]
+    },
+    "solo_centros": {
+      "tune": [
+        0.37472491757550064,
+        0.768910976696025
+      ],
+      "hold": [
+        0.39791349183278574,
+        0.7787765263427056
+      ],
+      "all": [
+        0.38466287797147997,
+        0.7731390694017453
+      ]
+    },
+    "recalibrado": {
+      "tune": [
+        0.3904913640075683,
+        0.7759608388494108
+      ],
+      "hold": [
+        0.3956618454996212,
+        0.7766959786674555
+      ],
+      "all": [
+        0.3927072846470195,
+        0.77627589877143
+      ]
+    }
+  }
+}

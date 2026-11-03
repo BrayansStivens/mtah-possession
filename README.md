@@ -7,6 +7,11 @@ FC Barcelona – Athletic Club (LaLiga 2024-25, J2), qué equipo tiene el balón
 Se puntúa con `spellF1` sobre un ground truth privado de partido completo.
 Suelo oficial a batir: **`spellF1` 0.2433** (`baseline_smooth50`).
 
+> **Para el equipo:** el estado del proyecto —qué está hecho, qué falta, qué problemas
+> vimos y qué no hemos podido medir— está en [`ESTADO.md`](ESTADO.md). El análisis, los
+> documentos y las tablas de resultados están en [`trabajo/`](trabajo/README.md). Este
+> README describe solo el código de la entrega.
+
 ---
 
 ## Instalación

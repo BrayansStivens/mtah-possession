@@ -1,0 +1,29 @@
+{
+  "_procedencia": "Medido el 29-10-2026 re-ejecutando el arnes IDSSE desde out/cache (7 partidos degradados, semillas 0/1/2). Scripts: handoff-plugin-data/semillas.py y reeval.py. 'recalibrado' es config.py exacto; 'solo_centros' es una RECONSTRUCCION del config previo al 28-10 (ese fichero no se conserva: el repo no tiene commits), por lo que su nivel absoluto no reproduce el JSON (-0,3 a -0,7 pp). El rango entre semillas no depende de ese sesgo.",
+  "spellF1": {
+    "solo_centros_reconstruido": {"s0": {"ajuste": 0.3713, "validacion": 0.3908, "todos": 0.3797},
+                                  "s1": {"ajuste": 0.3792, "validacion": 0.3760, "todos": 0.3778},
+                                  "s2": {"ajuste": 0.3806, "validacion": 0.4250, "todos": 0.3996}},
+    "recalibrado_config_py":     {"s0": {"ajuste": 0.3905, "validacion": 0.3968, "todos": 0.3932},
+                                  "s1": {"ajuste": 0.3851, "validacion": 0.3715, "todos": 0.3793},
+                                  "s2": {"ajuste": 0.4019, "validacion": 0.4189, "todos": 0.4092}}
+  },
+  "delta_recalibrado_menos_solo_centros": {
+    "s0": {"ajuste": 0.0191, "validacion": 0.0060},
+    "s1": {"ajuste": 0.0059, "validacion": -0.0044},
+    "s2": {"ajuste": 0.0213, "validacion": -0.0061},
+    "media_validacion": -0.0015,
+    "rango_validacion": [-0.0061, 0.0060]
+  },
+  "ablacion_semilla0_desde_config_py": {
+    "_base": {"ajuste": 0.3905, "validacion": 0.3968},
+    "_nota": "cada fila revierte UN valor al que tenia antes del 28-10, todo lo demas igual a config.py",
+    "activity_smooth 12->50":      {"ajuste": 0.3878, "validacion": 0.4081, "d_ajuste": -0.0027, "d_validacion": 0.0114},
+    "ball_speed_smooth 6->50":     {"ajuste": 0.3795, "validacion": 0.4000, "d_ajuste": -0.0110, "d_validacion": 0.0033},
+    "shape_smooth 200->50":        {"ajuste": 0.3835, "validacion": 0.3904, "d_ajuste": -0.0069, "d_validacion": -0.0063},
+    "switch_turnover 40->28":      {"ajuste": 0.3867, "validacion": 0.3841, "d_ajuste": -0.0037, "d_validacion": -0.0127},
+    "ball_speed_center 3.14->4.10":{"ajuste": 0.3852, "validacion": 0.3974, "d_ajuste": -0.0052, "d_validacion": 0.0006},
+    "control_center 0.008->0.096": {"ajuste": 0.3899, "validacion": 0.3813, "d_ajuste": -0.0006, "d_validacion": -0.0155},
+    "shape_center 0.976->0.975":   {"ajuste": 0.3905, "validacion": 0.3968, "d_ajuste": 0.0, "d_validacion": 0.0}
+  }
+}

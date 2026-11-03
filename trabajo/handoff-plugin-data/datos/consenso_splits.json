@@ -1,0 +1,25 @@
+{
+  "consenso": {
+    "activity_smooth": 50,
+    "control_smooth": 50,
+    "shape_smooth": 200,
+    "ball_speed_smooth": 6,
+    "min_duration_frames": 50,
+    "switch_turnover": 40,
+    "switch_to_dead": 45,
+    "switch_from_dead": 22,
+    "control_weight": 6.0,
+    "shape_weight": 1.6,
+    "activity_weight": 1.0,
+    "ball_speed_weight": 1.2,
+    "ball_unseen_logit": 0.0,
+    "activity_center_ms": 1.18
+  },
+  "delta_elegido_menos_configpy_hold": {
+    "media": 0.003604400411963693,
+    "min": -0.026501641280316013,
+    "max": 0.02624078987622508,
+    "gana": 24,
+    "n": 35
+  }
+}

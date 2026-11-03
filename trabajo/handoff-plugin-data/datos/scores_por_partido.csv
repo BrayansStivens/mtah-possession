@@ -1,0 +1,15 @@
+partido,grupo,config,spellF1,macroF1,posesiones_reales,posesiones_predichas,dur_media_real_s,dur_media_pred_s
+J03WMX,ajuste,actual,0.3434,0.7682,289,206,11.8,16.2
+J03WN1,ajuste,actual,0.3254,0.7355,310,221,8.8,11.6
+J03WOH,ajuste,actual,0.4442,0.8024,266,223,10.8,13.1
+J03WOY,ajuste,actual,0.3598,0.7502,288,230,10.6,13.5
+J03WPY,validacion,actual,0.3807,0.7816,277,221,11.8,14.3
+J03WQQ,validacion,actual,0.4209,0.7757,253,225,13.3,14.8
+J03WR9,validacion,actual,0.3488,0.7595,262,215,13.0,14.7
+J03WMX,ajuste,recalibrado,0.3607,0.7778,289,189,11.8,17.7
+J03WN1,ajuste,recalibrado,0.3435,0.7515,310,207,8.8,12.5
+J03WOH,ajuste,recalibrado,0.4678,0.8141,266,194,10.8,15.0
+J03WOY,ajuste,recalibrado,0.379,0.7622,288,207,10.6,15.2
+J03WPY,validacion,recalibrado,0.3889,0.7906,277,192,11.8,16.4
+J03WQQ,validacion,recalibrado,0.4584,0.7838,253,213,13.3,15.7
+J03WR9,validacion,recalibrado,0.3771,0.7732,262,192,13.0,16.7

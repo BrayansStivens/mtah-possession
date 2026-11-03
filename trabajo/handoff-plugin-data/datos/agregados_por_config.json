@@ -1,0 +1,110 @@
+[
+ {
+  "config": "original",
+  "etiqueta": "Antes de la sesión",
+  "orden_config": 1,
+  "grupo": "ajuste",
+  "orden_grupo": 1,
+  "spellF1": 0.311,
+  "macroF1": 0.7015
+ },
+ {
+  "config": "original",
+  "etiqueta": "Antes de la sesión",
+  "orden_config": 1,
+  "grupo": "validacion",
+  "orden_grupo": 2,
+  "spellF1": 0.3272,
+  "macroF1": 0.7031
+ },
+ {
+  "config": "original",
+  "etiqueta": "Antes de la sesión",
+  "orden_config": 1,
+  "grupo": "todos",
+  "orden_grupo": 3,
+  "spellF1": 0.3179,
+  "macroF1": 0.7022
+ },
+ {
+  "config": "actual",
+  "etiqueta": "Antes del 28-10",
+  "orden_config": 2,
+  "grupo": "ajuste",
+  "orden_grupo": 1,
+  "spellF1": 0.3682,
+  "macroF1": 0.7641
+ },
+ {
+  "config": "actual",
+  "etiqueta": "Antes del 28-10",
+  "orden_config": 2,
+  "grupo": "validacion",
+  "orden_grupo": 2,
+  "spellF1": 0.3835,
+  "macroF1": 0.7723
+ },
+ {
+  "config": "actual",
+  "etiqueta": "Antes del 28-10",
+  "orden_config": 2,
+  "grupo": "todos",
+  "orden_grupo": 3,
+  "spellF1": 0.3748,
+  "macroF1": 0.7676
+ },
+ {
+  "config": "solo_centros",
+  "etiqueta": "Solo centros",
+  "orden_config": 3,
+  "grupo": "ajuste",
+  "orden_grupo": 1,
+  "spellF1": 0.3713,
+  "macroF1": 0.7679
+ },
+ {
+  "config": "solo_centros",
+  "etiqueta": "Solo centros",
+  "orden_config": 3,
+  "grupo": "validacion",
+  "orden_grupo": 2,
+  "spellF1": 0.3908,
+  "macroF1": 0.7765
+ },
+ {
+  "config": "solo_centros",
+  "etiqueta": "Solo centros",
+  "orden_config": 3,
+  "grupo": "todos",
+  "orden_grupo": 3,
+  "spellF1": 0.3797,
+  "macroF1": 0.7716
+ },
+ {
+  "config": "recalibrado",
+  "etiqueta": "Hoy (config.py)",
+  "orden_config": 4,
+  "grupo": "ajuste",
+  "orden_grupo": 1,
+  "spellF1": 0.3878,
+  "macroF1": 0.7764
+ },
+ {
+  "config": "recalibrado",
+  "etiqueta": "Hoy (config.py)",
+  "orden_config": 4,
+  "grupo": "validacion",
+  "orden_grupo": 2,
+  "spellF1": 0.4081,
+  "macroF1": 0.7826
+ },
+ {
+  "config": "recalibrado",
+  "etiqueta": "Hoy (config.py)",
+  "orden_config": 4,
+  "grupo": "todos",
+  "orden_grupo": 3,
+  "spellF1": 0.3965,
+  "macroF1": 0.779
+ }
+]

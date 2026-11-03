@@ -1,0 +1,45 @@
+{
+ "_que_es": "ganancia del procedimiento de recalibracion (descenso por coordenadas) sobre las 35 particiones de 4 ajuste / 3 validacion de los 7 partidos IDSSE, semilla 0; resumen de splits_cruzados*.json hecho el 2-11 para el dashboard",
+ "rows": [
+  {
+   "brazo": "rejilla",
+   "grupo": "ajuste",
+   "n_splits": 35,
+   "ganancia_pp": 3.27,
+   "ic95_bajo_pp": 3.02,
+   "ic95_alto_pp": 3.52,
+   "mejora_en": 35,
+   "valores_rejilla": 64
+  },
+  {
+   "brazo": "rejilla",
+   "grupo": "validacion",
+   "n_splits": 35,
+   "ganancia_pp": 1.71,
+   "ic95_bajo_pp": 1.37,
+   "ic95_alto_pp": 2.05,
+   "mejora_en": 32,
+   "valores_rejilla": 64
+  },
+  {
+   "brazo": "ampliada",
+   "grupo": "ajuste",
+   "n_splits": 35,
+   "ganancia_pp": 3.89,
+   "ic95_bajo_pp": 3.64,
+   "ic95_alto_pp": 4.14,
+   "mejora_en": 35,
+   "valores_rejilla": 82
+  },
+  {
+   "brazo": "ampliada",
+   "grupo": "validacion",
+   "n_splits": 35,
+   "ganancia_pp": 1.58,
+   "ic95_bajo_pp": 1.23,
+   "ic95_alto_pp": 1.94,
+   "mejora_en": 33,
+   "valores_rejilla": 82
+  }
+ ]
+}

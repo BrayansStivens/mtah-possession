@@ -1,0 +1,2227 @@
+{
+  "_en_curso": false,
+  "brazo": "ampliada",
+  "rejilla": {
+    "activity_smooth": [
+      6,
+      12,
+      25,
+      50,
+      100
+    ],
+    "control_smooth": [
+      6,
+      12,
+      25,
+      50,
+      100
+    ],
+    "shape_smooth": [
+      12,
+      25,
+      50,
+      100,
+      200,
+      300,
+      450
+    ],
+    "ball_speed_smooth": [
+      1,
+      3,
+      6,
+      12,
+      25,
+      50
+    ],
+    "min_duration_frames": [
+      0,
+      6,
+      12,
+      25,
+      50,
+      70,
+      100
+    ],
+    "switch_turnover": [
+      8,
+      14,
+      20,
+      28,
+      40,
+      56,
+      78,
+      110
+    ],
+    "switch_to_dead": [
+      10,
+      18,
+      26,
+      34,
+      45,
+      63,
+      88,
+      123
+    ],
+    "switch_from_dead": [
+      4,
+      8,
+      14,
+      22,
+      31,
+      43,
+      60
+    ],
+    "control_weight": [
+      2,
+      4,
+      6,
+      9,
+      13
+    ],
+    "shape_weight": [
+      0.0,
+      0.5,
+      1.0,
+      1.6,
+      3.0
+    ],
+    "activity_weight": [
+      0.5,
+      1.0,
+      1.5,
+      2.5
+    ],
+    "ball_speed_weight": [
+      0.0,
+      0.3,
+      0.6,
+      1.2,
+      1.7,
+      2.4,
+      3.4
+    ],
+    "ball_unseen_logit": [
+      0.0,
+      0.25,
+      0.5,
+      1.0
+    ],
+    "activity_center_ms": [
+      1.1,
+      1.18,
+      1.26,
+      1.35
+    ]
+  },
+  "inicio": {
+    "control_tau_m": 3.0,
+    "count_radii_m": [
+      2.0,
+      5.0
+    ],
+    "activity_smooth": 50,
+    "ball_speed_smooth": 50,
+    "control_smooth": 50,
+    "shape_smooth": 50,
+    "activity_center_ms": 1.26,
+    "activity_scale_ms": 0.45,
+    "activity_weight": 1.0,
+    "ball_speed_center_ms": 3.139409065246582,
+    "ball_speed_scale_ms": 2.0,
+    "ball_speed_weight": 0.6,
+    "ball_unseen_logit": 0.5,
+    "ball_out_logit": 2.5,
+    "control_center": 0.008297741413116455,
+    "control_weight": 6.0,
+    "shape_center": 0.975781112909317,
+    "shape_weight": 1.6,
+    "prob_floor": 0.02,
+    "switch_turnover": 28.0,
+    "switch_to_dead": 34.0,
+    "switch_from_dead": 14.0,
+    "min_duration_frames": 12
+  },
+  "barridos": [
+    "activity_smooth",
+    "control_smooth",
+    "shape_smooth",
+    "ball_speed_smooth",
+    "min_duration_frames",
+    "switch_turnover",
+    "switch_to_dead",
+    "switch_from_dead",
+    "control_weight",
+    "shape_weight",
+    "activity_weight",
+    "ball_speed_weight",
+    "ball_unseen_logit",
+    "activity_center_ms"
+  ],
+  "splits": [
+    {
+      "i": 1,
+      "tune": [
+        "J03WMX",
+        "J03WN1",
+        "J03WOH",
+        "J03WOY"
+      ],
+      "hold": [
+        "J03WPY",
+        "J03WQQ",
+        "J03WR9"
+      ],
+      "es_split_original": true,
+      "tune_inicio": 0.37134710570369256,
+      "tune_elegido": 0.4027693558082914,
+      "hold_inicio": 0.390753891630313,
+      "hold_elegido": 0.41147076232576,
+      "elegido": {
+        "activity_smooth": 50,
+        "control_smooth": 50,
+        "shape_smooth": 450,
+        "ball_speed_smooth": 3,
+        "min_duration_frames": 12,
+        "switch_turnover": 28.0,
+        "switch_to_dead": 63,
+        "switch_from_dead": 14,
+        "control_weight": 6.0,
+        "shape_weight": 1.6,
+        "activity_weight": 1.0,
+        "ball_speed_weight": 1.2,
+        "ball_unseen_logit": 0.5,
+        "activity_center_ms": 1.26
+      },
+      "cambios": {
+        "shape_smooth": 450,
+        "ball_speed_smooth": 3,
+        "switch_to_dead": 63,
+        "ball_speed_weight": 1.2
+      },
+      "s1_inicio": 0.37781258104160625,
+      "s1_elegido": 0.3942218377428438,
+      "s2_inicio": 0.3995993704577906,
+      "s2_elegido": 0.4219956856196315
+    },
+    {
+      "i": 2,
+      "tune": [
+        "J03WMX",
+        "J03WN1",
+        "J03WOH",
+        "J03WPY"
+      ],
+      "hold": [
+        "J03WOY",
+        "J03WQQ",
+        "J03WR9"
+      ],
+      "es_split_original": false,
+      "tune_inicio": 0.37663082814208426,
+      "tune_elegido": 0.40959427669530324,
+      "hold_inicio": 0.383708928379124,
+      "hold_elegido": 0.3935680958065693,
+      "elegido": {
+        "activity_smooth": 50,
+        "control_smooth": 50,
+        "shape_smooth": 12,
+        "ball_speed_smooth": 1,
+        "min_duration_frames": 12,
+        "switch_turnover": 56,
+        "switch_to_dead": 34.0,
+        "switch_from_dead": 22,
+        "control_weight": 6.0,
+        "shape_weight": 1.6,
+        "activity_weight": 1.0,
+        "ball_speed_weight": 1.2,
+        "ball_unseen_logit": 1.0,
+        "activity_center_ms": 1.1
+      },
+      "cambios": {
+        "shape_smooth": 12,
+        "ball_speed_smooth": 1,
+        "switch_turnover": 56,
+        "switch_from_dead": 22,
+        "ball_speed_weight": 1.2,
+        "ball_unseen_logit": 1.0,
+        "activity_center_ms": 1.1
+      },
+      "s1_inicio": 0.37781258104160625,
+      "s1_elegido": 0.39203226438478417,
+      "s2_inicio": 0.3995993704577906,
+      "s2_elegido": 0.4117727339989542
+    },
+    {
+      "i": 3,
+      "tune": [
+        "J03WMX",
+        "J03WN1",
+        "J03WOH",
+        "J03WQQ"
+      ],
+      "hold": [
+        "J03WOY",
+        "J03WPY",
+        "J03WR9"
+      ],
+      "es_split_original": false,
+      "tune_inicio": 0.39027534291001675,
+      "tune_elegido": 0.4209968979564668,
+      "hold_inicio": 0.3655162420218807,
+      "hold_elegido": 0.3816454013822435,
+      "elegido": {
+        "activity_smooth": 50,
+        "control_smooth": 50,
+        "shape_smooth": 300,
+        "ball_speed_smooth": 3,
+        "min_duration_frames": 0,
+        "switch_turnover": 56,
+        "switch_to_dead": 45,
+        "switch_from_dead": 8,
+        "control_weight": 6.0,
+        "shape_weight": 1.6,
+        "activity_weight": 1.0,
+        "ball_speed_weight": 0.6,
+        "ball_unseen_logit": 0.5,
+        "activity_center_ms": 1.26
+      },
+      "cambios": {
+        "shape_smooth": 300,
+        "ball_speed_smooth": 3,
+        "min_duration_frames": 0,
+        "switch_turnover": 56,
+        "switch_to_dead": 45,
+        "switch_from_dead": 8
+      },
+      "s1_inicio": 0.37781258104160625,
+      "s1_elegido": 0.38876862852815197,
+      "s2_inicio": 0.3995993704577906,
+      "s2_elegido": 0.4119096916318397
+    },
+    {
+      "i": 4,
+      "tune": [
+        "J03WMX",
+        "J03WN1",
+        "J03WOH",
+        "J03WR9"
+      ],
+      "hold": [
+        "J03WOY",
+        "J03WPY",
+        "J03WQQ"
+      ],
+      "es_split_original": false,
+      "tune_inicio": 0.3723017320968865,
+      "tune_elegido": 0.40449143602685045,
+      "hold_inicio": 0.38948105643938763,
+      "hold_elegido": 0.4140281914670283,
+      "elegido": {
+        "activity_smooth": 50,
+        "control_smooth": 50,
+        "shape_smooth": 450,
+        "ball_speed_smooth": 1,
+        "min_duration_frames": 70,
+        "switch_turnover": 28.0,
+        "switch_to_dead": 63,
+        "switch_from_dead": 31,
+        "control_weight": 6.0,
+        "shape_weight": 1.6,
+        "activity_weight": 1.0,
+        "ball_speed_weight": 1.2,
+        "ball_unseen_logit": 0.5,
+        "activity_center_ms": 1.26
+      },
+      "cambios": {
+        "shape_smooth": 450,
+        "ball_speed_smooth": 1,
+        "min_duration_frames": 70,
+        "switch_to_dead": 63,
+        "switch_from_dead": 31,
+        "ball_speed_weight": 1.2
+      },
+      "s1_inicio": 0.37781258104160625,
+      "s1_elegido": 0.39716841589918955,
+      "s2_inicio": 0.3995993704577906,
+      "s2_elegido": 0.4233148728349425
+    },
+    {
+      "i": 5,
+      "tune": [
+        "J03WMX",
+        "J03WN1",
+        "J03WOY",
+        "J03WPY"
+      ],
+      "hold": [
+        "J03WOH",
+        "J03WQQ",
+        "J03WR9"
+      ],
+      "es_split_original": false,
+      "tune_inicio": 0.3545668026733896,
+      "tune_elegido": 0.3786322955241295,
+      "hold_inicio": 0.41312762900405037,
+      "hold_elegido": 0.4219288625734758,
+      "elegido": {
+        "activity_smooth": 6,
+        "control_smooth": 50,
+        "shape_smooth": 25,
+        "ball_speed_smooth": 3,
+        "min_duration_frames": 12,
+        "switch_turnover": 56,
+        "switch_to_dead": 34.0,
+        "switch_from_dead": 22,
+        "control_weight": 6.0,
+        "shape_weight": 1.6,
+        "activity_weight": 1.0,
+        "ball_speed_weight": 1.2,
+        "ball_unseen_logit": 0.5,
+        "activity_center_ms": 1.26
+      },
+      "cambios": {
+        "activity_smooth": 6,
+        "shape_smooth": 25,
+        "ball_speed_smooth": 3,
+        "switch_turnover": 56,
+        "switch_from_dead": 22,
+        "ball_speed_weight": 1.2
+      },
+      "s1_inicio": 0.37781258104160625,
+      "s1_elegido": 0.38318599358844674,
+      "s2_inicio": 0.3995993704577906,
+      "s2_elegido": 0.4098706495030093
+    },
+    {
+      "i": 6,
+      "tune": [
+        "J03WMX",
+        "J03WN1",
+        "J03WOY",
+        "J03WQQ"
+      ],
+      "hold": [
+        "J03WOH",
+        "J03WPY",
+        "J03WR9"
+      ],
+      "es_split_original": false,
+      "tune_inicio": 0.3682113174413221,
+      "tune_elegido": 0.39976912017868904,
+      "hold_inicio": 0.394934942646807,
+      "hold_elegido": 0.4096824384192805,
+      "elegido": {
+        "activity_smooth": 50,
+        "control_smooth": 50,
+        "shape_smooth": 300,
+        "ball_speed_smooth": 3,
+        "min_duration_frames": 12,
+        "switch_turnover": 56,
+        "switch_to_dead": 45,
+        "switch_from_dead": 8,
+        "control_weight": 6.0,
+        "shape_weight": 1.6,
+        "activity_weight": 1.0,
+        "ball_speed_weight": 0.6,
+        "ball_unseen_logit": 0.5,
+        "activity_center_ms": 1.26
+      },
+      "cambios": {
+        "shape_smooth": 300,
+        "ball_speed_smooth": 3,
+        "switch_turnover": 56,
+        "switch_to_dead": 45,
+        "switch_from_dead": 8
+      },
+      "s1_inicio": 0.37781258104160625,
+      "s1_elegido": 0.3886452098302193,
+      "s2_inicio": 0.3995993704577906,
+      "s2_elegido": 0.41190941500475375
+    },
+    {
+      "i": 7,
+      "tune": [
+        "J03WMX",
+        "J03WN1",
+        "J03WOY",
+        "J03WR9"
+      ],
+      "hold": [
+        "J03WOH",
+        "J03WPY",
+        "J03WQQ"
+      ],
+      "es_split_original": false,
+      "tune_inicio": 0.3502377066281918,
+      "tune_elegido": 0.3827720747240297,
+      "hold_inicio": 0.41889975706431404,
+      "hold_elegido": 0.4442181101617111,
+      "elegido": {
+        "activity_smooth": 25,
+        "control_smooth": 50,
+        "shape_smooth": 450,
+        "ball_speed_smooth": 3,
+        "min_duration_frames": 70,
+        "switch_turnover": 28.0,
+        "switch_to_dead": 63,
+        "switch_from_dead": 22,
+        "control_weight": 6.0,
+        "shape_weight": 1.6,
+        "activity_weight": 1.0,
+        "ball_speed_weight": 1.2,
+        "ball_unseen_logit": 0.5,
+        "activity_center_ms": 1.18
+      },
+      "cambios": {
+        "activity_smooth": 25,
+        "shape_smooth": 450,
+        "ball_speed_smooth": 3,
+        "min_duration_frames": 70,
+        "switch_to_dead": 63,
+        "switch_from_dead": 22,
+        "ball_speed_weight": 1.2,
+        "activity_center_ms": 1.18
+      },
+      "s1_inicio": 0.37781258104160625,
+      "s1_elegido": 0.39523499776267157,
+      "s2_inicio": 0.3995993704577906,
+      "s2_elegido": 0.4222899857241931
+    },
+    {
+      "i": 8,
+      "tune": [
+        "J03WMX",
+        "J03WN1",
+        "J03WPY",
+        "J03WQQ"
+      ],
+      "hold": [
+        "J03WOH",
+        "J03WOY",
+        "J03WR9"
+      ],
+      "es_split_original": false,
+      "tune_inicio": 0.3734950398797138,
+      "tune_elegido": 0.41424537709506715,
+      "hold_inicio": 0.3878899793956181,
+      "hold_elegido": 0.4093615760731819,
+      "elegido": {
+        "activity_smooth": 50,
+        "control_smooth": 100,
+        "shape_smooth": 100,
+        "ball_speed_smooth": 1,
+        "min_duration_frames": 70,
+        "switch_turnover": 28.0,
+        "switch_to_dead": 88,
+        "switch_from_dead": 8,
+        "control_weight": 9,
+        "shape_weight": 1.0,
+        "activity_weight": 0.5,
+        "ball_speed_weight": 1.2,
+        "ball_unseen_logit": 0.0,
+        "activity_center_ms": 1.26
+      },
+      "cambios": {
+        "control_smooth": 100,
+        "shape_smooth": 100,
+        "ball_speed_smooth": 1,
+        "min_duration_frames": 70,
+        "switch_to_dead": 88,
+        "switch_from_dead": 8,
+        "control_weight": 9,
+        "shape_weight": 1.0,
+        "activity_weight": 0.5,
+        "ball_speed_weight": 1.2,
+        "ball_unseen_logit": 0.0
+      },
+      "s1_inicio": 0.37781258104160625,
+      "s1_elegido": 0.4044869870760182,
+      "s2_inicio": 0.3995993704577906,
+      "s2_elegido": 0.4179725448957288
+    },
+    {
+      "i": 9,
+      "tune": [
+        "J03WMX",
+        "J03WN1",
+        "J03WPY",
+        "J03WR9"
+      ],
+      "hold": [
+        "J03WOH",
+        "J03WOY",
+        "J03WQQ"
+      ],
+      "es_split_original": false,
+      "tune_inicio": 0.3555214290665835,
+      "tune_elegido": 0.39337546722151323,
+      "hold_inicio": 0.4118547938131251,
+      "hold_elegido": 0.423173477230452,
+      "elegido": {
+        "activity_smooth": 100,
+        "control_smooth": 100,
+        "shape_smooth": 100,
+        "ball_speed_smooth": 3,
+        "min_duration_frames": 70,
+        "switch_turnover": 8,
+        "switch_to_dead": 88,
+        "switch_from_dead": 8,
+        "control_weight": 6.0,
+        "shape_weight": 1.6,
+        "activity_weight": 1.0,
+        "ball_speed_weight": 1.7,
+        "ball_unseen_logit": 0.5,
+        "activity_center_ms": 1.1
+      },
+      "cambios": {
+        "activity_smooth": 100,
+        "control_smooth": 100,
+        "shape_smooth": 100,
+        "ball_speed_smooth": 3,
+        "min_duration_frames": 70,
+        "switch_turnover": 8,
+        "switch_to_dead": 88,
+        "switch_from_dead": 8,
+        "ball_speed_weight": 1.7,
+        "activity_center_ms": 1.1
+      },
+      "s1_inicio": 0.37781258104160625,
+      "s1_elegido": 0.39338920259887333,
+      "s2_inicio": 0.3995993704577906,
+      "s2_elegido": 0.4157438201859988
+    },
+    {
+      "i": 10,
+      "tune": [
+        "J03WMX",
+        "J03WN1",
+        "J03WQQ",
+        "J03WR9"
+      ],
+      "hold": [
+        "J03WOH",
+        "J03WOY",
+        "J03WPY"
+      ],
+      "es_split_original": false,
+      "tune_inicio": 0.369165943834516,
+      "tune_elegido": 0.4062079859667554,
+      "hold_inicio": 0.39366210745588176,
+      "hold_elegido": 0.4087301153165536,
+      "elegido": {
+        "activity_smooth": 100,
+        "control_smooth": 100,
+        "shape_smooth": 450,
+        "ball_speed_smooth": 1,
+        "min_duration_frames": 12,
+        "switch_turnover": 28.0,
+        "switch_to_dead": 63,
+        "switch_from_dead": 14,
+        "control_weight": 6.0,
+        "shape_weight": 1.0,
+        "activity_weight": 0.5,
+        "ball_speed_weight": 0.6,
+        "ball_unseen_logit": 0.0,
+        "activity_center_ms": 1.26
+      },
+      "cambios": {
+        "activity_smooth": 100,
+        "control_smooth": 100,
+        "shape_smooth": 450,
+        "ball_speed_smooth": 1,
+        "switch_to_dead": 63,
+        "shape_weight": 1.0,
+        "activity_weight": 0.5,
+        "ball_unseen_logit": 0.0
+      },
+      "s1_inicio": 0.37781258104160625,
+      "s1_elegido": 0.40123632135478166,
+      "s2_inicio": 0.3995993704577906,
+      "s2_elegido": 0.40995137734216075
+    },
+    {
+      "i": 11,
+      "tune": [
+        "J03WMX",
+        "J03WOH",
+        "J03WOY",
+        "J03WPY"
+      ],
+      "hold": [
+        "J03WN1",
+        "J03WQQ",
+        "J03WR9"
+      ],
+      "es_split_original": false,
+      "tune_inicio": 0.38174964807657397,
+      "tune_elegido": 0.4178607813264075,
+      "hold_inicio": 0.37688383513313783,
+      "hold_elegido": 0.39741616778568273,
+      "elegido": {
+        "activity_smooth": 12,
+        "control_smooth": 100,
+        "shape_smooth": 300,
+        "ball_speed_smooth": 6,
+        "min_duration_frames": 70,
+        "switch_turnover": 8,
+        "switch_to_dead": 123,
+        "switch_from_dead": 60,
+        "control_weight": 6.0,
+        "shape_weight": 1.6,
+        "activity_weight": 1.0,
+        "ball_speed_weight": 2.4,
+        "ball_unseen_logit": 0.5,
+        "activity_center_ms": 1.26
+      },
+      "cambios": {
+        "activity_smooth": 12,
+        "control_smooth": 100,
+        "shape_smooth": 300,
+        "ball_speed_smooth": 6,
+        "min_duration_frames": 70,
+        "switch_turnover": 8,
+        "switch_to_dead": 123,
+        "switch_from_dead": 60,
+        "ball_speed_weight": 2.4
+      },
+      "s1_inicio": 0.37781258104160625,
+      "s1_elegido": 0.4024682327735739,
+      "s2_inicio": 0.3995993704577906,
+      "s2_elegido": 0.4225957651904472
+    },
+    {
+      "i": 12,
+      "tune": [
+        "J03WMX",
+        "J03WOH",
+        "J03WOY",
+        "J03WQQ"
+      ],
+      "hold": [
+        "J03WN1",
+        "J03WPY",
+        "J03WR9"
+      ],
+      "es_split_original": false,
+      "tune_inicio": 0.39539416284450646,
+      "tune_elegido": 0.44583661855778894,
+      "hold_inicio": 0.35869114877589453,
+      "hold_elegido": 0.37999004507468426,
+      "elegido": {
+        "activity_smooth": 25,
+        "control_smooth": 50,
+        "shape_smooth": 300,
+        "ball_speed_smooth": 3,
+        "min_duration_frames": 70,
+        "switch_turnover": 56,
+        "switch_to_dead": 63,
+        "switch_from_dead": 14.0,
+        "control_weight": 6.0,
+        "shape_weight": 1.6,
+        "activity_weight": 0.5,
+        "ball_speed_weight": 1.2,
+        "ball_unseen_logit": 0.25,
+        "activity_center_ms": 1.18
+      },
+      "cambios": {
+        "activity_smooth": 25,
+        "shape_smooth": 300,
+        "ball_speed_smooth": 3,
+        "min_duration_frames": 70,
+        "switch_turnover": 56,
+        "switch_to_dead": 63,
+        "activity_weight": 0.5,
+        "ball_speed_weight": 1.2,
+        "ball_unseen_logit": 0.25,
+        "activity_center_ms": 1.18
+      },
+      "s1_inicio": 0.37781258104160625,
+      "s1_elegido": 0.40170766335872093,
+      "s2_inicio": 0.3995993704577906,
+      "s2_elegido": 0.41890549292527196
+    },
+    {
+      "i": 13,
+      "tune": [
+        "J03WMX",
+        "J03WOH",
+        "J03WOY",
+        "J03WR9"
+      ],
+      "hold": [
+        "J03WN1",
+        "J03WPY",
+        "J03WQQ"
+      ],
+      "es_split_original": false,
+      "tune_inicio": 0.3774205520313762,
+      "tune_elegido": 0.4254727704598187,
+      "hold_inicio": 0.3826559631934015,
+      "hold_elegido": 0.399290342147485,
+      "elegido": {
+        "activity_smooth": 6,
+        "control_smooth": 50,
+        "shape_smooth": 450,
+        "ball_speed_smooth": 3,
+        "min_duration_frames": 70,
+        "switch_turnover": 40,
+        "switch_to_dead": 123,
+        "switch_from_dead": 14.0,
+        "control_weight": 6.0,
+        "shape_weight": 1.6,
+        "activity_weight": 0.5,
+        "ball_speed_weight": 1.2,
+        "ball_unseen_logit": 0.5,
+        "activity_center_ms": 1.18
+      },
+      "cambios": {
+        "activity_smooth": 6,
+        "shape_smooth": 450,
+        "ball_speed_smooth": 3,
+        "min_duration_frames": 70,
+        "switch_turnover": 40,
+        "switch_to_dead": 123,
+        "activity_weight": 0.5,
+        "ball_speed_weight": 1.2,
+        "activity_center_ms": 1.18
+      },
+      "s1_inicio": 0.37781258104160625,
+      "s1_elegido": 0.40512704218982404,
+      "s2_inicio": 0.3995993704577906,
+      "s2_elegido": 0.41721734803690935
+    },
+    {
+      "i": 14,
+      "tune": [
+        "J03WMX",
+        "J03WOH",
+        "J03WPY",
+        "J03WQQ"
+      ],
+      "hold": [
+        "J03WN1",
+        "J03WOY",
+        "J03WR9"
+      ],
+      "es_split_original": false,
+      "tune_inicio": 0.40067788528289816,
+      "tune_elegido": 0.4401328877390714,
+      "hold_inicio": 0.35164618552470556,
+      "hold_elegido": 0.3603872453786494,
+      "elegido": {
+        "activity_smooth": 100,
+        "control_smooth": 50,
+        "shape_smooth": 200,
+        "ball_speed_smooth": 6,
+        "min_duration_frames": 50,
+        "switch_turnover": 56,
+        "switch_to_dead": 34.0,
+        "switch_from_dead": 22,
+        "control_weight": 6.0,
+        "shape_weight": 1.6,
+        "activity_weight": 1.0,
+        "ball_speed_weight": 1.7,
+        "ball_unseen_logit": 0.25,
+        "activity_center_ms": 1.26
+      },
+      "cambios": {
+        "activity_smooth": 100,
+        "shape_smooth": 200,
+        "ball_speed_smooth": 6,
+        "min_duration_frames": 50,
+        "switch_turnover": 56,
+        "switch_from_dead": 22,
+        "ball_speed_weight": 1.7,
+        "ball_unseen_logit": 0.25
+      },
+      "s1_inicio": 0.37781258104160625,
+      "s1_elegido": 0.39102063958325617,
+      "s2_inicio": 0.3995993704577906,
+      "s2_elegido": 0.4121002900261844
+    },
+    {
+      "i": 15,
+      "tune": [
+        "J03WMX",
+        "J03WOH",
+        "J03WPY",
+        "J03WR9"
+      ],
+      "hold": [
+        "J03WN1",
+        "J03WOY",
+        "J03WQQ"
+      ],
+      "es_split_original": false,
+      "tune_inicio": 0.3827042744697679,
+      "tune_elegido": 0.4160978236283811,
+      "hold_inicio": 0.3756109999422126,
+      "hold_elegido": 0.38903183326643515,
+      "elegido": {
+        "activity_smooth": 100,
+        "control_smooth": 50,
+        "shape_smooth": 450,
+        "ball_speed_smooth": 12,
+        "min_duration_frames": 50,
+        "switch_turnover": 28.0,
+        "switch_to_dead": 63,
+        "switch_from_dead": 31,
+        "control_weight": 6.0,
+        "shape_weight": 1.6,
+        "activity_weight": 1.0,
+        "ball_speed_weight": 1.7,
+        "ball_unseen_logit": 0.25,
+        "activity_center_ms": 1.26
+      },
+      "cambios": {
+        "activity_smooth": 100,
+        "shape_smooth": 450,
+        "ball_speed_smooth": 12,
+        "min_duration_frames": 50,
+        "switch_to_dead": 63,
+        "switch_from_dead": 31,
+        "ball_speed_weight": 1.7,
+        "ball_unseen_logit": 0.25
+      },
+      "s1_inicio": 0.37781258104160625,
+      "s1_elegido": 0.3990148655325079,
+      "s2_inicio": 0.3995993704577906,
+      "s2_elegido": 0.42363338438681303
+    },
+    {
+      "i": 16,
+      "tune": [
+        "J03WMX",
+        "J03WOH",
+        "J03WQQ",
+        "J03WR9"
+      ],
+      "hold": [
+        "J03WN1",
+        "J03WOY",
+        "J03WPY"
+      ],
+      "es_split_original": false,
+      "tune_inicio": 0.3963487892377004,
+      "tune_elegido": 0.4390076104005366,
+      "hold_inicio": 0.3574183135849693,
+      "hold_elegido": 0.36009675115330847,
+      "elegido": {
+        "activity_smooth": 100,
+        "control_smooth": 50,
+        "shape_smooth": 450,
+        "ball_speed_smooth": 3,
+        "min_duration_frames": 50,
+        "switch_turnover": 40,
+        "switch_to_dead": 88,
+        "switch_from_dead": 14.0,
+        "control_weight": 6.0,
+        "shape_weight": 1.6,
+        "activity_weight": 0.5,
+        "ball_speed_weight": 0.6,
+        "ball_unseen_logit": 0.25,
+        "activity_center_ms": 1.26
+      },
+      "cambios": {
+        "activity_smooth": 100,
+        "shape_smooth": 450,
+        "ball_speed_smooth": 3,
+        "min_duration_frames": 50,
+        "switch_turnover": 40,
+        "switch_to_dead": 88,
+        "activity_weight": 0.5,
+        "ball_unseen_logit": 0.25
+      },
+      "s1_inicio": 0.37781258104160625,
+      "s1_elegido": 0.3969541391532788,
+      "s2_inicio": 0.3995993704577906,
+      "s2_elegido": 0.4152194209480013
+    },
+    {
+      "i": 17,
+      "tune": [
+        "J03WMX",
+        "J03WOY",
+        "J03WPY",
+        "J03WQQ"
+      ],
+      "hold": [
+        "J03WN1",
+        "J03WOH",
+        "J03WR9"
+      ],
+      "es_split_original": false,
+      "tune_inicio": 0.37861385981420337,
+      "tune_elegido": 0.41444374944384976,
+      "hold_inicio": 0.3810648861496319,
+      "hold_elegido": 0.3822436682857675,
+      "elegido": {
+        "activity_smooth": 50,
+        "control_smooth": 50,
+        "shape_smooth": 300,
+        "ball_speed_smooth": 1,
+        "min_duration_frames": 70,
+        "switch_turnover": 78,
+        "switch_to_dead": 45,
+        "switch_from_dead": 8,
+        "control_weight": 6.0,
+        "shape_weight": 1.6,
+        "activity_weight": 1.0,
+        "ball_speed_weight": 3.4,
+        "ball_unseen_logit": 0.5,
+        "activity_center_ms": 1.26
+      },
+      "cambios": {
+        "shape_smooth": 300,
+        "ball_speed_smooth": 1,
+        "min_duration_frames": 70,
+        "switch_turnover": 78,
+        "switch_to_dead": 45,
+        "switch_from_dead": 8,
+        "ball_speed_weight": 3.4
+      },
+      "s1_inicio": 0.37781258104160625,
+      "s1_elegido": 0.3815502140845541,
+      "s2_inicio": 0.3995993704577906,
+      "s2_elegido": 0.3989662397000937
+    },
+    {
+      "i": 18,
+      "tune": [
+        "J03WMX",
+        "J03WOY",
+        "J03WPY",
+        "J03WR9"
+      ],
+      "hold": [
+        "J03WN1",
+        "J03WOH",
+        "J03WQQ"
+      ],
+      "es_split_original": false,
+      "tune_inicio": 0.3606402490010731,
+      "tune_elegido": 0.40211577159072565,
+      "hold_inicio": 0.40502970056713883,
+      "hold_elegido": 0.42211369136744165,
+      "elegido": {
+        "activity_smooth": 25,
+        "control_smooth": 50,
+        "shape_smooth": 450,
+        "ball_speed_smooth": 3,
+        "min_duration_frames": 70,
+        "switch_turnover": 56,
+        "switch_to_dead": 123,
+        "switch_from_dead": 14.0,
+        "control_weight": 6.0,
+        "shape_weight": 1.6,
+        "activity_weight": 1.0,
+        "ball_speed_weight": 1.7,
+        "ball_unseen_logit": 0.25,
+        "activity_center_ms": 1.26
+      },
+      "cambios": {
+        "activity_smooth": 25,
+        "shape_smooth": 450,
+        "ball_speed_smooth": 3,
+        "min_duration_frames": 70,
+        "switch_turnover": 56,
+        "switch_to_dead": 123,
+        "ball_speed_weight": 1.7,
+        "ball_unseen_logit": 0.25
+      },
+      "s1_inicio": 0.37781258104160625,
+      "s1_elegido": 0.3973410397519902,
+      "s2_inicio": 0.3995993704577906,
+      "s2_elegido": 0.4201069343299211
+    },
+    {
+      "i": 19,
+      "tune": [
+        "J03WMX",
+        "J03WOY",
+        "J03WQQ",
+        "J03WR9"
+      ],
+      "hold": [
+        "J03WN1",
+        "J03WOH",
+        "J03WPY"
+      ],
+      "es_split_original": false,
+      "tune_inicio": 0.3742847637690056,
+      "tune_elegido": 0.42397325952239584,
+      "hold_inicio": 0.3868370142098955,
+      "hold_elegido": 0.4128027241013588,
+      "elegido": {
+        "activity_smooth": 6,
+        "control_smooth": 50,
+        "shape_smooth": 300,
+        "ball_speed_smooth": 1,
+        "min_duration_frames": 70,
+        "switch_turnover": 56,
+        "switch_to_dead": 88,
+        "switch_from_dead": 60,
+        "control_weight": 6.0,
+        "shape_weight": 1.6,
+        "activity_weight": 1.0,
+        "ball_speed_weight": 2.4,
+        "ball_unseen_logit": 0.5,
+        "activity_center_ms": 1.26
+      },
+      "cambios": {
+        "activity_smooth": 6,
+        "shape_smooth": 300,
+        "ball_speed_smooth": 1,
+        "min_duration_frames": 70,
+        "switch_turnover": 56,
+        "switch_to_dead": 88,
+        "switch_from_dead": 60,
+        "ball_speed_weight": 2.4
+      },
+      "s1_inicio": 0.37781258104160625,
+      "s1_elegido": 0.4007813833906924,
+      "s2_inicio": 0.3995993704577906,
+      "s2_elegido": 0.420899550450751
+    },
+    {
+      "i": 20,
+      "tune": [
+        "J03WMX",
+        "J03WPY",
+        "J03WQQ",
+        "J03WR9"
+      ],
+      "hold": [
+        "J03WN1",
+        "J03WOH",
+        "J03WOY"
+      ],
+      "es_split_original": false,
+      "tune_inicio": 0.3795684862073973,
+      "tune_elegido": 0.4259763962204763,
+      "hold_inicio": 0.37979205095870666,
+      "hold_elegido": 0.35809496142851244,
+      "elegido": {
+        "activity_smooth": 100,
+        "control_smooth": 50,
+        "shape_smooth": 100,
+        "ball_speed_smooth": 12,
+        "min_duration_frames": 70,
+        "switch_turnover": 28,
+        "switch_to_dead": 123,
+        "switch_from_dead": 60,
+        "control_weight": 6.0,
+        "shape_weight": 3.0,
+        "activity_weight": 1.0,
+        "ball_speed_weight": 2.4,
+        "ball_unseen_logit": 0.25,
+        "activity_center_ms": 1.26
+      },
+      "cambios": {
+        "activity_smooth": 100,
+        "shape_smooth": 100,
+        "ball_speed_smooth": 12,
+        "min_duration_frames": 70,
+        "switch_to_dead": 123,
+        "switch_from_dead": 60,
+        "shape_weight": 3.0,
+        "ball_speed_weight": 2.4,
+        "ball_unseen_logit": 0.25
+      },
+      "s1_inicio": 0.37781258104160625,
+      "s1_elegido": 0.39031537361835794,
+      "s2_inicio": 0.3995993704577906,
+      "s2_elegido": 0.40804036404768695
+    },
+    {
+      "i": 21,
+      "tune": [
+        "J03WN1",
+        "J03WOH",
+        "J03WOY",
+        "J03WPY"
+      ],
+      "hold": [
+        "J03WMX",
+        "J03WQQ",
+        "J03WR9"
+      ],
+      "es_split_original": false,
+      "tune_inicio": 0.3794273715523633,
+      "tune_elegido": 0.41243825648650545,
+      "hold_inicio": 0.37998020383208536,
+      "hold_elegido": 0.4054660742874943,
+      "elegido": {
+        "activity_smooth": 25,
+        "control_smooth": 50,
+        "shape_smooth": 450,
+        "ball_speed_smooth": 3,
+        "min_duration_frames": 70,
+        "switch_turnover": 28.0,
+        "switch_to_dead": 63,
+        "switch_from_dead": 14,
+        "control_weight": 6.0,
+        "shape_weight": 1.6,
+        "activity_weight": 1.0,
+        "ball_speed_weight": 1.2,
+        "ball_unseen_logit": 0.5,
+        "activity_center_ms": 1.18
+      },
+      "cambios": {
+        "activity_smooth": 25,
+        "shape_smooth": 450,
+        "ball_speed_smooth": 3,
+        "min_duration_frames": 70,
+        "switch_to_dead": 63,
+        "ball_speed_weight": 1.2,
+        "activity_center_ms": 1.18
+      },
+      "s1_inicio": 0.37781258104160625,
+      "s1_elegido": 0.3960842284804946,
+      "s2_inicio": 0.3995993704577906,
+      "s2_elegido": 0.4231137307422674
+    },
+    {
+      "i": 22,
+      "tune": [
+        "J03WN1",
+        "J03WOH",
+        "J03WOY",
+        "J03WQQ"
+      ],
+      "hold": [
+        "J03WMX",
+        "J03WPY",
+        "J03WR9"
+      ],
+      "es_split_original": false,
+      "tune_inicio": 0.39307188632029577,
+      "tune_elegido": 0.4235682318272494,
+      "hold_inicio": 0.361787517474842,
+      "hold_elegido": 0.37688343070536007,
+      "elegido": {
+        "activity_smooth": 25,
+        "control_smooth": 50,
+        "shape_smooth": 300,
+        "ball_speed_smooth": 3,
+        "min_duration_frames": 70,
+        "switch_turnover": 28.0,
+        "switch_to_dead": 63,
+        "switch_from_dead": 4,
+        "control_weight": 6.0,
+        "shape_weight": 1.6,
+        "activity_weight": 1.0,
+        "ball_speed_weight": 1.7,
+        "ball_unseen_logit": 0.5,
+        "activity_center_ms": 1.26
+      },
+      "cambios": {
+        "activity_smooth": 25,
+        "shape_smooth": 300,
+        "ball_speed_smooth": 3,
+        "min_duration_frames": 70,
+        "switch_to_dead": 63,
+        "switch_from_dead": 4,
+        "ball_speed_weight": 1.7
+      },
+      "s1_inicio": 0.37781258104160625,
+      "s1_elegido": 0.389821030459701,
+      "s2_inicio": 0.3995993704577906,
+      "s2_elegido": 0.4207593950451395
+    },
+    {
+      "i": 23,
+      "tune": [
+        "J03WN1",
+        "J03WOH",
+        "J03WOY",
+        "J03WR9"
+      ],
+      "hold": [
+        "J03WMX",
+        "J03WPY",
+        "J03WQQ"
+      ],
+      "es_split_original": false,
+      "tune_inicio": 0.37509827550716557,
+      "tune_elegido": 0.41485693705691495,
+      "hold_inicio": 0.385752331892349,
+      "hold_elegido": 0.3983327287443797,
+      "elegido": {
+        "activity_smooth": 25,
+        "control_smooth": 50,
+        "shape_smooth": 450,
+        "ball_speed_smooth": 3,
+        "min_duration_frames": 50,
+        "switch_turnover": 28.0,
+        "switch_to_dead": 63,
+        "switch_from_dead": 14.0,
+        "control_weight": 6.0,
+        "shape_weight": 1.6,
+        "activity_weight": 1.0,
+        "ball_speed_weight": 1.2,
+        "ball_unseen_logit": 0.5,
+        "activity_center_ms": 1.18
+      },
+      "cambios": {
+        "activity_smooth": 25,
+        "shape_smooth": 450,
+        "ball_speed_smooth": 3,
+        "min_duration_frames": 50,
+        "switch_to_dead": 63,
+        "ball_speed_weight": 1.2,
+        "activity_center_ms": 1.18
+      },
+      "s1_inicio": 0.37781258104160625,
+      "s1_elegido": 0.3959081865860487,
+      "s2_inicio": 0.3995993704577906,
+      "s2_elegido": 0.42612022688555545
+    },
+    {
+      "i": 24,
+      "tune": [
+        "J03WN1",
+        "J03WOH",
+        "J03WPY",
+        "J03WQQ"
+      ],
+      "hold": [
+        "J03WMX",
+        "J03WOY",
+        "J03WR9"
+      ],
+      "es_split_original": false,
+      "tune_inicio": 0.3983556087586875,
+      "tune_elegido": 0.42683539232314527,
+      "hold_inicio": 0.3547425542236531,
+      "hold_elegido": 0.3747984092911352,
+      "elegido": {
+        "activity_smooth": 50,
+        "control_smooth": 50,
+        "shape_smooth": 200,
+        "ball_speed_smooth": 1,
+        "min_duration_frames": 25,
+        "switch_turnover": 78,
+        "switch_to_dead": 34.0,
+        "switch_from_dead": 22,
+        "control_weight": 6.0,
+        "shape_weight": 1.6,
+        "activity_weight": 1.0,
+        "ball_speed_weight": 0.6,
+        "ball_unseen_logit": 0.25,
+        "activity_center_ms": 1.26
+      },
+      "cambios": {
+        "shape_smooth": 200,
+        "ball_speed_smooth": 1,
+        "min_duration_frames": 25,
+        "switch_turnover": 78,
+        "switch_from_dead": 22,
+        "ball_unseen_logit": 0.25
+      },
+      "s1_inicio": 0.37781258104160625,
+      "s1_elegido": 0.39062401801066604,
+      "s2_inicio": 0.3995993704577906,
+      "s2_elegido": 0.41144504992728154
+    },
+    {
+      "i": 25,
+      "tune": [
+        "J03WN1",
+        "J03WOH",
+        "J03WPY",
+        "J03WR9"
+      ],
+      "hold": [
+        "J03WMX",
+        "J03WOY",
+        "J03WQQ"
+      ],
+      "es_split_original": false,
+      "tune_inicio": 0.3803819979455572,
+      "tune_elegido": 0.4158763267186921,
+      "hold_inicio": 0.37870736864116,
+      "hold_elegido": 0.4044301102650249,
+      "elegido": {
+        "activity_smooth": 25,
+        "control_smooth": 50,
+        "shape_smooth": 100,
+        "ball_speed_smooth": 1,
+        "min_duration_frames": 25,
+        "switch_turnover": 40,
+        "switch_to_dead": 63,
+        "switch_from_dead": 14.0,
+        "control_weight": 6.0,
+        "shape_weight": 1.6,
+        "activity_weight": 1.0,
+        "ball_speed_weight": 1.2,
+        "ball_unseen_logit": 0.5,
+        "activity_center_ms": 1.1
+      },
+      "cambios": {
+        "activity_smooth": 25,
+        "shape_smooth": 100,
+        "ball_speed_smooth": 1,
+        "min_duration_frames": 25,
+        "switch_turnover": 40,
+        "switch_to_dead": 63,
+        "ball_speed_weight": 1.2,
+        "activity_center_ms": 1.1
+      },
+      "s1_inicio": 0.37781258104160625,
+      "s1_elegido": 0.40064637406497894,
+      "s2_inicio": 0.3995993704577906,
+      "s2_elegido": 0.42470681458533627
+    },
+    {
+      "i": 26,
+      "tune": [
+        "J03WN1",
+        "J03WOH",
+        "J03WQQ",
+        "J03WR9"
+      ],
+      "hold": [
+        "J03WMX",
+        "J03WOY",
+        "J03WPY"
+      ],
+      "es_split_original": false,
+      "tune_inicio": 0.3940265127134897,
+      "tune_elegido": 0.435243024101488,
+      "hold_inicio": 0.3605146822839167,
+      "hold_elegido": 0.38293463882604556,
+      "elegido": {
+        "activity_smooth": 25,
+        "control_smooth": 50,
+        "shape_smooth": 300,
+        "ball_speed_smooth": 1,
+        "min_duration_frames": 70,
+        "switch_turnover": 40,
+        "switch_to_dead": 63,
+        "switch_from_dead": 14.0,
+        "control_weight": 6.0,
+        "shape_weight": 1.6,
+        "activity_weight": 0.5,
+        "ball_speed_weight": 0.6,
+        "ball_unseen_logit": 0.0,
+        "activity_center_ms": 1.26
+      },
+      "cambios": {
+        "activity_smooth": 25,
+        "shape_smooth": 300,
+        "ball_speed_smooth": 1,
+        "min_duration_frames": 70,
+        "switch_turnover": 40,
+        "switch_to_dead": 63,
+        "activity_weight": 0.5,
+        "ball_unseen_logit": 0.0
+      },
+      "s1_inicio": 0.37781258104160625,
+      "s1_elegido": 0.4054988339182421,
+      "s2_inicio": 0.3995993704577906,
+      "s2_elegido": 0.42712775005704184
+    },
+    {
+      "i": 27,
+      "tune": [
+        "J03WN1",
+        "J03WOY",
+        "J03WPY",
+        "J03WQQ"
+      ],
+      "hold": [
+        "J03WMX",
+        "J03WOH",
+        "J03WR9"
+      ],
+      "es_split_original": false,
+      "tune_inicio": 0.3762915832899928,
+      "tune_elegido": 0.41670837271337624,
+      "hold_inicio": 0.3841612548485794,
+      "hold_elegido": 0.4171707924658991,
+      "elegido": {
+        "activity_smooth": 25,
+        "control_smooth": 50,
+        "shape_smooth": 300,
+        "ball_speed_smooth": 1,
+        "min_duration_frames": 70,
+        "switch_turnover": 56,
+        "switch_to_dead": 123,
+        "switch_from_dead": 43,
+        "control_weight": 6.0,
+        "shape_weight": 1.6,
+        "activity_weight": 1.0,
+        "ball_speed_weight": 2.4,
+        "ball_unseen_logit": 0.5,
+        "activity_center_ms": 1.26
+      },
+      "cambios": {
+        "activity_smooth": 25,
+        "shape_smooth": 300,
+        "ball_speed_smooth": 1,
+        "min_duration_frames": 70,
+        "switch_turnover": 56,
+        "switch_to_dead": 123,
+        "switch_from_dead": 43,
+        "ball_speed_weight": 2.4
+      },
+      "s1_inicio": 0.37781258104160625,
+      "s1_elegido": 0.4044269800551875,
+      "s2_inicio": 0.3995993704577906,
+      "s2_elegido": 0.4188350347466952
+    },
+    {
+      "i": 28,
+      "tune": [
+        "J03WN1",
+        "J03WOY",
+        "J03WPY",
+        "J03WR9"
+      ],
+      "hold": [
+        "J03WMX",
+        "J03WOH",
+        "J03WQQ"
+      ],
+      "es_split_original": false,
+      "tune_inicio": 0.35831797247686253,
+      "tune_elegido": 0.39540530359732073,
+      "hold_inicio": 0.4081260692660864,
+      "hold_elegido": 0.4431751248053482,
+      "elegido": {
+        "activity_smooth": 12,
+        "control_smooth": 50,
+        "shape_smooth": 300,
+        "ball_speed_smooth": 3,
+        "min_duration_frames": 0,
+        "switch_turnover": 56,
+        "switch_to_dead": 123,
+        "switch_from_dead": 31,
+        "control_weight": 6.0,
+        "shape_weight": 1.6,
+        "activity_weight": 1.0,
+        "ball_speed_weight": 1.7,
+        "ball_unseen_logit": 0.25,
+        "activity_center_ms": 1.35
+      },
+      "cambios": {
+        "activity_smooth": 12,
+        "shape_smooth": 300,
+        "ball_speed_smooth": 3,
+        "min_duration_frames": 0,
+        "switch_turnover": 56,
+        "switch_to_dead": 123,
+        "switch_from_dead": 31,
+        "ball_speed_weight": 1.7,
+        "ball_unseen_logit": 0.25,
+        "activity_center_ms": 1.35
+      },
+      "s1_inicio": 0.37781258104160625,
+      "s1_elegido": 0.4055681369813898,
+      "s2_inicio": 0.3995993704577906,
+      "s2_elegido": 0.4196237714090727
+    },
+    {
+      "i": 29,
+      "tune": [
+        "J03WN1",
+        "J03WOY",
+        "J03WQQ",
+        "J03WR9"
+      ],
+      "hold": [
+        "J03WMX",
+        "J03WOH",
+        "J03WPY"
+      ],
+      "es_split_original": false,
+      "tune_inicio": 0.371962487244795,
+      "tune_elegido": 0.4120174468774228,
+      "hold_inicio": 0.3899333829088431,
+      "hold_elegido": 0.40187571324826227,
+      "elegido": {
+        "activity_smooth": 25,
+        "control_smooth": 50,
+        "shape_smooth": 450,
+        "ball_speed_smooth": 3,
+        "min_duration_frames": 70,
+        "switch_turnover": 28.0,
+        "switch_to_dead": 123,
+        "switch_from_dead": 43,
+        "control_weight": 6.0,
+        "shape_weight": 1.6,
+        "activity_weight": 1.0,
+        "ball_speed_weight": 1.2,
+        "ball_unseen_logit": 0.25,
+        "activity_center_ms": 1.18
+      },
+      "cambios": {
+        "activity_smooth": 25,
+        "shape_smooth": 450,
+        "ball_speed_smooth": 3,
+        "min_duration_frames": 70,
+        "switch_to_dead": 123,
+        "switch_from_dead": 43,
+        "ball_speed_weight": 1.2,
+        "ball_unseen_logit": 0.25,
+        "activity_center_ms": 1.18
+      },
+      "s1_inicio": 0.37781258104160625,
+      "s1_elegido": 0.3970616723272894,
+      "s2_inicio": 0.3995993704577906,
+      "s2_elegido": 0.4200758282789883
+    },
+    {
+      "i": 30,
+      "tune": [
+        "J03WN1",
+        "J03WPY",
+        "J03WQQ",
+        "J03WR9"
+      ],
+      "hold": [
+        "J03WMX",
+        "J03WOH",
+        "J03WOY"
+      ],
+      "es_split_original": false,
+      "tune_inicio": 0.37724620968318673,
+      "tune_elegido": 0.41610942883097646,
+      "hold_inicio": 0.38288841965765413,
+      "hold_elegido": 0.3774184790443836,
+      "elegido": {
+        "activity_smooth": 100,
+        "control_smooth": 50,
+        "shape_smooth": 300,
+        "ball_speed_smooth": 12,
+        "min_duration_frames": 50,
+        "switch_turnover": 56,
+        "switch_to_dead": 34.0,
+        "switch_from_dead": 14.0,
+        "control_weight": 6.0,
+        "shape_weight": 1.6,
+        "activity_weight": 1.0,
+        "ball_speed_weight": 1.2,
+        "ball_unseen_logit": 0.0,
+        "activity_center_ms": 1.18
+      },
+      "cambios": {
+        "activity_smooth": 100,
+        "shape_smooth": 300,
+        "ball_speed_smooth": 12,
+        "min_duration_frames": 50,
+        "switch_turnover": 56,
+        "ball_speed_weight": 1.2,
+        "ball_unseen_logit": 0.0,
+        "activity_center_ms": 1.18
+      },
+      "s1_inicio": 0.37781258104160625,
+      "s1_elegido": 0.3900291939186303,
+      "s2_inicio": 0.3995993704577906,
+      "s2_elegido": 0.408723017026038
+    },
+    {
+      "i": 31,
+      "tune": [
+        "J03WOH",
+        "J03WOY",
+        "J03WPY",
+        "J03WQQ"
+      ],
+      "hold": [
+        "J03WMX",
+        "J03WN1",
+        "J03WR9"
+      ],
+      "es_split_original": false,
+      "tune_inicio": 0.4034744286931772,
+      "tune_elegido": 0.44486018760129387,
+      "hold_inicio": 0.3479174609776669,
+      "hold_elegido": 0.3645437068562427,
+      "elegido": {
+        "activity_smooth": 100,
+        "control_smooth": 50,
+        "shape_smooth": 300,
+        "ball_speed_smooth": 6,
+        "min_duration_frames": 50,
+        "switch_turnover": 40,
+        "switch_to_dead": 63,
+        "switch_from_dead": 4,
+        "control_weight": 6.0,
+        "shape_weight": 1.6,
+        "activity_weight": 1.0,
+        "ball_speed_weight": 1.7,
+        "ball_unseen_logit": 0.5,
+        "activity_center_ms": 1.26
+      },
+      "cambios": {
+        "activity_smooth": 100,
+        "shape_smooth": 300,
+        "ball_speed_smooth": 6,
+        "min_duration_frames": 50,
+        "switch_turnover": 40,
+        "switch_to_dead": 63,
+        "switch_from_dead": 4,
+        "ball_speed_weight": 1.7
+      },
+      "s1_inicio": 0.37781258104160625,
+      "s1_elegido": 0.3981738254905828,
+      "s2_inicio": 0.3995993704577906,
+      "s2_elegido": 0.42079578560993364
+    },
+    {
+      "i": 32,
+      "tune": [
+        "J03WOH",
+        "J03WOY",
+        "J03WPY",
+        "J03WR9"
+      ],
+      "hold": [
+        "J03WMX",
+        "J03WN1",
+        "J03WQQ"
+      ],
+      "es_split_original": false,
+      "tune_inicio": 0.3855008178800469,
+      "tune_elegido": 0.42751905760378733,
+      "hold_inicio": 0.3718822753951739,
+      "hold_elegido": 0.3903132763073494,
+      "elegido": {
+        "activity_smooth": 25,
+        "control_smooth": 50,
+        "shape_smooth": 300,
+        "ball_speed_smooth": 6,
+        "min_duration_frames": 50,
+        "switch_turnover": 28.0,
+        "switch_to_dead": 88,
+        "switch_from_dead": 31,
+        "control_weight": 6.0,
+        "shape_weight": 1.6,
+        "activity_weight": 1.0,
+        "ball_speed_weight": 1.7,
+        "ball_unseen_logit": 1.0,
+        "activity_center_ms": 1.1
+      },
+      "cambios": {
+        "activity_smooth": 25,
+        "shape_smooth": 300,
+        "ball_speed_smooth": 6,
+        "min_duration_frames": 50,
+        "switch_to_dead": 88,
+        "switch_from_dead": 31,
+        "ball_speed_weight": 1.7,
+        "ball_unseen_logit": 1.0,
+        "activity_center_ms": 1.1
+      },
+      "s1_inicio": 0.37781258104160625,
+      "s1_elegido": 0.4012445070938062,
+      "s2_inicio": 0.3995993704577906,
+      "s2_elegido": 0.4313505099684672
+    },
+    {
+      "i": 33,
+      "tune": [
+        "J03WOH",
+        "J03WOY",
+        "J03WQQ",
+        "J03WR9"
+      ],
+      "hold": [
+        "J03WMX",
+        "J03WN1",
+        "J03WPY"
+      ],
+      "es_split_original": false,
+      "tune_inicio": 0.3991453326479794,
+      "tune_elegido": 0.4550441916099763,
+      "hold_inicio": 0.3536895890379306,
+      "hold_elegido": 0.37535560223604775,
+      "elegido": {
+        "activity_smooth": 12,
+        "control_smooth": 50,
+        "shape_smooth": 300,
+        "ball_speed_smooth": 1,
+        "min_duration_frames": 70,
+        "switch_turnover": 40,
+        "switch_to_dead": 123,
+        "switch_from_dead": 8,
+        "control_weight": 6.0,
+        "shape_weight": 1.6,
+        "activity_weight": 0.5,
+        "ball_speed_weight": 1.2,
+        "ball_unseen_logit": 0.25,
+        "activity_center_ms": 1.1
+      },
+      "cambios": {
+        "activity_smooth": 12,
+        "shape_smooth": 300,
+        "ball_speed_smooth": 1,
+        "min_duration_frames": 70,
+        "switch_turnover": 40,
+        "switch_to_dead": 123,
+        "switch_from_dead": 8,
+        "activity_weight": 0.5,
+        "ball_speed_weight": 1.2,
+        "ball_unseen_logit": 0.25,
+        "activity_center_ms": 1.1
+      },
+      "s1_inicio": 0.37781258104160625,
+      "s1_elegido": 0.41400772156673576,
+      "s2_inicio": 0.3995993704577906,
+      "s2_elegido": 0.4253217932985077
+    },
+    {
+      "i": 34,
+      "tune": [
+        "J03WOH",
+        "J03WPY",
+        "J03WQQ",
+        "J03WR9"
+      ],
+      "hold": [
+        "J03WMX",
+        "J03WN1",
+        "J03WOY"
+      ],
+      "es_split_original": false,
+      "tune_inicio": 0.4044290550863711,
+      "tune_elegido": 0.4482903228927977,
+      "hold_inicio": 0.34664462578674166,
+      "hold_elegido": 0.3532163743115171,
+      "elegido": {
+        "activity_smooth": 100,
+        "control_smooth": 50,
+        "shape_smooth": 300,
+        "ball_speed_smooth": 12,
+        "min_duration_frames": 50,
+        "switch_turnover": 56,
+        "switch_to_dead": 34.0,
+        "switch_from_dead": 14.0,
+        "control_weight": 6.0,
+        "shape_weight": 1.6,
+        "activity_weight": 1.0,
+        "ball_speed_weight": 1.7,
+        "ball_unseen_logit": 0.25,
+        "activity_center_ms": 1.18
+      },
+      "cambios": {
+        "activity_smooth": 100,
+        "shape_smooth": 300,
+        "ball_speed_smooth": 12,
+        "min_duration_frames": 50,
+        "switch_turnover": 56,
+        "ball_speed_weight": 1.7,
+        "ball_unseen_logit": 0.25,
+        "activity_center_ms": 1.18
+      },
+      "s1_inicio": 0.37781258104160625,
+      "s1_elegido": 0.3926425665705855,
+      "s2_inicio": 0.3995993704577906,
+      "s2_elegido": 0.413888336661629
+    },
+    {
+      "i": 35,
+      "tune": [
+        "J03WOY",
+        "J03WPY",
+        "J03WQQ",
+        "J03WR9"
+      ],
+      "hold": [
+        "J03WMX",
+        "J03WN1",
+        "J03WOH"
+      ],
+      "es_split_original": false,
+      "tune_inicio": 0.3823650296176763,
+      "tune_elegido": 0.44068411095151605,
+      "hold_inicio": 0.3760633264116679,
+      "hold_elegido": 0.39672233321049194,
+      "elegido": {
+        "activity_smooth": 25,
+        "control_smooth": 50,
+        "shape_smooth": 300,
+        "ball_speed_smooth": 1,
+        "min_duration_frames": 70,
+        "switch_turnover": 56,
+        "switch_to_dead": 88,
+        "switch_from_dead": 60,
+        "control_weight": 6.0,
+        "shape_weight": 1.6,
+        "activity_weight": 0.5,
+        "ball_speed_weight": 1.2,
+        "ball_unseen_logit": 0.0,
+        "activity_center_ms": 1.18
+      },
+      "cambios": {
+        "activity_smooth": 25,
+        "shape_smooth": 300,
+        "ball_speed_smooth": 1,
+        "min_duration_frames": 70,
+        "switch_turnover": 56,
+        "switch_to_dead": 88,
+        "switch_from_dead": 60,
+        "activity_weight": 0.5,
+        "ball_speed_weight": 1.2,
+        "ball_unseen_logit": 0.0,
+        "activity_center_ms": 1.18
+      },
+      "s1_inicio": 0.37781258104160625,
+      "s1_elegido": 0.40444080761657186,
+      "s2_inicio": 0.3995993704577906,
+      "s2_elegido": 0.42534660538706515
+    }
+  ],
+  "estabilidad": {
+    "activity_smooth": {
+      "reparto": {
+        "25": 12,
+        "100": 9,
+        "50": 8,
+        "6": 3,
+        "12": 3
+      },
+      "moda": 25,
+      "n_moda": 12,
+      "n_distintos": 5,
+      "inicio": 50,
+      "config_py": 12,
+      "coincide_config_py": 3,
+      "valores": [
+        6,
+        12,
+        25,
+        50,
+        100
+      ],
+      "moda_en_borde": false,
+      "n_en_borde": 12
+    },
+    "control_smooth": {
+      "reparto": {
+        "50": 31,
+        "100": 4
+      },
+      "moda": 50,
+      "n_moda": 31,
+      "n_distintos": 2,
+      "inicio": 50,
+      "config_py": 50,
+      "coincide_config_py": 31,
+      "valores": [
+        6,
+        12,
+        25,
+        50,
+        100
+      ],
+      "moda_en_borde": false,
+      "n_en_borde": 4
+    },
+    "shape_smooth": {
+      "reparto": {
+        "300": 16,
+        "450": 11,
+        "100": 4,
+        "200": 2,
+        "12": 1,
+        "25": 1
+      },
+      "moda": 300,
+      "n_moda": 16,
+      "n_distintos": 6,
+      "inicio": 50,
+      "config_py": 200,
+      "coincide_config_py": 2,
+      "valores": [
+        12,
+        25,
+        50,
+        100,
+        200,
+        300,
+        450
+      ],
+      "moda_en_borde": false,
+      "n_en_borde": 12
+    },
+    "ball_speed_smooth": {
+      "reparto": {
+        "3": 15,
+        "1": 12,
+        "6": 4,
+        "12": 4
+      },
+      "moda": 3,
+      "n_moda": 15,
+      "n_distintos": 4,
+      "inicio": 50,
+      "config_py": 6,
+      "coincide_config_py": 4,
+      "valores": [
+        1,
+        3,
+        6,
+        12,
+        25,
+        50
+      ],
+      "moda_en_borde": false,
+      "n_en_borde": 12
+    },
+    "min_duration_frames": {
+      "reparto": {
+        "70": 18,
+        "50": 8,
+        "12": 5,
+        "0": 2,
+        "25": 2
+      },
+      "moda": 70,
+      "n_moda": 18,
+      "n_distintos": 5,
+      "inicio": 12,
+      "config_py": 12,
+      "coincide_config_py": 5,
+      "valores": [
+        0,
+        6,
+        12,
+        25,
+        50,
+        70,
+        100
+      ],
+      "moda_en_borde": false,
+      "n_en_borde": 2
+    },
+    "switch_turnover": {
+      "reparto": {
+        "56": 13,
+        "28.0": 12,
+        "40": 6,
+        "8": 2,
+        "78": 2
+      },
+      "moda": 56,
+      "n_moda": 13,
+      "n_distintos": 5,
+      "inicio": 28.0,
+      "config_py": 40.0,
+      "coincide_config_py": 6,
+      "valores": [
+        8,
+        14,
+        20,
+        28,
+        40,
+        56,
+        78,
+        110
+      ],
+      "moda_en_borde": false,
+      "n_en_borde": 2
+    },
+    "switch_to_dead": {
+      "reparto": {
+        "63": 12,
+        "123": 8,
+        "34.0": 6,
+        "88": 6,
+        "45": 3
+      },
+      "moda": 63,
+      "n_moda": 12,
+      "n_distintos": 5,
+      "inicio": 34.0,
+      "config_py": 34.0,
+      "coincide_config_py": 6,
+      "valores": [
+        10,
+        18,
+        26,
+        34,
+        45,
+        63,
+        88,
+        123
+      ],
+      "moda_en_borde": false,
+      "n_en_borde": 8
+    },
+    "switch_from_dead": {
+      "reparto": {
+        "14": 12,
+        "8": 6,
+        "22": 5,
+        "31": 4,
+        "60": 4,
+        "4": 2,
+        "43": 2
+      },
+      "moda": 14,
+      "n_moda": 12,
+      "n_distintos": 7,
+      "inicio": 14.0,
+      "config_py": 14.0,
+      "coincide_config_py": 12,
+      "valores": [
+        4,
+        8,
+        14,
+        22,
+        31,
+        43,
+        60
+      ],
+      "moda_en_borde": false,
+      "n_en_borde": 6
+    },
+    "control_weight": {
+      "reparto": {
+        "6.0": 34,
+        "9": 1
+      },
+      "moda": 6.0,
+      "n_moda": 34,
+      "n_distintos": 2,
+      "inicio": 6.0,
+      "config_py": 6.0,
+      "coincide_config_py": 34,
+      "valores": [
+        2,
+        4,
+        6,
+        9,
+        13
+      ],
+      "moda_en_borde": false,
+      "n_en_borde": 0
+    },
+    "shape_weight": {
+      "reparto": {
+        "1.6": 32,
+        "1.0": 2,
+        "3.0": 1
+      },
+      "moda": 1.6,
+      "n_moda": 32,
+      "n_distintos": 3,
+      "inicio": 1.6,
+      "config_py": 1.6,
+      "coincide_config_py": 32,
+      "valores": [
+        0.0,
+        0.5,
+        1.0,
+        1.6,
+        3.0
+      ],
+      "moda_en_borde": false,
+      "n_en_borde": 1
+    },
+    "activity_weight": {
+      "reparto": {
+        "1.0": 27,
+        "0.5": 8
+      },
+      "moda": 1.0,
+      "n_moda": 27,
+      "n_distintos": 2,
+      "inicio": 1.0,
+      "config_py": 1.0,
+      "coincide_config_py": 27,
+      "valores": [
+        0.5,
+        1.0,
+        1.5,
+        2.5
+      ],
+      "moda_en_borde": false,
+      "n_en_borde": 8
+    },
+    "ball_speed_weight": {
+      "reparto": {
+        "1.2": 15,
+        "1.7": 9,
+        "0.6": 6,
+        "2.4": 4,
+        "3.4": 1
+      },
+      "moda": 1.2,
+      "n_moda": 15,
+      "n_distintos": 5,
+      "inicio": 0.6,
+      "config_py": 0.6,
+      "coincide_config_py": 6,
+      "valores": [
+        0.0,
+        0.3,
+        0.6,
+        1.2,
+        1.7,
+        2.4,
+        3.4
+      ],
+      "moda_en_borde": false,
+      "n_en_borde": 1
+    },
+    "ball_unseen_logit": {
+      "reparto": {
+        "0.5": 17,
+        "0.25": 11,
+        "0.0": 5,
+        "1.0": 2
+      },
+      "moda": 0.5,
+      "n_moda": 17,
+      "n_distintos": 4,
+      "inicio": 0.5,
+      "config_py": 0.5,
+      "coincide_config_py": 17,
+      "valores": [
+        0.0,
+        0.25,
+        0.5,
+        1.0
+      ],
+      "moda_en_borde": false,
+      "n_en_borde": 7
+    },
+    "activity_center_ms": {
+      "reparto": {
+        "1.26": 20,
+        "1.18": 9,
+        "1.1": 5,
+        "1.35": 1
+      },
+      "moda": 1.26,
+      "n_moda": 20,
+      "n_distintos": 4,
+      "inicio": 1.26,
+      "config_py": 1.26,
+      "coincide_config_py": 20,
+      "valores": [
+        1.1,
+        1.18,
+        1.26,
+        1.35
+      ],
+      "moda_en_borde": false,
+      "n_en_borde": 6
+    }
+  },
+  "resumen": {
+    "n_splits": 35,
+    "d_tune_media": 0.038885087392870395,
+    "d_tune_min": 0.024065492850739945,
+    "d_tune_max": 0.05831908133383973,
+    "d_hold_media": 0.015818879052057633,
+    "d_hold_min": -0.021697089530194225,
+    "d_hold_max": 0.0350490555392618,
+    "splits_hold_mejora": 33,
+    "splits_tune_mejora": 35
+  }
+}
