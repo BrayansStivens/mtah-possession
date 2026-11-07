@@ -1,4 +1,4 @@
-# Estado del proyecto — 3 de noviembre de 2026
+# Estado del proyecto — 7 de noviembre de 2026
 
 Documento para el equipo. Este repositorio tiene dos partes:
 
@@ -19,9 +19,9 @@ no está medido, se dice.
 | Qué se entrega el **17-11** | un CSV de 199.319 filas (H/A/D por frame), este repositorio en público y un documento técnico corto |
 | Métrica de ranking | **spellF1** (posesiones acertadas por solape temporal). Desempate: macroF1 por frame |
 | Mínimo oficial a superar | **0,2433** (`baseline_smooth50`) |
-| **Dónde estamos, medido** | **0,3965** de media en 7 partidos de Bundesliga degradados para parecerse a nuestros datos (ajuste 0,3878 / validación 0,4081) |
-| En los 5 minutos públicos | 0,4903 — **lectura, no criterio**: 17 posesiones, una fallada mueve 6 puntos |
-| La entrega de hoy | `out/submission.csv`, generada el 31-10 con `config.py` tal cual está; pasa el validador oficial; 55 tests en verde |
+| **Dónde estamos, medido** | **0,4073** de media en 7 partidos de Bundesliga degradados para parecerse a nuestros datos, dejando cada partido fuera del entrenamiento del detector (0,3965 sin el detector de fronteras) |
+| En los 5 minutos públicos | 0,4444 (0,4903 sin el detector; macroF1 igual, 0,8010 frente a 0,8009) — **lectura, no criterio**: 17 posesiones, una fallada mueve 6 puntos |
+| La entrega de hoy | `out/submission.csv`, generada el 7-11 con `config.py` tal cual está (sha256 `5d97eccc…`); pasa el validador oficial; 85 tests en verde. La del 31-10 se regenera con `boundary_discount_weight = 0` (sha256 `73c361d5…`) |
 | Qué configuración lleva | la de `config.py`; cada valor tiene escrito al lado de dónde sale. **Ninguno viene ya de los 5 minutos públicos** (prohibido desde el 22-10) |
 
 Si todo se parase hoy, hay algo válido que entregar y está 15 puntos por encima del mínimo.
@@ -75,7 +75,8 @@ Es la pieza que convirtió "no podemos medir" en "podemos medir en siete partido
 | 31 oct | Tres números mal citados en `config.py` corregidos; convención de redondeo de los centros | el fichero produce exactamente lo que dice | `config.py` docstring, commits `0e1560e`, `d805776` |
 | 2 nov | Datos del dashboard regenerados con el `config.py` de hoy | reproducen los del 28-10 en todo lo que no depende de la config | `regenera_datos.py` |
 | 7 nov | Portado lo útil de `DeteccionPosesionBalon` (ver abajo). **La entrega no cambia**: CSV idéntico byte a byte antes y después (sha256 `73c361d5…`) | 73 tests en verde (55 + 18) | `io/atd.py`, `features/tagging.py`, `decode/viterbi.py`, `training/weak_labels.py` |
-| 7 nov | **Detector de fronteras** entrenado en el IDSSE, medido con leave-one-match-out anidado y tres brazos (ver abajo) | **+1,17 pp** spellF1 y +1,12 pp macroF1 sobre el modelo actual (21 ejecuciones, 16 mejoran); **+1,07 pp sobre encarecer los cambios sin detector, positivo en los 7 partidos**. No está en la entrega | `training/boundaries.py`, `datos/fronteras_lomo_anidado.json` |
+| 7 nov | **Detector de fronteras** entrenado en el IDSSE, medido con leave-one-match-out anidado y tres brazos (ver abajo) | **+1,17 pp** spellF1 y +1,12 pp macroF1 sobre el modelo anterior (21 ejecuciones, 16 mejoran); **+1,07 pp sobre encarecer los cambios sin detector, positivo en los 7 partidos** | `training/boundaries.py`, `datos/fronteras_lomo_anidado.json` |
+| 7 nov | **El detector entra en la entrega.** Entrenado con los 7 partidos; peso 0,95 y escala 2,0 elegidos con el mismo procedimiento, fuera de muestra | reexportar da el mismo modelo byte a byte; la entrega cambia en el 3,8 % de los frames puntuados (369 → 333 segmentos) | `models/boundary_detector.{joblib,json}`, `config.py` |
 | 7 nov | Curva de visibilidad del balón (Paso cero de `plan-detector-balon.md`) | **no es plana**: de 59 % a 70 / 80 / 90 % de balón visible da +2,2 / +3,5 / +6,3 pp recuperando primero lo fácil, en los 7 partidos | `training/visibility.py`, `datos/curva_visibilidad.json` |
 
 **Qué entró el 7-11 desde `DeteccionPosesionBalon`** (la otra línea, hecha sin acceso a este repo):
@@ -130,7 +131,19 @@ Es la pieza que convirtió "no podemos medir" en "podemos medir en siete partido
   rejillas sobreajusta.
 - **Qué no dice.** Es Bundesliga degradada con huecos al azar; el detector aprende también de *dónde* no se ve el
   balón, y en el ATD los huecos caen en otros sitios. En BAR-ATH no hay forma de medirlo (la ventana pública no es
-  criterio). Ver §4, punto 1.
+  criterio).
+- **En la entrega desde el 7-11.** `python -m mtah.training.boundaries export` lo entrena con los 7 partidos y elige
+  peso y escala con el mismo procedimiento (cada partido puntuado por un detector que no lo vio): **peso 0,95, escala
+  2,0**, spellF1 fuera de muestra 0,4111 frente a 0,4089 con escala 1,5. Los dos valores son el borde de su rejilla,
+  igual que en los 2 pliegues que perdían; no se amplía (el 31-10 se vio que ampliar sobreajusta). El modelo va en el
+  repo (`models/boundary_detector.joblib`, 420 KB) con su sha256, la versión de scikit-learn y la config de features
+  con que se entrenó; si cualquiera de las tres no cuadra, `build` falla en vez de puntuar basura. Reexportar da el
+  mismo fichero byte a byte.
+- **Comprobaciones sin etiquetas en BAR-ATH**, que no eligen nada pero avisarían de un salto de dominio grosero: el
+  score medio en los frames puntuados es 0,063 (0,061-0,064 en el IDSSE) y el 2,2 % pasa de 0,5 (2,7 % en el IDSSE).
+  Cambia el 3,8 % de los frames puntuados y baja de 369 a 333 segmentos, la misma dirección que en el arnés. En la
+  ventana pública baja de 0,4903 a 0,4444 (14 → 10 posesiones de 17) con macroF1 igual; es menos de una posesión y
+  la ventana no es criterio, pero queda dicho.
 
 **La curva de visibilidad, medida el 7-11** (`python -m mtah.training.visibility`, 1 min). Mismo modelo y mismas
 degradaciones, devolviendo huecos de balón enteros. spellF1 medio de los 7 partidos:
@@ -208,33 +221,29 @@ Dónde falla el modelo hoy (`datos/diagnostico_errores.csv`, config de hoy):
 
 Por orden de lo que yo haría. Nada de esto está empezado salvo que se diga.
 
-1. **Decidir si el detector de fronteras entra en la entrega** (+1,1 pp en el arnés, arriba). Exige entrenarlo con
-   los 7 partidos y fijar peso y escala con el mismo LOMO; que `build` lo cargue o lo reentrene de forma regenerable
-   desde el repo; y aceptar que en BAR-ATH no se puede comprobar que transfiere. Es una decisión de equipo: la
-   entrega actual sigue intacta hasta que se tome.
-2. **El documento técnico final.** No existe como tal; el material está en `trabajo/`. La
+1. **El documento técnico final.** No existe como tal; el material está en `trabajo/`. La
    frase sobre el sobreajuste que va en él es la del §2 (29-30 oct), no "no se sobreajustó".
-3. **Dejar el repositorio listo para hacerlo público.** Antes de publicar: comprobar otra vez
+2. **Dejar el repositorio listo para hacerlo público.** Antes de publicar: comprobar otra vez
    que no entra nada de `data/` (hoy: 0 ficheros, auditado en cada push), citar el paper del
    IDSSE y acreditar a la DFL (**condición de la licencia CC-BY, no cortesía**), revisar
    `vendor/NOTICE.md`, y probar la reproducción en una máquina limpia (**no se ha hecho**).
-4. **Un detector de balón propio sobre el vídeo** (la línea de visión). La curva de visibilidad
+3. **Un detector de balón propio sobre el vídeo** (la línea de visión). La curva de visibilidad
    (§2, 7-11) dice que merece la pena *si llega*: subir al 70 % de balón visible vale unos
    +2 pp, y al 80 % unos +3,5 pp. Pero el plan lo estima en 7,5 días, quedan 10 hasta la
    entrega, y su criterio de abandono (50 % de recall al 90 % de precisión a los tres días)
    sigue en pie. No se ha empezado.
-5. **Conectar el Smart Tagging** como pista de reinicios (sus 59 saques marcan justo donde más
+4. **Conectar el Smart Tagging** como pista de reinicios (sus 59 saques marcan justo donde más
    se falla). El lector existe (`io/smart_tagging.py`) y desde el 7-11 lee bien el equipo por
    código; la conexión al modelo no. Su peso no se puede medir en el arnés (el IDSSE no tiene
    Smart Tagging), así que entra como pista de dónde cortar antes que como emisión.
-6. **Mejorar la degradación** para que las rachas sin balón caigan donde caen de verdad
+5. **Mejorar la degradación** para que las rachas sin balón caigan donde caen de verdad
    (zonas abarrotadas, balones aéreos). Hoy están repartidas con un modelo más simple.
-7. **Una emisión aprendida** sobre los partidos IDSSE degradados (fase C de
+6. **Una emisión aprendida** sobre los partidos IDSSE degradados (fase C de
    `datos-externos.md`). Prueba rápida del 7-11 con las features del detector (medio partido
    para entrenar, medio para medir): acierto por frame 0,783, igual que el geométrico; mezclada
    con él, cambios del mismo tamaño que el ruido. No es un atajo; si se hace, con el mismo LOMO
    anidado.
-8. **Validar en otro dominio** (SkillCorner, fase D) para saber si nos hemos ajustado al IDSSE.
+7. **Validar en otro dominio** (SkillCorner, fase D) para saber si nos hemos ajustado al IDSSE.
 
 Lo que **ya no** merece la pena: seguir afinando hiperparámetros del modelo actual. Con 7
 partidos de ajuste no hay señal para distinguir más valores (lo demostró la rejilla ampliada:
@@ -294,7 +303,7 @@ decisión o se quedó a medias? (`analisis-y-propuesta.md`, parte 5, pregunta 3.
 ```bash
 python3.12 -m venv .venv && source .venv/bin/activate   # numpy 2.5.4 pide Python >= 3.12
 pip install -r requirements-dev.txt
-python -m pytest -q                      # 81 tests
+python -m pytest -q                      # 85 tests
 ```
 
 Para regenerar la entrega hacen falta los datos del partido (no están en el repo, no pueden

@@ -37,18 +37,15 @@ import numpy as np
 from .. import evaluate as ev
 from .. import features as feature_set
 from ..config import DEFAULT
-from ..constants import FPS
 from ..decode import viterbi
-from ..models import emissions
+from ..features.boundaries import WINDOWS_FRAMES, feature_matrix, feature_names
+from ..models import boundary_detector, emissions
 from ..paths import REPO_ROOT, cache_dir
 from . import convention, degrade, harness, idsse
 
 # Un frame es positivo si cae a menos de esto de un cambio de etiqueta. 12 frames (0,48 s)
 # es el radio en el que el diagnostico de errores mide la mitad de los fallos.
 BOUNDARY_HALF_WIDTH_FRAMES = 12
-
-# Ventanas a cada lado del frame, en frames: de 0,24 s a 2 s.
-WINDOWS_FRAMES = (6, 12, 25, 50)
 
 # Uno de cada N frames para entrenar. Los vecinos son casi identicos: un millon de frames
 # correlacionados no son un millon de ejemplos, y asi cada ajuste tarda segundos.
@@ -85,81 +82,6 @@ def boundary_target(labels, half_width=BOUNDARY_HALF_WIDTH_FRAMES):
     np.add.at(near, np.clip(change_frames - half_width, 0, len(labels)), 1)
     np.add.at(near, np.clip(change_frames + half_width, 0, len(labels)), -1)
     return np.cumsum(near)[:-1] > 0
-
-
-# --------------------------------------------------------------------------- features
-
-def window_means(values, width):
-    """(antes, despues): media ignorando NaN en [t-width, t) y en [t, t+width).
-
-    NaN donde la ventana no tiene ningun valor definido: un hueco de balon es un dato que
-    falta, no un cero, y el clasificador (HistGradientBoosting) trata NaN como tal.
-    """
-    values = np.asarray(values, dtype=np.float64)
-    defined = np.isfinite(values)
-    total = np.concatenate(([0.0], np.cumsum(np.where(defined, values, 0.0))))
-    count = np.concatenate(([0], np.cumsum(defined)))
-    n = len(values)
-    frame = np.arange(n)
-    lo, hi = np.maximum(frame - width, 0), np.minimum(frame + width, n)
-    with np.errstate(invalid="ignore", divide="ignore"):
-        before = (total[frame] - total[lo]) / (count[frame] - count[lo])
-        after = (total[hi] - total[frame]) / (count[hi] - count[frame])
-    return before, after
-
-
-def _frames_since(event):
-    """(n,) frames desde la ultima vez que `event` fue True (n si nunca)."""
-    n = len(event)
-    last = np.where(event, np.arange(n), -1)
-    last = np.maximum.accumulate(last)
-    return np.where(last >= 0, np.arange(n) - last, n).astype(np.float64)
-
-
-def frame_signals(features, config):
-    """Senales por frame, sin suavizar, de las que se miran los cambios antes/despues."""
-    seen = features["ball_seen"]
-    ball_x = np.where(seen, features["ball_x"], np.nan)
-    return {
-        "control_diff": np.where(seen, features["control_home"] - features["control_away"],
-                                 np.nan),
-        "nearest_gap_m": np.where(seen, features["nearest_home"] - features["nearest_away"],
-                                  np.nan),
-        "activity": features["activity"],
-        "ball_speed": features["ball_speed"],
-        "ball_seen": seen.astype(np.float64),
-        "ball_out": features["ball_out"].astype(np.float64),
-        "ball_vx": np.diff(ball_x, prepend=np.nan) * FPS,
-        "home_vx": np.diff(features["home_centroid_x"], prepend=np.nan) * FPS,
-        "away_vx": np.diff(features["away_centroid_x"], prepend=np.nan) * FPS,
-        "centroid_gap_x": features["centroid_gap_x"],
-        "spread_ratio_x": features["spread_ratio_x"],
-        "home_logit": emissions.home_logit(features, config),
-        "dead_logit": emissions.dead_logit(features, config),
-    }
-
-
-def feature_matrix(features, config):
-    """(matriz (n, k) float32, nombres). Todo lo que ve el detector en cada frame."""
-    columns, names = [], []
-    signals = frame_signals(features, config)
-    for name, values in signals.items():
-        for width in WINDOWS_FRAMES:
-            before, after = window_means(values, width)
-            columns += [after - before, after]
-            names += ["%s_change_%d" % (name, width), "%s_after_%d" % (name, width)]
-    # Un robo invierte el sentido de los dos bloques a la vez: si los dos centroides
-    # cambian de velocidad en sentidos opuestos, el producto sale negativo.
-    for width in (25, 50):
-        home = window_means(signals["home_vx"], width)
-        away = window_means(signals["away_vx"], width)
-        columns.append((home[1] - home[0]) * (away[1] - away[0]))
-        names.append("both_vx_change_product_%d" % width)
-    seen = features["ball_seen"]
-    columns += [_frames_since(seen), _frames_since(seen[::-1])[::-1],
-                np.asarray(features["ball_gap"], dtype=np.float64)]
-    names += ["frames_since_ball_seen", "frames_until_ball_seen", "ball_gap_frames"]
-    return np.column_stack(columns).astype(np.float32), names
 
 
 # --------------------------------------------------------------------------- datos
@@ -346,5 +268,49 @@ def main(config=None):
     log("guardado %s (%.0f min)" % (path, (time.time() - started) / 60))
 
 
+def export(config=None):
+    """Entrena el detector de la entrega con los 7 partidos y elige peso y escala.
+
+    El mismo procedimiento que se midio, sin partido de fuera: peso y escala se eligen
+    sobre los 7 con puntuaciones fuera de muestra (cada partido puntuado por un detector
+    entrenado con los otros 6), y el modelo final se entrena con los 7. Semilla 0, como en
+    la medicion. Escribe models/boundary_detector.{joblib,json}; los dos valores elegidos
+    se transcriben a config.py con su procedencia, y `score()` comprueba al cargar que las
+    features se calculan con la misma config que aqui.
+    """
+    config = config or DEFAULT
+    started = time.time()
+    spec = harness.real_spec()
+    matches = sorted(idsse.MATCHES)
+    data = {m: prepare(m, spec, SEEDS[0], config) for m in matches}
+    out_of_fold = {m: boundary_score(fit([data[j] for j in matches if j != m]), data[m])
+                   for m in matches}
+    choice = choose_decoder(data, out_of_fold, config, ARMS["both"])
+    model = fit([data[m] for m in matches])
+    names = feature_names()
+    if {d["matrix"].shape[1] for d in data.values()} != {len(names)}:
+        raise ValueError("la cache out/cache/boundary_*.npz es de otra version de las "
+                         "features; borrala y vuelve a preparar")
+    metadata = boundary_detector.save(model, {
+        "trained_on": matches, "degradation_seed": SEEDS[0],
+        "half_width_frames": BOUNDARY_HALF_WIDTH_FRAMES,
+        "train_stride_frames": TRAIN_STRIDE_FRAMES,
+        "feature_names": names,
+        "feature_config": boundary_detector.feature_config(config),
+        "chosen_discount_weight": choice["discount_weight"],
+        "chosen_switch_scale": choice["switch_scale"],
+        "out_of_fold_spell_f1": choice["inner_spell_f1"],
+        "out_of_fold_macro_f1": choice["inner_macro_f1"],
+        "grid": choice["grid"],
+    })
+    log("elegido sobre los 7 (fuera de muestra): peso %.2f escala %.2f -> spellF1 %.4f"
+        % (choice["discount_weight"], choice["switch_scale"], choice["inner_spell_f1"]))
+    log("guardado %s (sha256 %s..., %.0f min)" % (
+        boundary_detector.ARTIFACT_PATH, metadata["artifact_sha256"][:12],
+        (time.time() - started) / 60))
+    return metadata
+
+
 if __name__ == "__main__":
-    main()
+    import sys
+    export() if sys.argv[1:] == ["export"] else main()

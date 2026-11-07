@@ -226,6 +226,21 @@ DEFAULT = {
     # transicion de arriba el decodificador ya no produce segmentos de menos de 0,5 s, asi
     # que este valor es un cinturon de seguridad, no una palanca. Se deja en 12.
     "min_duration_frames": 12,
+
+    # ------------------------------------------------------------ detector de fronteras
+    # models/boundary_detector.py: un score por frame de "aqui cambia la posesion". El
+    # decodificador multiplica los costes de cambio de cada frame por (1 - peso * score), y
+    # todos los costes de cambio por la escala. Medido con leave-one-match-out anidado en
+    # los 7 partidos IDSSE x 3 semillas (ESTADO.md, 7-11): +1,17 pp spellF1 sobre el modelo
+    # sin detector, y +1,07 pp sobre subir solo la escala (positivo en los 7 partidos). Los
+    # dos valores los elige `python -m mtah.training.boundaries export` sobre los 7 con
+    # puntuaciones fuera de muestra; se copian de models/boundary_detector.json.
+    # Elegidos el 7-11: peso 0,95 y escala 2,0 (spellF1 fuera de muestra 0,4111 frente a
+    # 0,4089 con escala 1,5). Los dos son el borde de su rejilla, como en los 2 pliegues de 7
+    # que perdian en la medicion; no se amplia: el 31-10 se vio que ampliar sobreajusta.
+    # Peso 0 = el modelo del 31-10 exactamente, sin cargar el detector.
+    "boundary_discount_weight": 0.95,
+    "boundary_switch_scale": 2.0,
 }
 
 

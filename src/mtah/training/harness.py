@@ -75,6 +75,10 @@ def predict(tracking, config=None):
     Un solo bloque porque el fichero del IDSSE no trae los frames del descanso: no hay
     hueco que separar y el decodificador no arrastra nada a traves de nada. Devuelve
     tambien los features para que el analisis de errores no tenga que recalcularlos.
+
+    Sin el detector de fronteras, a proposito: se entreno con estos mismos 7 partidos y
+    aplicarlo aqui seria medirlo sobre su conjunto de entrenamiento. Su medicion honesta
+    es la de `training/boundaries.py` (leave-one-match-out anidado).
     """
     config = config or DEFAULT
     blocks = ((0, tracking.n_frames),)

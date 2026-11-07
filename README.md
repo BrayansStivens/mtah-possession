@@ -18,11 +18,13 @@ Suelo oficial a batir: **`spellF1` 0.2433** (`baseline_smooth50`).
 
 ```bash
 python -m venv .venv && source .venv/bin/activate
-pip install -r requirements.txt          # produccion: numpy, pandas (pinneados)
+pip install -r requirements.txt          # produccion: numpy, pandas, scikit-learn (pinneados)
 pip install -r requirements-dev.txt      # + pytest, matplotlib
 ```
 
-Python 3.9 o superior.
+Python 3.12 o superior (lo pide `numpy==2.5.4`). La versión de scikit-learn tiene que ser
+exactamente la pinneada: el detector de fronteras es un modelo guardado y se niega a
+cargar con otra.
 
 ## Los datos
 
@@ -90,7 +92,9 @@ src/mtah/
   io/homography.py      matriz 3x3 por frame; campo <-> pixel
   io/smart_tagging.py   fases tacticas y saques -> intervalos en frames
   features/geometry.py  distancias, control, actividad, forma de equipo
+  features/boundaries.py que cambia entre justo antes y justo despues de cada frame
   models/emissions.py   features -> coste por frame y estado
+  models/boundary_detector.{py,joblib,json}  score de frontera, entrenado en el IDSSE
   decode/viterbi.py     coste -> segmentos. El nucleo del reto
   pipeline.py           el encadenado completo
   submission.py         construir, escribir y validar el CSV
@@ -103,6 +107,15 @@ dos mitades se apoyan en señales distintas: **vivo/muerto** sale de la cinemát
 jugadores y no necesita el balón, mientras que **la propiedad** sale de la geometría
 balón-jugador y sí lo necesita. Con el balón ausente en el 41% de los frames puntuados,
 mezclarlas en un solo clasificador tira a la basura la mitad que sigue funcionando.
+
+Encima, un **detector de fronteras**: gradient boosting que mira qué cambia entre una
+ventana corta antes y otra después de cada frame, y devuelve un score de "aquí cambia la
+posesión". El decodificador encarece todos los cambios (×2) y abarata los de cada frame en
+proporción al score (×(1 − 0,95·score)): corta sobre todo donde el detector ve frontera. Se
+entrenó en los 7 partidos del IDSSE degradados como el ATD; medido dejando cada partido
+fuera, con el peso elegido sin verlo, da **+1,17 pp de `spellF1`** sobre el modelo sin él
+(ver `ESTADO.md`). Se regenera con `python -m mtah.training.boundaries export`, que necesita
+`requirements-train.txt` y descarga el IDSSE; la entrega solo carga el modelo guardado.
 
 ## Tres decisiones y por qué
 
@@ -162,3 +175,10 @@ Diferencias por debajo de ~0.04 en `spellF1` y ~0.01 en `macroF1` son ruido.
 Código propio bajo MIT. `vendor/` es copia literal del repositorio oficial de la
 competición (MIT, ver `vendor/NOTICE.md`). Los datos del partido no están cubiertos por
 ninguna de las dos y no se redistribuyen.
+
+`src/mtah/models/boundary_detector.joblib` es una obra derivada del dataset IDSSE —
+Bassek, M., Rein, R., Weber, H. et al. "An integrated dataset of spatiotemporal and event
+data in elite soccer". *Sci Data* 12, 195 (2025), doi:10.1038/s41597-025-04505-y — publicado
+bajo **CC-BY 4.0** con autorización de la **Deutsche Fußball Liga (DFL)**. Datos:
+doi:10.6084/m9.figshare.28196177. El repositorio no contiene ningún dato del IDSSE, solo el
+modelo entrenado sobre él.

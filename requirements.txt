@@ -3,5 +3,7 @@
 numpy==2.5.4
 pandas==3.0.6
 
-# Opcional, solo para el modelo supervisado (models/). El pipeline geometrico no lo necesita.
+# Necesario desde el 7-11: carga el detector de fronteras (models/boundary_detector.joblib).
+# Version exacta: un pickle de scikit-learn solo es fiable con la version que lo escribio,
+# y boundary_detector.load() falla con cualquier otra.
 scikit-learn==1.8.0
