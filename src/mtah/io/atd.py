@@ -24,11 +24,18 @@ import xml.etree.ElementTree as ET
 
 import numpy as np
 
-from ..constants import GAME, N_FRAMES, N_TRACK_SLOTS, PITCH
+from ..constants import FPS, GAME, N_FRAMES, N_TRACK_SLOTS, PITCH
 from ..paths import cache_dir, require
 
 HOME_CODE, AWAY_CODE = 0, 1
 _TRANSLATE = str.maketrans({":": ",", ";": ","})
+
+# Banda aceptable para (velocidad del fichero / velocidad derivada de la posicion). En m/s
+# sale ~1.0 (medido 0.992 sobre BAR-ATH); en km/h saldria ~3.6 y en km/h dividido por 3.6
+# dos veces, ~0.28. La banda es ancha a proposito: separa unidades, no mide precision.
+SPEED_RATIO_ACCEPTED = (0.8, 1.25)
+# Por debajo de esta velocidad derivada el cociente lo domina el jitter del tracking.
+SPEED_RATIO_MIN_DERIVED_MS = 0.5
 
 
 class Tracking:
@@ -108,6 +115,44 @@ def read_metadata(meta_path):
     return team_of_slot, home_name, away_name
 
 
+def speed_channel_ratio(tracking, min_derived_speed_ms=SPEED_RATIO_MIN_DERIVED_MS):
+    """Mediana de (velocidad de jugador del fichero / velocidad derivada de la posicion).
+
+    La derivada se calcula entre frames consecutivos en metros, asi que es NaN en cualquier
+    hueco y no cruza ninguna ausencia. Los cambios de identidad entre slots producen saltos
+    absurdos en la derivada, pero son pocos y la mediana no los ve.
+    """
+    xy_metres = tracking.players_xy * np.asarray(PITCH, dtype=np.float32)
+    step = xy_metres[1:] - xy_metres[:-1]
+    derived_speed = np.sqrt((step ** 2).sum(axis=-1)) * float(FPS)
+    declared_speed = tracking.players_speed[1:]
+    comparable = (np.isfinite(derived_speed) & np.isfinite(declared_speed)
+                  & (derived_speed > min_derived_speed_ms))
+    if not comparable.any():
+        raise ValueError("ningun frame permite comparar la velocidad del fichero con la "
+                         "derivada de la posicion")
+    return float(np.median(declared_speed[comparable] / derived_speed[comparable]))
+
+
+def check_speed_channel_units(tracking):
+    """Falla si la velocidad de jugador del fichero no esta en m/s. Devuelve el cociente.
+
+    `atd.xml` declara `<Unit>kph</Unit>` y es falso: medido contra la posicion el canal
+    esta en m/s. El siguiente que lea el metadato lo "arreglara" dividiendo por 3.6, y como
+    la actividad de los jugadores -- el detector de balon parado -- sale de este canal, el
+    pipeline seguiria corriendo y prediciendo D en casi todo sin fallar en ningun sitio.
+    Esto lo convierte en un error explicito. (Portado de DeteccionPosesionBalon.)
+    """
+    ratio = speed_channel_ratio(tracking)
+    low, high = SPEED_RATIO_ACCEPTED
+    if not low <= ratio <= high:
+        raise ValueError(
+            "la velocidad de jugador del fichero mide {:.3f} veces la derivada de la "
+            "posicion; en m/s daria ~1.0 (km/h daria ~3.6). No conviertas unidades "
+            "fiandote del metadato: vuelve a medirlas.".format(ratio))
+    return ratio
+
+
 def _parse_raw(raw_path, n_slots, n_frames):
     """Parsea el TXT crudo a una matriz (n_frames, 1 + 3*n_slots + 3).
 
@@ -160,8 +205,10 @@ def load(source="tactical", game=GAME, n_frames=None, use_cache=True):
     if use_cache and os.path.exists(cache):
         blob = np.load(cache)
         if float(blob["stamp"]) == stamp and int(blob["n_slots"]) == n_slots:
-            return Tracking(blob["ball_xy"], blob["ball_speed"], blob["players_xy"],
-                            blob["players_speed"], team_of_slot, home_name, away_name)
+            tracking = Tracking(blob["ball_xy"], blob["ball_speed"], blob["players_xy"],
+                                blob["players_speed"], team_of_slot, home_name, away_name)
+            check_speed_channel_units(tracking)
+            return tracking
 
     matrix = _parse_raw(raw_path, n_slots, n_frames)
     players = matrix[:, 1:1 + 3 * n_slots].reshape(n_frames, n_slots, 3)
@@ -173,6 +220,7 @@ def load(source="tactical", game=GAME, n_frames=None, use_cache=True):
         players_xy=np.ascontiguousarray(players[:, :, :2]),
         players_speed=np.ascontiguousarray(players[:, :, 2]),
         team_of_slot=team_of_slot, home_name=home_name, away_name=away_name)
+    check_speed_channel_units(tracking)
 
     if use_cache:
         np.savez_compressed(

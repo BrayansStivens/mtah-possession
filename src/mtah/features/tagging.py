@@ -17,31 +17,96 @@ De ahi que todo lo de aqui entre al modelo como *evidencia con peso medido*, nun
 respuesta. Los tags de saque, por ejemplo, cubren una ventana de unos 5 s alrededor del
 reinicio y no el instante: verificado contra los dos saques iniciales, cuyos tags
 (11097-11222 y 113660-113785) contienen los frames reales 11185 y 113742.
+
+**El `Team` de una fase no siempre es el equipo con el balon.** Depende del codigo, y
+leerlo mal invierte la evidencia. Medido el 07-11 sobre BAR-ATH, fraccion de frames vivos
+de cada fase en que la entrega actual predice el equipo tagueado (sin etiquetas: es
+nuestro modelo contra el tag, solo para leer la semantica del codigo):
+
+    BUILD UP .84   PROGRESSION .84   CREATING CHANCES .74   LONG BALL .66
+    DEFENDING IN ATTACKING THIRD .16   ... MIDDLE THIRD .16   ... DEFENSIVE THIRD .26
+
+Los `DEFENDING IN *` nombran al equipo SIN balon. Y son espejo de los otros: cubren los
+mismos intervalos que BUILD UP / PROGRESSION / CREATING CHANCES con el equipo contrario
+(mismos recuentos de frames, al frame). Los demas codigos con equipo no entran: BALL IN
+FINAL THIRD / BALL IN THE BOX / PLAYERS IN THE BOX nombran al atacante pero acuerdan solo
+.65-.72, y ATTACKING / DEFENSIVE TRANSITION acuerdan .55 / .45 -- su intervalo cabalga el
+cambio de posesion, asi que no dicen de quien es el balon (si quiza donde cambia).
+La lectura por codigo viene de DeteccionPosesionBalon/tactical_tagging.py.
 """
 
 import numpy as np
 
 from ..constants import N_FRAMES
 
+# Codigos cuyo `Team` es el equipo con el balon.
+CODES_NAMING_TEAM_IN_POSSESSION = frozenset({
+    "build up", "progression", "creating chances", "long ball"})
+# Codigos cuyo `Team` es el equipo SIN balon: el voto va al rival.
+CODES_NAMING_TEAM_OUT_OF_POSSESSION = frozenset({
+    "defending in attacking third", "defending in middle third",
+    "defending in defensive third"})
 
-def team_logit(phases, n_frames=N_FRAMES):
-    """(n,) +1 por cada fase tagueada como local que cubre el frame, -1 por cada visitante.
 
-    Se suma en lugar de tomar la ultima porque las fases se solapan: un mismo frame puede
-    estar dentro de un Build Up y de un Ball in Final Third a la vez. Que coincidan dos
-    fases del mismo equipo es mas evidencia que una sola, y que coincidan de equipos
-    distintos es una contradiccion que debe cancelarse.
+def possession_team(phase):
+    """'H', 'A' o None: el equipo con el balon segun la fase, leyendo su codigo.
+
+    None si la fase no tiene equipo o si su codigo no dice quien tiene el balon.
     """
-    out = np.zeros(n_frames, dtype=np.float32)
+    tagged = phase.team_label
+    if tagged is None:
+        return None
+    code = phase.code.strip().lower()
+    if code in CODES_NAMING_TEAM_IN_POSSESSION:
+        return tagged
+    if code in CODES_NAMING_TEAM_OUT_OF_POSSESSION:
+        return "A" if tagged == "H" else "H"
+    return None
+
+
+def team_votes(phases, n_frames=N_FRAMES):
+    """(home_votes, away_votes), cada uno (n,) int16: fases que dan el balon a cada equipo.
+
+    Como los DEFENDING son espejo de las fases de posesion, un frame cubierto por un par
+    espejo cuenta dos votos para el mismo equipo. Es la misma evidencia dos veces: los
+    recuentos dicen cuantas fases hablan, no cuanta informacion independiente hay.
+    """
+    home_votes = np.zeros(n_frames, dtype=np.int16)
+    away_votes = np.zeros(n_frames, dtype=np.int16)
     for phase in phases:
-        label = phase.team_label
-        if label is None:                      # el N/A explicito no es un equipo
+        team = possession_team(phase)
+        if team is None:
             continue
         start = max(0, phase.start_frame)
         stop = min(n_frames, phase.end_frame)
         if stop > start:
-            out[start:stop] += 1.0 if label == "H" else -1.0
-    return out
+            (home_votes if team == "H" else away_votes)[start:stop] += 1
+    return home_votes, away_votes
+
+
+def team_logit(phases, n_frames=N_FRAMES):
+    """(n,) votos al local menos votos al visitante, leyendo cada codigo (ver arriba).
+
+    Se suma en lugar de tomar la ultima porque las fases se solapan. Que coincidan fases
+    de equipos distintos es una contradiccion y se cancela.
+    """
+    home_votes, away_votes = team_votes(phases, n_frames)
+    return (home_votes - away_votes).astype(np.float32)
+
+
+def weak_labels(phases, n_frames=N_FRAMES):
+    """(n,) 'H', 'A' o '' por frame, y (n,) bool de conflicto.
+
+    '' donde ninguna fase dice de quien es el balon y tambien donde se contradicen (el
+    conflicto se marca aparte). No es ground truth: son fases de ~18 s generadas por
+    Metrica del mismo video. Solo valen como diagnostico del modelo en este partido.
+    """
+    home_votes, away_votes = team_votes(phases, n_frames)
+    conflict = (home_votes > 0) & (away_votes > 0)
+    labels = np.full(n_frames, "", dtype="<U1")
+    labels[(home_votes > 0) & ~conflict] = "H"
+    labels[(away_votes > 0) & ~conflict] = "A"
+    return labels, conflict
 
 
 def set_piece_window(phases, n_frames=N_FRAMES, pad=0):

@@ -1,0 +1,533 @@
+{
+  "by_match": {
+    "J03WMX": [
+      {
+        "strategy": "base",
+        "target": null,
+        "visibility": 0.5907773674871718,
+        "spell_f1": 0.36066945606694556,
+        "macro_f1": 0.7778440739419326
+      },
+      {
+        "strategy": "random",
+        "target": 0.7,
+        "visibility": 0.7000006850863552,
+        "spell_f1": 0.4008281573498965,
+        "macro_f1": 0.7973500726283212
+      },
+      {
+        "strategy": "random",
+        "target": 0.8,
+        "visibility": 0.8000027403454205,
+        "spell_f1": 0.41133603238866395,
+        "macro_f1": 0.8132956344694646
+      },
+      {
+        "strategy": "random",
+        "target": 0.9,
+        "visibility": 0.8999979447409346,
+        "spell_f1": 0.42829076620825146,
+        "macro_f1": 0.821835019065495
+      },
+      {
+        "strategy": "random",
+        "target": 1.0,
+        "visibility": 1.0,
+        "spell_f1": 0.4665377176015474,
+        "macro_f1": 0.8500077721068253
+      },
+      {
+        "strategy": "easy_first",
+        "target": 0.7,
+        "visibility": 0.7000006850863552,
+        "spell_f1": 0.3733333333333334,
+        "macro_f1": 0.7925319357810325
+      },
+      {
+        "strategy": "easy_first",
+        "target": 0.8,
+        "visibility": 0.8000027403454205,
+        "spell_f1": 0.3821138211382114,
+        "macro_f1": 0.7988699323888256
+      },
+      {
+        "strategy": "easy_first",
+        "target": 0.9,
+        "visibility": 0.8999979447409346,
+        "spell_f1": 0.43629191321499017,
+        "macro_f1": 0.8291323510275648
+      },
+      {
+        "strategy": "easy_first",
+        "target": 1.0,
+        "visibility": 1.0,
+        "spell_f1": 0.4665377176015474,
+        "macro_f1": 0.8500077721068253
+      }
+    ],
+    "J03WN1": [
+      {
+        "strategy": "base",
+        "target": null,
+        "visibility": 0.5859594097244297,
+        "spell_f1": 0.34352030947775625,
+        "macro_f1": 0.7515374865667295
+      },
+      {
+        "strategy": "random",
+        "target": 0.7,
+        "visibility": 0.7000021192277535,
+        "spell_f1": 0.3632887189292543,
+        "macro_f1": 0.765207175688448
+      },
+      {
+        "strategy": "random",
+        "target": 0.8,
+        "visibility": 0.8000014128185022,
+        "spell_f1": 0.40076190476190476,
+        "macro_f1": 0.7831269730098697
+      },
+      {
+        "strategy": "random",
+        "target": 0.9,
+        "visibility": 0.9000007064092511,
+        "spell_f1": 0.4180790960451978,
+        "macro_f1": 0.802762953111329
+      },
+      {
+        "strategy": "random",
+        "target": 1.0,
+        "visibility": 1.0,
+        "spell_f1": 0.43452157598499064,
+        "macro_f1": 0.8210171095205595
+      },
+      {
+        "strategy": "easy_first",
+        "target": 0.7,
+        "visibility": 0.7000021192277535,
+        "spell_f1": 0.3662188099808062,
+        "macro_f1": 0.764159103162228
+      },
+      {
+        "strategy": "easy_first",
+        "target": 0.8,
+        "visibility": 0.8000014128185022,
+        "spell_f1": 0.3765151515151515,
+        "macro_f1": 0.7724543516828396
+      },
+      {
+        "strategy": "easy_first",
+        "target": 0.9,
+        "visibility": 0.9000007064092511,
+        "spell_f1": 0.39925373134328357,
+        "macro_f1": 0.7977556141105898
+      },
+      {
+        "strategy": "easy_first",
+        "target": 1.0,
+        "visibility": 1.0,
+        "spell_f1": 0.43452157598499064,
+        "macro_f1": 0.8210171095205595
+      }
+    ],
+    "J03WOH": [
+      {
+        "strategy": "base",
+        "target": null,
+        "visibility": 0.5917909251242585,
+        "spell_f1": 0.4678260869565218,
+        "macro_f1": 0.8141413453532197
+      },
+      {
+        "strategy": "random",
+        "target": 0.7,
+        "visibility": 0.7000014575772151,
+        "spell_f1": 0.4969696969696969,
+        "macro_f1": 0.8282959386366576
+      },
+      {
+        "strategy": "random",
+        "target": 0.8,
+        "visibility": 0.7999985424227849,
+        "spell_f1": 0.5159914712153518,
+        "macro_f1": 0.8385990475778912
+      },
+      {
+        "strategy": "random",
+        "target": 0.9,
+        "visibility": 0.9000029151544303,
+        "spell_f1": 0.5481171548117154,
+        "macro_f1": 0.8498607033845911
+      },
+      {
+        "strategy": "random",
+        "target": 1.0,
+        "visibility": 1.0,
+        "spell_f1": 0.5528183716075157,
+        "macro_f1": 0.8572636141323358
+      },
+      {
+        "strategy": "easy_first",
+        "target": 0.7,
+        "visibility": 0.7000014575772151,
+        "spell_f1": 0.5044585987261146,
+        "macro_f1": 0.8241451490289656
+      },
+      {
+        "strategy": "easy_first",
+        "target": 0.8,
+        "visibility": 0.7999985424227849,
+        "spell_f1": 0.5205944798301486,
+        "macro_f1": 0.831989704215946
+      },
+      {
+        "strategy": "easy_first",
+        "target": 0.9,
+        "visibility": 0.9000029151544303,
+        "spell_f1": 0.5375,
+        "macro_f1": 0.8438072754851561
+      },
+      {
+        "strategy": "easy_first",
+        "target": 1.0,
+        "visibility": 1.0,
+        "spell_f1": 0.5528183716075157,
+        "macro_f1": 0.8572636141323358
+      }
+    ],
+    "J03WOY": [
+      {
+        "strategy": "base",
+        "target": null,
+        "visibility": 0.5936886119997755,
+        "spell_f1": 0.378989898989899,
+        "macro_f1": 0.7621565647352827
+      },
+      {
+        "strategy": "random",
+        "target": 0.7,
+        "visibility": 0.6999985968457092,
+        "spell_f1": 0.4016227180527384,
+        "macro_f1": 0.7735026748914468
+      },
+      {
+        "strategy": "random",
+        "target": 0.8,
+        "visibility": 0.8000014031542908,
+        "spell_f1": 0.4128,
+        "macro_f1": 0.7817412618570801
+      },
+      {
+        "strategy": "random",
+        "target": 0.9,
+        "visibility": 0.8999971936914183,
+        "spell_f1": 0.44645669291338574,
+        "macro_f1": 0.7991422015063402
+      },
+      {
+        "strategy": "random",
+        "target": 1.0,
+        "visibility": 1.0,
+        "spell_f1": 0.47358121330724073,
+        "macro_f1": 0.8142538851791089
+      },
+      {
+        "strategy": "easy_first",
+        "target": 0.7,
+        "visibility": 0.6999985968457092,
+        "spell_f1": 0.3959677419354839,
+        "macro_f1": 0.7710233838217038
+      },
+      {
+        "strategy": "easy_first",
+        "target": 0.8,
+        "visibility": 0.8000014031542908,
+        "spell_f1": 0.4056565656565657,
+        "macro_f1": 0.7843493748536498
+      },
+      {
+        "strategy": "easy_first",
+        "target": 0.9,
+        "visibility": 0.8999971936914183,
+        "spell_f1": 0.43339960238568587,
+        "macro_f1": 0.7969317438234707
+      },
+      {
+        "strategy": "easy_first",
+        "target": 1.0,
+        "visibility": 1.0,
+        "spell_f1": 0.47358121330724073,
+        "macro_f1": 0.8142538851791089
+      }
+    ],
+    "J03WPY": [
+      {
+        "strategy": "base",
+        "target": null,
+        "visibility": 0.5938882847391783,
+        "spell_f1": 0.3889125799573561,
+        "macro_f1": 0.7906352343801434
+      },
+      {
+        "strategy": "random",
+        "target": 0.7,
+        "visibility": 0.7000020518292057,
+        "spell_f1": 0.41779661016949154,
+        "macro_f1": 0.8017790517157497
+      },
+      {
+        "strategy": "random",
+        "target": 0.8,
+        "visibility": 0.8000013678861372,
+        "spell_f1": 0.4375,
+        "macro_f1": 0.8133061478717766
+      },
+      {
+        "strategy": "random",
+        "target": 0.9,
+        "visibility": 0.9000006839430685,
+        "spell_f1": 0.4736196319018404,
+        "macro_f1": 0.837627874493939
+      },
+      {
+        "strategy": "random",
+        "target": 1.0,
+        "visibility": 1.0,
+        "spell_f1": 0.5,
+        "macro_f1": 0.8487206329550417
+      },
+      {
+        "strategy": "easy_first",
+        "target": 0.7,
+        "visibility": 0.7000020518292057,
+        "spell_f1": 0.4116910229645094,
+        "macro_f1": 0.7989693005519104
+      },
+      {
+        "strategy": "easy_first",
+        "target": 0.8,
+        "visibility": 0.8000013678861372,
+        "spell_f1": 0.41487603305785115,
+        "macro_f1": 0.8020426597979006
+      },
+      {
+        "strategy": "easy_first",
+        "target": 0.9,
+        "visibility": 0.9000006839430685,
+        "spell_f1": 0.44948453608247413,
+        "macro_f1": 0.8259752693366235
+      },
+      {
+        "strategy": "easy_first",
+        "target": 1.0,
+        "visibility": 1.0,
+        "spell_f1": 0.5,
+        "macro_f1": 0.8487206329550417
+      }
+    ],
+    "J03WQQ": [
+      {
+        "strategy": "base",
+        "target": null,
+        "visibility": 0.5973374547753697,
+        "spell_f1": 0.4583690987124463,
+        "macro_f1": 0.7837877275074002
+      },
+      {
+        "strategy": "random",
+        "target": 0.7,
+        "visibility": 0.6999964874073553,
+        "spell_f1": 0.48151260504201676,
+        "macro_f1": 0.8030545000209942
+      },
+      {
+        "strategy": "random",
+        "target": 0.8,
+        "visibility": 0.8,
+        "spell_f1": 0.5147540983606558,
+        "macro_f1": 0.8170362856127449
+      },
+      {
+        "strategy": "random",
+        "target": 0.9,
+        "visibility": 0.8999964874073554,
+        "spell_f1": 0.5363449691991786,
+        "macro_f1": 0.8287076257322443
+      },
+      {
+        "strategy": "random",
+        "target": 1.0,
+        "visibility": 1.0,
+        "spell_f1": 0.5595141700404858,
+        "macro_f1": 0.8448901903973902
+      },
+      {
+        "strategy": "easy_first",
+        "target": 0.7,
+        "visibility": 0.6999964874073553,
+        "spell_f1": 0.479317697228145,
+        "macro_f1": 0.7956443618731127
+      },
+      {
+        "strategy": "easy_first",
+        "target": 0.8,
+        "visibility": 0.8,
+        "spell_f1": 0.49772256728778463,
+        "macro_f1": 0.8108103947277262
+      },
+      {
+        "strategy": "easy_first",
+        "target": 0.9,
+        "visibility": 0.8999964874073554,
+        "spell_f1": 0.5103448275862069,
+        "macro_f1": 0.8240552344700633
+      },
+      {
+        "strategy": "easy_first",
+        "target": 1.0,
+        "visibility": 1.0,
+        "spell_f1": 0.5595141700404858,
+        "macro_f1": 0.8448901903973902
+      }
+    ],
+    "J03WR9": [
+      {
+        "strategy": "base",
+        "target": null,
+        "visibility": 0.5843334922689191,
+        "spell_f1": 0.37709251101321584,
+        "macro_f1": 0.7732329047543484
+      },
+      {
+        "strategy": "random",
+        "target": 0.7,
+        "visibility": 0.7,
+        "spell_f1": 0.4165938864628821,
+        "macro_f1": 0.7932688472745445
+      },
+      {
+        "strategy": "random",
+        "target": 0.8,
+        "visibility": 0.8,
+        "spell_f1": 0.4288840262582057,
+        "macro_f1": 0.8056650902367885
+      },
+      {
+        "strategy": "random",
+        "target": 0.9,
+        "visibility": 0.9,
+        "spell_f1": 0.47192982456140353,
+        "macro_f1": 0.8299747248000665
+      },
+      {
+        "strategy": "random",
+        "target": 1.0,
+        "visibility": 1.0,
+        "spell_f1": 0.4967880085653105,
+        "macro_f1": 0.8433581677980418
+      },
+      {
+        "strategy": "easy_first",
+        "target": 0.7,
+        "visibility": 0.7,
+        "spell_f1": 0.39565217391304347,
+        "macro_f1": 0.7839999839022945
+      },
+      {
+        "strategy": "easy_first",
+        "target": 0.8,
+        "visibility": 0.8,
+        "spell_f1": 0.41978494623655915,
+        "macro_f1": 0.8000633718124854
+      },
+      {
+        "strategy": "easy_first",
+        "target": 0.9,
+        "visibility": 0.9,
+        "spell_f1": 0.4509719222462202,
+        "macro_f1": 0.8162528820817547
+      },
+      {
+        "strategy": "easy_first",
+        "target": 1.0,
+        "visibility": 1.0,
+        "spell_f1": 0.4967880085653105,
+        "macro_f1": 0.8433581677980418
+      }
+    ]
+  },
+  "summary": [
+    {
+      "strategy": "base",
+      "target": null,
+      "visibility": 0.5911107923027289,
+      "spell_f1": 0.396482848739163,
+      "macro_f1": 0.779047905319865
+    },
+    {
+      "strategy": "random",
+      "target": 0.7,
+      "visibility": 0.7000001997105134,
+      "spell_f1": 0.42551605613942517,
+      "macro_f1": 0.7946368944080231,
+      "matches_above_base": 7
+    },
+    {
+      "strategy": "random",
+      "target": 0.8,
+      "visibility": 0.8000007809467337,
+      "spell_f1": 0.4460039332835403,
+      "macro_f1": 0.8075386343765165,
+      "matches_above_base": 7
+    },
+    {
+      "strategy": "random",
+      "target": 0.9,
+      "visibility": 0.8999994187637798,
+      "spell_f1": 0.4746911622344247,
+      "macro_f1": 0.8242730145848578,
+      "matches_above_base": 7
+    },
+    {
+      "strategy": "random",
+      "target": 1.0,
+      "visibility": 1.0,
+      "spell_f1": 0.4976801510152987,
+      "macro_f1": 0.8399301960127576,
+      "matches_above_base": 7
+    },
+    {
+      "strategy": "easy_first",
+      "target": 0.7,
+      "visibility": 0.7000001997105134,
+      "spell_f1": 0.41809133972591944,
+      "macro_f1": 0.7900676025887498,
+      "matches_above_base": 7
+    },
+    {
+      "strategy": "easy_first",
+      "target": 0.8,
+      "visibility": 0.8000007809467337,
+      "spell_f1": 0.43103765210318173,
+      "macro_f1": 0.8000828270684819,
+      "matches_above_base": 7
+    },
+    {
+      "strategy": "easy_first",
+      "target": 0.9,
+      "visibility": 0.8999994187637798,
+      "spell_f1": 0.45960664755126585,
+      "macro_f1": 0.8191300529050318,
+      "matches_above_base": 7
+    },
+    {
+      "strategy": "easy_first",
+      "target": 1.0,
+      "visibility": 1.0,
+      "spell_f1": 0.4976801510152987,
+      "macro_f1": 0.8399301960127576,
+      "matches_above_base": 7
+    }
+  ],
+  "seed": 0
+}

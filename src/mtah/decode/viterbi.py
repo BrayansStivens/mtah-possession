@@ -87,17 +87,48 @@ def costs_from_hard_labels(labels, miss_cost=1.0, unknown_cost=0.0):
     return cost
 
 
-def _viterbi_block(cost, transition):
+def check_switch_discount(switch_discount, n_frames):
+    """Valida un descuento por frame, en fraccion, sobre el coste de cambiar de estado.
+
+    `switch_discount[t]` multiplica los seis costes de cambio entre los frames t-1 y t por
+    `1 - switch_discount[t]`; `switch_discount[0]` no se usa. Es la entrada del detector de
+    fronteras (training/boundaries.py): donde ve una transicion, cambiar sale mas barato.
+
+    Fraccion y no resta, porque los cambios cuestan muy distinto (un robo 40, un reinicio
+    14): una resta tendria que quedar por debajo de 14 y apenas moveria un robo. Tiene que
+    ser < 1: con 1 el cambio sale gratis y el decodificador fragmentaria ahi sin que
+    ninguna emision lo pida.
+    """
+    discount = np.asarray(switch_discount, dtype=np.float64)
+    if discount.shape != (n_frames,):
+        raise ValueError("switch_discount debe tener forma ({},), tiene {}".format(
+            n_frames, discount.shape))
+    if not np.isfinite(discount).all() or (discount < 0).any():
+        raise ValueError("switch_discount debe ser finito y no negativo")
+    if discount.size and discount.max() >= 1.0:
+        raise ValueError(
+            "switch_discount llega a {:.3f}: con 1 o mas un cambio sale gratis y hace "
+            "gratis fragmentar. Baja el peso del detector.".format(discount.max()))
+    return discount
+
+
+def _viterbi_block(cost, transition, switch_discount=None):
     """Viterbi sobre un bloque contiguo. cost (n, 3) coste, menor es mejor.
 
     Bucle en Python puro a proposito: con 3 estados son 9 sumas y 3 minimos por frame, y
     la sobrecarga por llamada de numpy sobre arrays de 3 elementos es mayor que el calculo.
+
+    `switch_discount` (n,) escala los seis costes de cambio al entrar en cada frame (ver
+    check_switch_discount). Sin el, o con ceros, el resultado es identico bit a bit al de
+    antes de existir: multiplicar por 1.0 no cambia ningun float.
     """
     n = len(cost)
     if n == 0:
         return np.empty(0, dtype=np.int8)
 
     emit = cost.tolist()
+    keep = ([1.0] * n if switch_discount is None
+            else (1.0 - np.asarray(switch_discount, float)).tolist())
     t00, t01, t02 = transition[0]
     t10, t11, t12 = transition[1]
     t20, t21, t22 = transition[2]
@@ -107,8 +138,9 @@ def _viterbi_block(cost, transition):
 
     for t in range(1, n):
         e0, e1, e2 = emit[t]
+        k = keep[t]
 
-        c0, c1, c2 = d0 + t00, d1 + t10, d2 + t20
+        c0, c1, c2 = d0 + t00, d1 + t10 * k, d2 + t20 * k
         if c0 <= c1 and c0 <= c2:
             n0, b0 = c0, 0
         elif c1 <= c2:
@@ -116,7 +148,7 @@ def _viterbi_block(cost, transition):
         else:
             n0, b0 = c2, 2
 
-        c0, c1, c2 = d0 + t01, d1 + t11, d2 + t21
+        c0, c1, c2 = d0 + t01 * k, d1 + t11, d2 + t21 * k
         if c0 <= c1 and c0 <= c2:
             n1, b1 = c0, 0
         elif c1 <= c2:
@@ -124,7 +156,7 @@ def _viterbi_block(cost, transition):
         else:
             n1, b1 = c2, 2
 
-        c0, c1, c2 = d0 + t02, d1 + t12, d2 + t22
+        c0, c1, c2 = d0 + t02 * k, d1 + t12 * k, d2 + t22
         if c0 <= c1 and c0 <= c2:
             n2, b2 = c0, 0
         elif c1 <= c2:
@@ -147,16 +179,23 @@ def _viterbi_block(cost, transition):
     return out
 
 
-def decode(cost, transition, blocks=GRADED_BLOCKS):
+def decode(cost, transition, blocks=GRADED_BLOCKS, switch_discount=None):
     """Viterbi por bloque puntuado. Devuelve codigos int8 (0=H, 1=A, 2=D).
 
     Nunca decodifica atravesando la frontera entre bloques: el agujero del descanso son
     20.156 frames y una transicion fantasma ahi es una posesion inventada.
     Los frames fuera de los bloques quedan como D, que no se puntua.
+
+    `switch_discount` es opcional y por frame (ver check_switch_discount). El primer frame
+    de cada bloque no es una transicion, asi que su descuento no se usa.
     """
+    transition = np.asarray(transition, dtype=np.float64)
+    if switch_discount is not None:
+        switch_discount = check_switch_discount(switch_discount, len(cost))
     out = np.full(len(cost), D, dtype=np.int8)
     for start, stop in blocks:
-        out[start:stop] = _viterbi_block(cost[start:stop], transition)
+        block_discount = None if switch_discount is None else switch_discount[start:stop]
+        out[start:stop] = _viterbi_block(cost[start:stop], transition, block_discount)
     return out
 
 
