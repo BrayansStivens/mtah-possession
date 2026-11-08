@@ -151,6 +151,32 @@ def _alternating_mask(n, present_runs, absent_runs, rng, start_present=True):
     return best
 
 
+def _weighted_mask(n, present_runs, absent_runs, weights, rng):
+    """Mascara de presencia con las rachas sin balon centradas donde pesa `weights`.
+
+    Mismas longitudes de racha y misma fraccion sin balon que `_alternating_mask`; solo
+    cambia donde caen. Es para pruebas de estres: poner los huecos donde el tracker real
+    los pone (o peor) y ver si lo medido con huecos al azar aguanta. Dos rachas que caen
+    encima se funden en una mas larga, asi que el numero de rachas baja: se informa, no se
+    corrige, porque corregirlo exigiria mover huecos fuera de donde pide el peso.
+    """
+    weights = np.asarray(weights, dtype=np.float64)
+    if weights.shape != (n,) or not np.isfinite(weights).all() or (weights < 0).any() \
+            or weights.sum() <= 0:
+        raise ValueError("gap_weights tiene que ser ({},) finito, >= 0 y no todo cero".format(n))
+    target = int(round(n * absent_runs.sum() / float(absent_runs.sum() + present_runs.sum())))
+    probability = weights / weights.sum()
+    absent = np.zeros(n, dtype=bool)
+    missing = target
+    while missing > 0:
+        length = min(int(rng.choice(absent_runs)), missing, n)
+        center = int(rng.choice(n, p=probability))
+        start = max(0, min(center - length // 2, n - length))
+        absent[start:start + length] = True
+        missing = target - int(absent.sum())
+    return ~absent
+
+
 def _reassign_slots(players_xy, players_speed, team_of_slot, spec, rng):
     """Trocea cada jugador y reparte los tramos entre los 46 slots sin identidad.
 
@@ -225,8 +251,12 @@ def _thin_to_histogram(players_xy, players_speed, spec, rng):
     return players_xy, players_speed
 
 
-def apply(tracking, spec, rng=None, position_noise=True, rho=0.9):
-    """Devuelve un Tracking nuevo, degradado. No modifica el original."""
+def apply(tracking, spec, rng=None, position_noise=True, rho=0.9, gap_weights=None):
+    """Devuelve un Tracking nuevo, degradado. No modifica el original.
+
+    `gap_weights=None` coloca las rachas sin balon al azar (el proxy de siempre); un array
+    por frame las centra con esa probabilidad relativa (ver `_weighted_mask`).
+    """
     rng = rng or np.random.default_rng()
     n = tracking.n_frames
 
@@ -247,8 +277,12 @@ def apply(tracking, spec, rng=None, position_noise=True, rho=0.9):
 
     ball_xy = tracking.ball_xy.copy()
     ball_speed = tracking.ball_speed.copy()
-    seen = _alternating_mask(n, spec.ball_present_runs, spec.ball_absent_runs, rng,
-                             start_present=bool(rng.integers(2)))
+    if gap_weights is None:
+        seen = _alternating_mask(n, spec.ball_present_runs, spec.ball_absent_runs, rng,
+                                 start_present=bool(rng.integers(2)))
+    else:
+        seen = _weighted_mask(n, spec.ball_present_runs, spec.ball_absent_runs, gap_weights,
+                              rng)
     ball_xy[~seen] = np.nan
     ball_speed[~seen] = np.nan
 

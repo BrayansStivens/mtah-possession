@@ -81,3 +81,32 @@ def test_apply_no_modifica_el_original():
     spec = degrade.estimate(tr, ((0, tr.n_frames),))
     degrade.apply(tr, spec, rng=np.random.default_rng(0))
     assert np.array_equal(tr.ball_xy, before, equal_nan=True)
+
+
+def test_mascara_ponderada_respeta_la_tasa_y_cae_donde_pesa():
+    n = 20000
+    present = np.array([300, 500, 800], dtype=np.int32)
+    absent = np.array([100, 200, 400], dtype=np.int32)       # 700 / 2300 sin balon
+    weights = np.full(n, 0.001)
+    weights[5000:10000] = 1.0                                  # un 25 % del partido
+    seen = degrade._weighted_mask(n, present, absent, weights, np.random.default_rng(0))
+    assert abs((~seen).mean() - 700 / 2300) < 0.005
+    zone = np.zeros(n, dtype=bool)
+    zone[5000:10000] = True
+    assert (~seen[zone]).mean() > 0.9 and (~seen[~zone]).mean() < 0.15
+
+
+@pytest.mark.parametrize("bad", [np.zeros(100), -np.ones(100), np.full(100, np.nan),
+                                 np.ones(99)])
+def test_mascara_ponderada_rechaza_pesos_invalidos(bad):
+    with pytest.raises(ValueError):
+        degrade._weighted_mask(100, np.array([5]), np.array([5]), bad,
+                               np.random.default_rng(0))
+
+
+def test_apply_sin_pesos_es_el_proxy_de_siempre():
+    clean = _clean(n=1500)
+    spec = degrade.estimate(clean, ((0, 1500),))
+    a = degrade.apply(clean, spec, rng=np.random.default_rng(3))
+    b = degrade.apply(clean, spec, rng=np.random.default_rng(3), gap_weights=None)
+    assert np.array_equal(a.ball_seen, b.ball_seen)

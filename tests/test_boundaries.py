@@ -74,3 +74,16 @@ def test_cambiar_solo_el_decodificador_no_invalida_el_detector():
     features = feature_set.build_all(make_tracking(200), config)
     score = boundary_detector.score(features, config)
     assert score.shape == (200,) and ((score >= 0) & (score <= 1)).all()
+
+
+def test_pesos_de_hueco_transitions_se_concentran_en_los_cambios():
+    labels = np.array(["H"] * 100 + ["A"] * 100)
+    weights = boundaries.gap_weights("transitions", None, labels)
+    assert weights[100] == 1.0 and weights[0] == boundaries.GAP_WEIGHT_FLOOR
+    assert boundaries.gap_weights("random", None, labels) is None
+
+
+def test_pesos_de_hueco_rechaza_colocaciones_desconocidas():
+    import pytest
+    with pytest.raises(ValueError):
+        boundaries.gap_weights("donde_sea", None, np.array(["H"]))

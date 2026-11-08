@@ -21,7 +21,7 @@ no está medido, se dice.
 | Mínimo oficial a superar | **0,2433** (`baseline_smooth50`) |
 | **Dónde estamos, medido** | **0,4073** de media en 7 partidos de Bundesliga degradados para parecerse a nuestros datos, dejando cada partido fuera del entrenamiento del detector (0,3965 sin el detector de fronteras) |
 | En los 5 minutos públicos | 0,4444 (0,4903 sin el detector; macroF1 igual, 0,8010 frente a 0,8009) — **lectura, no criterio**: 17 posesiones, una fallada mueve 6 puntos |
-| La entrega de hoy | `out/submission.csv`, generada el 7-11 con `config.py` tal cual está (sha256 `5d97eccc…`); pasa el validador oficial; 85 tests en verde. La del 31-10 se regenera con `boundary_discount_weight = 0` (sha256 `73c361d5…`) |
+| La entrega de hoy | `out/submission.csv`, generada el 7-11 con `config.py` tal cual está (sha256 `5d97eccc…`); pasa el validador oficial; 93 tests en verde. La del 31-10 se regenera con `boundary_discount_weight = 0` (sha256 `73c361d5…`) |
 | Qué configuración lleva | la de `config.py`; cada valor tiene escrito al lado de dónde sale. **Ninguno viene ya de los 5 minutos públicos** (prohibido desde el 22-10) |
 
 Si todo se parase hoy, hay algo válido que entregar y está 15 puntos por encima del mínimo.
@@ -129,9 +129,45 @@ Es la pieza que convirtió "no podemos medir" en "podemos medir en siete partido
   rinde cuando el decodificador corta *solo* donde él ve frontera. Los dos partidos que pierden frente al control
   (J03WOH, J03WOY) eligieron escala 2,0, el borde de la rejilla. No se amplía: el 31-10 ya se vio que ampliar
   rejillas sobreajusta.
-- **Qué no dice.** Es Bundesliga degradada con huecos al azar; el detector aprende también de *dónde* no se ve el
-  balón, y en el ATD los huecos caen en otros sitios. En BAR-ATH no hay forma de medirlo (la ventana pública no es
-  criterio).
+- **Qué no dice.** Es Bundesliga degradada; en BAR-ATH no hay forma de medirlo (la ventana pública no es criterio).
+  Lo que sí se pudo comprobar, el 7-11, está en el punto siguiente.
+- **Las tres pruebas de que aporta** (`python -m mtah.training.evidence stress | tagging`; tablas en
+  `trabajo/handoff-plugin-data/datos/evidencia_*.json`). Con huecos al azar el recorrido reproduce al bit el LOMO
+  de arriba, y el script falla si no.
+  1. **Estrés: el balón se pierde donde duele.** El mismo detector, peso y escala de cada pliegue (entrenados y
+     elegidos con huecos al azar, como la entrega), pero el partido de fuera se degrada con los huecos centrados
+     donde hay gente a < 5 m del balón (`crowded`, sin etiquetas: así describe DATA.md el ATD) o, peor caso, junto
+     a los cambios de posesión reales (`transitions`). Misma longitud de racha y mismo 59 % visible; con las rachas
+     reales no se puede esconder mucho más del 57 % de los cambios. Media de semillas por partido:
+
+     | huecos | cambios sin balón | AUC | los dos − control | los dos − solo encarecer |
+     |---|---|---|---|---|
+     | al azar | 41 % | 0,91 | +1,17 pp [+0,21, +2,07], 5/7 | +1,07 pp [+0,51, +1,55], 7/7 (p 0,008) |
+     | abarrotados | 49 % | 0,91 | +1,07 pp [−0,22, +2,20], 6/7 | +1,14 pp [+0,41, +1,86], 6/7 |
+     | junto a los cambios | 57 % | 0,90 | +0,41 pp [−0,16, +0,96], 4/7 | +0,81 pp [+0,40, +1,20], 6/7 |
+
+     IC 95 % bootstrap sobre los 7 partidos. **Con los huecos donde los pone el ATD la ganancia se mantiene**; en
+     el peor caso se reduce a +0,4 pp y deja de ser distinguible de cero, pero no es negativa, y lo que aporta el
+     detector sobre encarecer los cambios sigue claro. No hay motivo para retirarlo; si alguna vez se retira, es
+     `boundary_discount_weight = 0`.
+  2. **Mecanismo: arregla lo que el diagnóstico decía.** Mismo recorrido, media de 7 partidos × 3 semillas, huecos
+     al azar (en las otras dos colocaciones el patrón es el mismo):
+
+     | | control | solo encarecer | los dos |
+     |---|---|---|---|
+     | cambios: precisión / recall a ±0,5 s | 0,30 / 0,24 | 0,31 / 0,24 | **0,42 / 0,33** |
+     | cambios: F1 a ±1 s | 0,35 | 0,35 | **0,42** |
+     | error a ±12 frames de un cambio real | 48,6 % | 48,7 % | 46,9 % |
+     | error en el resto | 17,4 % | 17,1 % | 16,3 % |
+     | recall de posesiones < 2 s / 2-5 s / > 10 s | 1,8 / 13,3 / 59,6 % | 1,4 / 12,4 / 59,8 % | 3,1 / 14,0 / 59,5 % |
+
+     La ganancia sale de **dónde** se corta (+0,10 de F1 de cambios con el mismo número de posesiones que solo
+     encarecer), no de cortar más o menos. Las posesiones cortas casi no se recuperan: el techo sigue ahí.
+  3. **BAR-ATH sin etiquetas: neutro.** Los saques (`SET PIECES`) y las transiciones (`ATTACKING / DEFENSIVE
+     TRANSITION`) del Smart Tagging, que el pipeline no usa, como ventanas ±1 s. De los cortes que el detector
+     añade (34) cae dentro el 44 %, y de los que quita (70) también el 44 %, frente a un 34 % al azar. Ventanas de
+     transición con algún corte: 21 → 19 de 24. Ni a favor ni en contra: el tagging es demasiado grueso (ventanas
+     de saque de 5 a 35 s) para distinguir este cambio. No se elige nada con esto.
 - **En la entrega desde el 7-11.** `python -m mtah.training.boundaries export` lo entrena con los 7 partidos y elige
   peso y escala con el mismo procedimiento (cada partido puntuado por un detector que no lo vio): **peso 0,95, escala
   2,0**, spellF1 fuera de muestra 0,4111 frente a 0,4089 con escala 1,5. Los dos valores son el borde de su rejilla,
@@ -237,7 +273,10 @@ Por orden de lo que yo haría. Nada de esto está empezado salvo que se diga.
    código; la conexión al modelo no. Su peso no se puede medir en el arnés (el IDSSE no tiene
    Smart Tagging), así que entra como pista de dónde cortar antes que como emisión.
 5. **Mejorar la degradación** para que las rachas sin balón caigan donde caen de verdad
-   (zonas abarrotadas, balones aéreos). Hoy están repartidas con un modelo más simple.
+   (zonas abarrotadas, balones aéreos). Desde el 7-11 `degrade.apply(gap_weights=...)` las
+   coloca por peso y se usa como prueba de estrés del detector (§2); el entrenamiento y las
+   elecciones siguen con huecos al azar. Pasarlo todo a `crowded` es un cambio de arnés que
+   movería todos los números, y no se ha hecho.
 6. **Una emisión aprendida** sobre los partidos IDSSE degradados (fase C de
    `datos-externos.md`). Prueba rápida del 7-11 con las features del detector (medio partido
    para entrenar, medio para medir): acierto por frame 0,783, igual que el geométrico; mezclada
@@ -294,7 +333,8 @@ decisión o se quedó a medias? (`analisis-y-propuesta.md`, parte 5, pregunta 3.
 - **No consta que se haya probado el lector con los datos de muestra de Metrica** (fase E de
   `datos-externos.md`).
 - **La vía supervisada solo está medida en el arnés**: el detector de fronteras gana +1,1 pp
-  en Bundesliga degradada; si transfiere a BAR-ATH no se puede comprobar.
+  en Bundesliga degradada y +0,4 a +1,1 pp con los huecos colocados de forma adversa; si
+  transfiere a BAR-ATH no se puede comprobar (el Smart Tagging sale neutro).
 
 ---
 
@@ -303,7 +343,7 @@ decisión o se quedó a medias? (`analisis-y-propuesta.md`, parte 5, pregunta 3.
 ```bash
 python3.12 -m venv .venv && source .venv/bin/activate   # numpy 2.5.4 pide Python >= 3.12
 pip install -r requirements-dev.txt
-python -m pytest -q                      # 85 tests
+python -m pytest -q                      # 93 tests
 ```
 
 Para regenerar la entrega hacen falta los datos del partido (no están en el repo, no pueden

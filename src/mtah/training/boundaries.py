@@ -38,6 +38,7 @@ from .. import evaluate as ev
 from .. import features as feature_set
 from ..config import DEFAULT
 from ..decode import viterbi
+from ..features import geometry
 from ..features.boundaries import WINDOWS_FRAMES, feature_matrix, feature_names
 from ..models import boundary_detector, emissions
 from ..paths import REPO_ROOT, cache_dir
@@ -67,6 +68,15 @@ ARMS = {
 
 SEEDS = (0, 1, 2)
 
+PREPARED_KEYS = ("cost", "matrix", "labels", "ball_seen")
+
+# Donde caen los huecos sin balon al degradar. Se entrena y se elige siempre con `random`;
+# las otras dos son pruebas de estres para el partido de fuera (training/evidence.py).
+GAP_PLACEMENTS = ("random", "crowded", "transitions")
+CROWD_RADIUS_M = 5.0
+TRANSITION_RADIUS_FRAMES = 12
+GAP_WEIGHT_FLOOR = 0.02
+
 
 def log(message):
     print(message, flush=True)
@@ -86,20 +96,43 @@ def boundary_target(labels, half_width=BOUNDARY_HALF_WIDTH_FRAMES):
 
 # --------------------------------------------------------------------------- datos
 
-def prepare(match_id, spec, seed, config=None):
-    """{coste de emision, matriz de features, etiquetas} de un partido degradado, cacheado."""
+def gap_weights(placement, clean, labels):
+    """Peso por frame para centrar ahi un hueco sin balon. None = al azar, el de siempre.
+
+    `crowded` no mira etiquetas: pesa el numero de jugadores a menos de CROWD_RADIUS_M del
+    balon (al cuadrado), que es como describe DATA.md donde pierde el balon el ATD. Peor
+    caso, `transitions`: centra los huecos junto a los cambios de posesion reales.
+    """
+    if placement == "random":
+        return None
+    if placement == "crowded":
+        with np.errstate(invalid="ignore"):
+            crowd = (geometry.ball_distances(clean) < CROWD_RADIUS_M).sum(axis=1)
+        return GAP_WEIGHT_FLOOR + crowd.astype(np.float64) ** 2
+    if placement == "transitions":
+        return np.where(boundary_target(labels, TRANSITION_RADIUS_FRAMES), 1.0,
+                        GAP_WEIGHT_FLOOR)
+    raise ValueError("colocacion desconocida {!r}; hay {}".format(placement, GAP_PLACEMENTS))
+
+
+def prepare(match_id, spec, seed, config=None, placement="random"):
+    """{coste, matriz de features, etiquetas, balon visto} de un partido degradado, cacheado."""
     config = config or DEFAULT
-    path = os.path.join(cache_dir(), "boundary_{}_s{}.npz".format(match_id, seed))
+    suffix = "" if placement == "random" else "_" + placement
+    path = os.path.join(cache_dir(), "boundary_{}{}_s{}.npz".format(match_id, suffix, seed))
     if os.path.exists(path):
         blob = np.load(path, allow_pickle=False)
-        return {key: blob[key] for key in ("cost", "matrix", "labels")}
+        if set(PREPARED_KEYS) <= set(blob.files):
+            return {key: blob[key] for key in PREPARED_KEYS}
     clean, labels = idsse.load(match_id)
     labels, _ = convention.harmonise(labels)
-    dirty = degrade.apply(clean, spec, rng=np.random.default_rng(seed))
+    labels = np.asarray(labels, dtype="<U1")
+    dirty = degrade.apply(clean, spec, rng=np.random.default_rng(seed),
+                          gap_weights=gap_weights(placement, clean, labels))
     features = feature_set.build_all(dirty, config)
     matrix, _ = feature_matrix(features, config)
-    data = {"cost": emissions.costs(features, config), "matrix": matrix,
-            "labels": np.asarray(labels, dtype="<U1")}
+    data = {"cost": emissions.costs(features, config), "matrix": matrix, "labels": labels,
+            "ball_seen": dirty.ball_seen}
     np.savez_compressed(path, **data)
     return data
 

@@ -1,0 +1,54 @@
+{
+ "without_detector": {
+  "n_cuts": 368,
+  "restart": {
+   "n_windows": 58,
+   "window_coverage_of_graded": 0.29192292439111905,
+   "n_cuts_of_kind": 118,
+   "cuts_inside": 0.5423728813559322,
+   "lift_over_chance": 1.8579317896571208,
+   "windows_with_cut": 0.9137931034482759
+  },
+  "turnover": {
+   "n_windows": 24,
+   "window_coverage_of_graded": 0.06426534556236112,
+   "n_cuts_of_kind": 368,
+   "cuts_inside": 0.09782608695652174,
+   "lift_over_chance": 1.5222214414391395,
+   "windows_with_cut": 0.875
+  }
+ },
+ "with_detector": {
+  "n_cuts": 332,
+  "restart": {
+   "n_windows": 58,
+   "window_coverage_of_graded": 0.29192292439111905,
+   "n_cuts_of_kind": 115,
+   "cuts_inside": 0.5478260869565217,
+   "lift_over_chance": 1.8766120821074777,
+   "windows_with_cut": 0.9137931034482759
+  },
+  "turnover": {
+   "n_windows": 24,
+   "window_coverage_of_graded": 0.06426534556236112,
+   "n_cuts_of_kind": 332,
+   "cuts_inside": 0.08734939759036145,
+   "lift_over_chance": 1.3591990648459251,
+   "windows_with_cut": 0.7916666666666666
+  }
+ },
+ "changed_cuts": {
+  "added": 34,
+  "removed": 70,
+  "added_inside": 0.4411764705882353,
+  "removed_inside": 0.44285714285714284,
+  "chance_inside": 0.3411873571828752
+ },
+ "settings": {
+  "margin_frames": 25,
+  "turnover_codes": [
+   "attacking transition",
+   "defensive transition"
+  ]
+ }
+}
