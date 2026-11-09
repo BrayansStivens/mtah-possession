@@ -94,6 +94,15 @@ def team_logit(phases, n_frames=N_FRAMES):
     return (home_votes - away_votes).astype(np.float32)
 
 
+def team_tags(phases, n_frames=N_FRAMES):
+    """(n,) int8: +1 donde el tagging da el balon al local, -1 al visitante, 0 sin voto.
+
+    El signo de `team_logit`: los pares espejo no cuentan doble y las contradicciones
+    empatadas se anulan. Es lo que entra al modelo (models/emissions.team_tag_logit).
+    """
+    return np.sign(team_logit(phases, n_frames)).astype(np.int8)
+
+
 def weak_labels(phases, n_frames=N_FRAMES):
     """(n,) 'H', 'A' o '' por frame, y (n,) bool de conflicto.
 

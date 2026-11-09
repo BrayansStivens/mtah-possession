@@ -68,7 +68,7 @@ ARMS = {
 
 SEEDS = (0, 1, 2)
 
-PREPARED_KEYS = ("cost", "matrix", "labels", "ball_seen")
+PREPARED_KEYS = ("cost", "matrix", "labels", "ball_seen", "home_logit", "dead_logit")
 
 # Donde caen los huecos sin balon al degradar. Se entrena y se elige siempre con `random`;
 # las otras dos son pruebas de estres para el partido de fuera (training/evidence.py).
@@ -116,7 +116,7 @@ def gap_weights(placement, clean, labels):
 
 
 def prepare(match_id, spec, seed, config=None, placement="random"):
-    """{coste, matriz de features, etiquetas, balon visto} de un partido degradado, cacheado."""
+    """{coste, matriz, etiquetas, balon visto, logits de la emision} de un partido degradado, cacheado."""
     config = config or DEFAULT
     suffix = "" if placement == "random" else "_" + placement
     path = os.path.join(cache_dir(), "boundary_{}{}_s{}.npz".format(match_id, suffix, seed))
@@ -132,7 +132,9 @@ def prepare(match_id, spec, seed, config=None, placement="random"):
     features = feature_set.build_all(dirty, config)
     matrix, _ = feature_matrix(features, config)
     data = {"cost": emissions.costs(features, config), "matrix": matrix, "labels": labels,
-            "ball_seen": dirty.ball_seen}
+            "ball_seen": dirty.ball_seen,
+            "home_logit": emissions.home_logit(features, config),
+            "dead_logit": emissions.dead_logit(features, config)}
     np.savez_compressed(path, **data)
     return data
 

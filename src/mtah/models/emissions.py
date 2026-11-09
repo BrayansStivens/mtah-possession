@@ -77,13 +77,27 @@ def home_probability(features, config=None):
     return _sigmoid(home_logit(features, config))
 
 
-def costs(features, config=None):
-    """(n, 3) coste por frame y estado, menor es mejor. Columnas en orden H, A, D."""
+def team_tag_logit(team_tags, config=None):
+    """(n,) lo que el Smart Tagging suma al logit de local: peso * (+1 local, -1 visitante, 0).
+
+    Va aqui y no dentro de `home_logit` a proposito: `home_logit` es una entrada del
+    detector de fronteras, que se entreno sin tagging (el IDSSE no lo tiene). Sumarlo alli
+    cambiaria lo que el detector ve. Ver training/team_tags.py para el peso.
+    """
+    config = config or DEFAULT
+    team_tags = np.asarray(team_tags)
+    if team_tags.ndim != 1 or not np.isin(team_tags, (-1, 0, 1)).all():
+        raise ValueError("team_tags tiene que ser (n,) con valores en {-1, 0, +1}")
+    return config["smart_tagging_team_weight"] * team_tags.astype(np.float64)
+
+
+def costs_from_logits(home, dead, config=None):
+    """(n, 3) coste por frame y estado a partir de los dos logits. Columnas H, A, D."""
     config = config or DEFAULT
     floor = float(config["prob_floor"])
 
-    dead = np.clip(dead_probability(features, config), floor, 1.0 - floor)
-    home = np.clip(home_probability(features, config), floor, 1.0 - floor)
+    dead = np.clip(_sigmoid(dead), floor, 1.0 - floor)
+    home = np.clip(_sigmoid(home), floor, 1.0 - floor)
     alive = 1.0 - dead
 
     out = np.empty((len(dead), N_STATES), dtype=np.float64)
@@ -91,3 +105,18 @@ def costs(features, config=None):
     out[:, A] = -np.log(alive * (1.0 - home))
     out[:, D] = -np.log(dead)
     return out
+
+
+def costs(features, config=None, team_tags=None):
+    """(n, 3) coste por frame y estado, menor es mejor. Columnas en orden H, A, D.
+
+    `team_tags=None` es "no hay Smart Tagging" (el IDSSE); la entrega lo pasa siempre.
+    """
+    config = config or DEFAULT
+    home = home_logit(features, config)
+    if team_tags is not None:
+        if len(team_tags) != len(home):
+            raise ValueError("team_tags tiene %d frames y los features %d"
+                             % (len(team_tags), len(home)))
+        home = home + team_tag_logit(team_tags, config)
+    return costs_from_logits(home, dead_logit(features, config), config)

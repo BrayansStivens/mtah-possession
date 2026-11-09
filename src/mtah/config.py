@@ -241,6 +241,20 @@ DEFAULT = {
     # Peso 0 = el modelo del 31-10 exactamente, sin cargar el detector.
     "boundary_discount_weight": 0.95,
     "boundary_switch_scale": 2.0,
+
+    # ------------------------------------------------------------ Smart Tagging
+    # features/tagging.team_tags: +1/-1 donde una fase de Metrica dice que equipo tiene el
+    # balon. Se suma al logit de local despues del detector (models/emissions.py). El IDSSE
+    # no tiene tagging, asi que el peso se elige con un tagging simulado sobre sus
+    # etiquetas (training/team_tags.py). 0 = sin tagging, el modelo de antes exactamente.
+    # Elegido el 8-11 entre dos pesos fijos (0,5 y 1,0) por robustez, no por maximo: con 0,5
+    # el LOMO de los 7 partidos x 3 semillas gana en todos los escenarios compatibles con el
+    # acuerdo medido en BAR-ATH (+0,47 a +0,90 pp; +0,61 en el que mejor ajusta los cuatro
+    # cuartiles) y solo pierde si el tagging copiara del todo nuestra emision (-1,12), que
+    # el acuerdo medido descarta (daria 0,807 frente a 0,762). 1,0 gana mas con tags buenos
+    # y cae a +0,10 en el mejor ajuste. La eleccion automatica por pliegue era mas ruidosa
+    # (+0,39). Tablas en trabajo/handoff-plugin-data/datos/smart_tagging_robustez.json.
+    "smart_tagging_team_weight": 0.5,
 }
 
 

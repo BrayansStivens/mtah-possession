@@ -31,6 +31,7 @@ METADATA_PATH = os.path.join(os.path.dirname(__file__), "boundary_detector.json"
 DECODER_ONLY_KEYS = frozenset({
     "switch_turnover", "switch_to_dead", "switch_from_dead", "min_duration_frames",
     "prob_floor", "boundary_discount_weight", "boundary_switch_scale",
+    "smart_tagging_team_weight",
 })
 
 

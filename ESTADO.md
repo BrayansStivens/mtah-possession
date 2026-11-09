@@ -1,4 +1,4 @@
-# Estado del proyecto — 7 de noviembre de 2026
+# Estado del proyecto — 8 de noviembre de 2026
 
 Documento para el equipo. Este repositorio tiene dos partes:
 
@@ -19,9 +19,9 @@ no está medido, se dice.
 | Qué se entrega el **17-11** | un CSV de 199.319 filas (H/A/D por frame), este repositorio en público y un documento técnico corto |
 | Métrica de ranking | **spellF1** (posesiones acertadas por solape temporal). Desempate: macroF1 por frame |
 | Mínimo oficial a superar | **0,2433** (`baseline_smooth50`) |
-| **Dónde estamos, medido** | **0,4073** de media en 7 partidos de Bundesliga degradados para parecerse a nuestros datos, dejando cada partido fuera del entrenamiento del detector (0,3965 sin el detector de fronteras) |
-| En los 5 minutos públicos | 0,4444 (0,4903 sin el detector; macroF1 igual, 0,8010 frente a 0,8009) — **lectura, no criterio**: 17 posesiones, una fallada mueve 6 puntos |
-| La entrega de hoy | `out/submission.csv`, generada el 7-11 con `config.py` tal cual está (sha256 `5d97eccc…`); pasa el validador oficial; 93 tests en verde. La del 31-10 se regenera con `boundary_discount_weight = 0` (sha256 `73c361d5…`) |
+| **Dónde estamos, medido** | **0,4073** de media en 7 partidos de Bundesliga degradados para parecerse a nuestros datos, dejando cada partido fuera del entrenamiento del detector (0,3965 sin el detector de fronteras). El Smart Tagging (8-11) suma **+0,5 a +0,9 pp estimados** con un tagging simulado: el IDSSE no tiene uno real, así que esa parte no es medible del todo (§2) |
+| En los 5 minutos públicos | 0,4148 (0,4444 sin el tagging, 0,4903 sin el detector) — **lectura, no criterio**: 17 posesiones, una fallada mueve 6 puntos |
+| La entrega de hoy | `out/submission.csv`, generada el 8-11 con `config.py` tal cual está (sha256 `e7938350…`); pasa el validador oficial; 103 tests en verde. Con `smart_tagging_team_weight = 0` sale la del 7-11 (`5d97eccc…`), y además con `boundary_discount_weight = 0` la del 31-10 (`73c361d5…`) |
 | Qué configuración lleva | la de `config.py`; cada valor tiene escrito al lado de dónde sale. **Ninguno viene ya de los 5 minutos públicos** (prohibido desde el 22-10) |
 
 Si todo se parase hoy, hay algo válido que entregar y está 15 puntos por encima del mínimo.
@@ -33,8 +33,8 @@ Si todo se parase hoy, hay algo válido que entregar y está 15 puntos por encim
 ### El programa (`src/mtah/`)
 
 - Lectura del tracking táctico (`io/atd.py`), homografía (`io/homography.py`) y Smart Tagging
-  (`io/smart_tagging.py`). **Solo el tracking está conectado al pipeline**; los otros dos
-  tienen el lector escrito y no se usan (ver §4, pregunta abierta).
+  (`io/smart_tagging.py`). El tracking y, desde el 8-11, el equipo de las fases del Smart
+  Tagging están conectados al pipeline; la homografía tiene el lector escrito y no se usa.
 - Features geométricas por frame (`features/geometry.py`): control del balón por equipo,
   actividad de los jugadores, forma de equipo, velocidad del balón.
 - Modelo en dos mitades (`models/emissions.py`): *vivo/parado* sale de la cinemática de los
@@ -195,6 +195,41 @@ degradaciones, devolviendo huecos de balón enteros. spellF1 medio de los 7 part
 Mejora en los 7 partidos en cada nivel. La columna que vale es la de la derecha: unos 2-3 pp por cada 10 puntos de
 visibilidad. La pendiente es lo fiable; el nivel está inflado porque la degradación reparte los huecos al azar.
 
+**El Smart Tagging como evidencia de equipo, desde el 8-11** (`python -m mtah.training.team_tags` y `... robust`;
+tablas en `datos/smart_tagging_lomo.json` y `smart_tagging_robustez.json`).
+
+- **Por qué.** En el IDSSE, el 60 % de los frames fallados son local por visitante (71 % con el balón visible). Las
+  fases de Metrica con equipo (BUILD UP, PROGRESSION, CREATING CHANCES, LONG BALL y los DEFENDING IN * en espejo)
+  dicen de quién es el balón en el 40 % de los frames puntuados, en tramos de ~20 s.
+- **Cómo entra.** `features/tagging.team_tags` da +1/−1/0 por frame y `models/emissions.team_tag_logit` lo suma al
+  logit de local con `smart_tagging_team_weight`. Va *después* del detector de fronteras, que lee `home_logit` y se
+  entrenó sin tagging: sumarlo antes cambiaría sus entradas. Peso 0 = la entrega del 7-11 al byte.
+- **El problema: el IDSSE no tiene Smart Tagging.** Se simula sobre sus etiquetas, copiando lo que se mide del real
+  sin etiquetas: longitudes de tramo, cobertura, tramos separados (nunca un cambio directo de equipo) y equipo
+  mayoritario del tramo. Lo que no se sabe es cuánto acierta. Lo único medible es cuánto coincide con nuestra
+  emisión en BAR-ATH: **0,762**, y por cuartil de confianza 0,60 / 0,75 / 0,84 / 0,86. Un tagging simulado
+  *perfecto* coincide solo 0,706, así que el real coincide más que uno perfecto: o copia parte de nuestros errores
+  (Metrica etiqueta con el mismo tracking), o cae en los tramos fáciles, o nuestra emisión acierta más aquí.
+- **Qué se midió.** LOMO anidado sobre el pipeline entregado (detector incluido), 7 partidos × 3 semillas:
+
+  | escenario del tagging | ¿compatible con BAR-ATH? | peso 0,5 fijo | peso 1,0 fijo |
+  |---|---|---|---|
+  | perfecto | no (acuerdo 0,706) | +1,89 pp | +2,64 pp |
+  | 10 % / 20 % de tramos invertidos | no | +1,24 / +0,67 | +1,56 / +0,48 |
+  | copia nuestro equipo en la mitad de los tramos | solo el acuerdo medio | +0,47 | +0,41 |
+  | cae donde nuestra emisión está segura | sí | +0,90 | +0,59 |
+  | **mejor ajuste a los cuatro cuartiles** (fácil + 20 % de copia) | **sí, el mejor** | **+0,61** [−0,15, +1,51], 5/7 | +0,10 |
+  | copia del todo nuestra emisión | no (daría 0,807) | −1,12 | −2,06 |
+
+- **Decisión: 0,5.** Gana en todos los escenarios compatibles con lo medido y solo pierde en uno que el acuerdo
+  descarta. Se eligió entre dos pesos fijos por robustez, mirando estos resultados: es una elección hecha sobre
+  los partidos de evaluación y así hay que contarla. La elección automática por pliegue salía más ruidosa (+0,39
+  en el mejor ajuste; −0,20 en el de copia, donde casi siempre elegía 0).
+- **Qué no dice.** Es una simulación con un supuesto sobre los errores del tagging real, calibrado con un solo
+  número por cuartil. Ninguno de los intervalos del escenario que mejor ajusta excluye el cero. En BAR-ATH cambia el
+  2,1 % de los frames puntuados y baja de 334 a 316 segmentos. En la ventana pública baja de 0,4444 a 0,4148, menos
+  de una posesión (10 de 17 en los dos casos).
+
 ### Los documentos (`trabajo/`)
 
 - `resumen-simple.md` — el reto sin jerga. Empezar por aquí.
@@ -268,10 +303,11 @@ Por orden de lo que yo haría. Nada de esto está empezado salvo que se diga.
    +2 pp, y al 80 % unos +3,5 pp. Pero el plan lo estima en 7,5 días, quedan 10 hasta la
    entrega, y su criterio de abandono (50 % de recall al 90 % de precisión a los tres días)
    sigue en pie. No se ha empezado.
-4. **Conectar el Smart Tagging** como pista de reinicios (sus 59 saques marcan justo donde más
-   se falla). El lector existe (`io/smart_tagging.py`) y desde el 7-11 lee bien el equipo por
-   código; la conexión al modelo no. Su peso no se puede medir en el arnés (el IDSSE no tiene
-   Smart Tagging), así que entra como pista de dónde cortar antes que como emisión.
+4. **Los saques del Smart Tagging** como pista de reinicios. El equipo de las fases ya está
+   conectado (§2, 8-11). Los 59 saques no: sus ventanas son de 5 a 35 s, y el 7-11 los cortes
+   del detector caían en ellas igual que al azar, así que como pista de dónde cortar son
+   demasiado gruesos. Lo que sí podrían dar es el equipo que saca (saques de puerta y
+   córners; los de banda van con `N/A`).
 5. **Mejorar la degradación** para que las rachas sin balón caigan donde caen de verdad
    (zonas abarrotadas, balones aéreos). Desde el 7-11 `degrade.apply(gap_weights=...)` las
    coloca por peso y se usa como prueba de estrés del detector (§2); el entrenamiento y las
@@ -310,9 +346,9 @@ Lo que salió mal, cómo se detectó y en qué quedó. Está aquí para que nadi
 | Estimé 50 min para la rejilla ampliada; tardó 348 | las ventanas grandes multiplican la caché por partido | documentado para la próxima vez |
 | Un comando de ejemplo con un marcador (`USUARIO`) se ejecutó tal cual e invitó al repo privado a un usuario ajeno de GitHub | se vio en la salida | invitación revocada en el acto; verificado 0 pendientes y un solo colaborador. Nunca llegó a tener acceso (las invitaciones requieren aceptación) |
 
-Pregunta abierta que alguien debería contestar: el pipeline usa **solo el tracking táctico**.
-La homografía, el Smart Tagging y el tracking del broadcast se leen pero no se usan. ¿Es una
-decisión o se quedó a medias? (`analisis-y-propuesta.md`, parte 5, pregunta 3.)
+Pregunta abierta, contestada en parte el 8-11: el pipeline usa el tracking táctico y el equipo
+de las fases del Smart Tagging. La homografía y el tracking del broadcast se leen pero no se
+usan, por los motivos del `README.md` (no separan jugada de parada; otra línea de tiempo).
 
 ---
 
@@ -335,6 +371,8 @@ decisión o se quedó a medias? (`analisis-y-propuesta.md`, parte 5, pregunta 3.
 - **La vía supervisada solo está medida en el arnés**: el detector de fronteras gana +1,1 pp
   en Bundesliga degradada y +0,4 a +1,1 pp con los huecos colocados de forma adversa; si
   transfiere a BAR-ATH no se puede comprobar (el Smart Tagging sale neutro).
+- **El peso del Smart Tagging sale de un tagging simulado**, no del real: cuánto acierta el de
+  Metrica no se puede medir sin etiquetas, solo acotar por su acuerdo con nuestra emisión.
 
 ---
 
@@ -343,7 +381,7 @@ decisión o se quedó a medias? (`analisis-y-propuesta.md`, parte 5, pregunta 3.
 ```bash
 python3.12 -m venv .venv && source .venv/bin/activate   # numpy 2.5.4 pide Python >= 3.12
 pip install -r requirements-dev.txt
-python -m pytest -q                      # 93 tests
+python -m pytest -q                      # 103 tests
 ```
 
 Para regenerar la entrega hacen falta los datos del partido (no están en el repo, no pueden

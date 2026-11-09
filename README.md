@@ -117,6 +117,12 @@ fuera, con el peso elegido sin verlo, da **+1,17 pp de `spellF1`** sobre el mode
 (ver `ESTADO.md`). Se regenera con `python -m mtah.training.boundaries export`, que necesita
 `requirements-train.txt` y descarga el IDSSE; la entrega solo carga el modelo guardado.
 
+Y el **Smart Tagging** de Metrica como evidencia de equipo: las fases que dicen quién tiene el
+balón (BUILD UP, PROGRESSION, ...; los DEFENDING IN * nombran al rival) suman ±0,5 al logit de
+local donde existen, el 40 % de los frames. El IDSSE no tiene tagging, así que el peso se eligió
+con uno simulado sobre sus etiquetas y calibrado por su acuerdo con nuestra emisión en este
+partido (`training/team_tags.py`, ver `ESTADO.md`): +0,5 a +0,9 pp estimados.
+
 ## Tres decisiones y por qué
 
 Medidas con el scorer oficial, degradando el ground truth público de forma controlada.
