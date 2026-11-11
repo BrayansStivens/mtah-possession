@@ -1,0 +1,8 @@
+# Dependencias SOLO del detector de balon sobre el video (src/mtah/vision).
+# Fuera de requirements.txt: `python -m mtah build` no las necesita mientras el relleno del
+# balon no entre en la entrega. torch con CUDA se instala desde su propio indice:
+#   pip install -r requirements-vision.txt --index-url https://download.pytorch.org/whl/cu128 \
+#       --extra-index-url https://pypi.org/simple
+-r requirements.txt
+torch==2.11.0
+opencv-python-headless==5.0.0.93

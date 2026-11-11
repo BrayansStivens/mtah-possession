@@ -1,4 +1,4 @@
-# Estado del proyecto — 8 de noviembre de 2026
+# Estado del proyecto — 9 de noviembre de 2026
 
 Documento para el equipo. Este repositorio tiene dos partes:
 
@@ -21,7 +21,7 @@ no está medido, se dice.
 | Mínimo oficial a superar | **0,2433** (`baseline_smooth50`) |
 | **Dónde estamos, medido** | **0,4073** de media en 7 partidos de Bundesliga degradados para parecerse a nuestros datos, dejando cada partido fuera del entrenamiento del detector (0,3965 sin el detector de fronteras). El Smart Tagging (8-11) suma **+0,5 a +0,9 pp estimados** con un tagging simulado: el IDSSE no tiene uno real, así que esa parte no es medible del todo (§2) |
 | En los 5 minutos públicos | 0,4148 (0,4444 sin el tagging, 0,4903 sin el detector) — **lectura, no criterio**: 17 posesiones, una fallada mueve 6 puntos |
-| La entrega de hoy | `out/submission.csv`, generada el 8-11 con `config.py` tal cual está (sha256 `e7938350…`); pasa el validador oficial; 103 tests en verde. Con `smart_tagging_team_weight = 0` sale la del 7-11 (`5d97eccc…`), y además con `boundary_discount_weight = 0` la del 31-10 (`73c361d5…`) |
+| La entrega de hoy | `out/submission.csv`, generada el 8-11 con `config.py` tal cual está (sha256 `e7938350…`); pasa el validador oficial; 108 tests en verde. Con `smart_tagging_team_weight = 0` sale la del 7-11 (`5d97eccc…`), y además con `boundary_discount_weight = 0` la del 31-10 (`73c361d5…`) |
 | Qué configuración lleva | la de `config.py`; cada valor tiene escrito al lado de dónde sale. **Ninguno viene ya de los 5 minutos públicos** (prohibido desde el 22-10) |
 
 Si todo se parase hoy, hay algo válido que entregar y está 15 puntos por encima del mínimo.
@@ -230,6 +230,101 @@ tablas en `datos/smart_tagging_lomo.json` y `smart_tagging_robustez.json`).
   2,1 % de los frames puntuados y baja de 334 a 316 segmentos. En la ventana pública baja de 0,4444 a 0,4148, menos
   de una posesión (10 de 17 en los dos casos).
 
+#### Detector de balón sobre el vídeo (8-9 nov) — en curso, **no entra en la entrega**
+
+Sigue `plan-detector-balon.md`. Código en `src/mtah/vision/`, dependencias aparte en
+`requirements-vision.txt` (torch 2.11 CUDA, opencv-headless 5.0); `python -m mtah build` no lo toca.
+Recortes y modelos en `MTAH_VISION_DIR` (fuera de OneDrive: son ~4 GB del partido).
+**Nadie ha mirado un frame ni un recorte**: todo se ha medido con agregados (regla de §8).
+
+- **Lo medido antes de entrenar.**
+  - La etiqueta gratis (balón del ATD proyectado por la homografía) cae a 12 px de mediana
+    de la mancha blanca más cercana (p90 40 px), sin desfase temporal (el mínimo está en
+    k = 0) y ~5 px por debajo del centro del balón. La posesión necesita ~30 px (1 m).
+  - La compensación de cámara con `H_t · H_s⁻¹` baja la diferencia entre frames de 4,70 a
+    2,87 niveles de gris (−39 %).
+  - El balón falta en 64.643 frames puntuados, en 150 huecos (mediana 11 s; ninguno de
+    menos de 5 s). Cuando el ATD sí lo tiene, está dentro de la imagen el 99,9 %: la cámara
+    sigue al balón.
+  - El ATD es físicamente sano: saltos imposibles en el 0,23 % de los frames, balón quieto
+    lejos de todos en el 0,8 %. La referencia de evaluación es fiable.
+- **La tubería.**
+  - `dataset.py`: 22.140 frames de entrenamiento × 3 recortes de 96 px (balón, azar,
+    jugador).
+  - `net.py`: una U-Net de 406 k parámetros desde cero, sin pesos preentrenados ni sus
+    licencias. Entra t en color más t±2 en gris alineados por la homografía y sale un mapa
+    de calor a media resolución. Pérdida focal de CenterNet.
+  - `train.py` guarda cada época y reanuda. `mine.py` saca negativos duros: los errores
+    confiados del modelo en frames enteros de entrenamiento. `refine.py` refina las
+    etiquetas con el propio modelo: se queda el pico a <24 px o descarta el positivo.
+  - `detect.py` infiere frames enteros a ~33 fps con un hilo productor.
+  - `track.py` (enlazado voraz, descartado) y `rescore.py` (segunda etapa con contexto +
+    Viterbi, ver abajo).
+  - `evaluate.py`: acuerdo con el ATD en 8 bloques temporales apartados (20 % del partido,
+    nunca vistos al entrenar).
+- **Evaluación sólo en juego.** Se mide en frames puntuados y en juego: fuera el descanso
+  y los 2.934 frames puntuados antes del saque de la segunda parte. Ahí hay varios balones
+  en el campo (calentamiento): el ATD sigue uno y el detector ve otro, y el top-1 acierta
+  el 14–19 % frente al 68 % en juego. En esos frames la etiqueta es D de todos modos. **Se
+  decidió después de ver el corte por bloques**, y así hay que contarlo.
+- **Resultados en los bloques apartados**, por frame, con el pico más alto:
+
+  | modelo | top-1 a <30 px | precisión con umbral alto | recall a precisión 90 % (30 px / 60 px) |
+  |---|---|---|---|
+  | `ballnet`: etiquetas ATD | 49 % | ~50 %, plana con el umbral | 0 % / 0 % |
+  | `ballnet_h1`: + 13.750 negativos duros | 55 % | 72–75 % | 0 % / 0 % |
+  | `ballnet_r1`: + etiquetas refinadas (se descarta el 33 % de los positivos) | 60 % (68 % en juego) | 80 % (92 % en juego) | **en juego: 28 % / 50 %** |
+  | `ballnet_r2`: otra ronda de minado + refinado (se queda el 72 % de los positivos) | en juego: 65 % | en juego: 92 % (umbral 0,9, recall 11 %) | en juego: 11 % / 40 % — **peor que r1** |
+
+  Las tres primeras filas usan todos los frames apartados con balón del ATD; "en juego"
+  aplica el corte de arriba. Con `ballnet_r1` en juego: umbral 0,5 → recall 50 %,
+  precisión 83 % (30 px) / 90 % (60 px); umbral 0,8 → recall 16 %, precisión 92 % / 96 %.
+  El criterio de abandono del plan (50 % de recall al 90 % de precisión) **se cumple al
+  límite a 60 px y no a 30 px**.
+- **Lo que no funcionó.**
+  - Enlazado voraz con puerta física (40 m/s + 1,5 m): precisión 38–47 %, peor que el
+    pico suelto. La puerta deja saltar de señuelo en señuelo.
+  - Viterbi sobre el score del detector: 49 % en todos los ajustes.
+  - Los señuelos no son ruido: son coherentes en el tiempo. El 50 % de los errores están a
+    más de 20 m del balón. Sólo el 23 % de los errores confiados es un balón en el aire
+    (encima de su proyección).
+  - El **punto central del campo** se lleva el 14 % de los errores confiados y otra celda
+    a 5 m de él el 11 %.
+  - La segunda etapa (`rescore.py`: HistGradientBoosting con centro de imagen, jugadores,
+    continuidad y persistencia de la celda en el partido, ajuste cruzado entre mitades de
+    los bloques apartados) sube el top-1 de 53 % a 59 %. Probada con `ballnet_h1` y sin el
+    corte de "en juego", **no da precisión 90 % transferible entre mitades**: un umbral
+    con 90 % en una mitad da 54 % en la otra. Esa diferencia la causaba sobre todo el
+    bloque del saque.
+- **Dónde se quedó (9-11).**
+  - Corrió la ronda 2 (`ballnet_r2`, 14 épocas, pérdida final 0,47) y la inferencia sobre
+    los 90.691 frames de huecos y bloques apartados (`peaks_fill_ballnet_r2.npz`).
+  - **La ronda 2 empeora a la 1** en todo: top-1 en juego 68 % → 65 %, recall al 90 % de
+    precisión 28 % → 11 % (30 px) y 50 % → 40 % (60 px). Con el ATD en esos mismos frames, el
+    balón está entre los 5 picos (<30 px) en el 78 %. Lectura probable: el segundo refinado
+    se queda con más positivos (72 % frente a 67 %), pero los nuevos son los que el modelo
+    ya acertaba y refuerza sus propios sesgos. El autoentrenamiento no da más de una
+    ronda; **el mejor detector es `ballnet_r1`**.
+  - **`rescore` con `ballnet_r1` (10-11)**, en juego, umbral elegido en una mitad de los
+    bloques apartados y medido en la otra:
+    - El camino de Viterbi está a < 2 m del ATD en el **71,6 % / 71,5 %** de los frames de
+      cada mitad (con `ballnet_h1` era 50 % / 71 %). Ahora el camino es estable.
+    - **El umbral al 90 % no se transfiere bien**. Elegido en la mitad 1 (0,85) da en la
+      mitad 0 cobertura 38 % con precisión 88 % a 2 m (70 % a 1 m, 93 % a 4 m). Elegido en
+      la mitad 0 (0,99) da en la 1 cobertura 2 % con precisión 100 %.
+    - Con el umbral medio (0,92), se rellena el **9,6 % de los 64.079 frames puntuados sin
+      balón del ATD**: visibilidad 59,3 % → 63,2 %. Por la curva de visibilidad serían del
+      orden de +0,5 pp de spellF1 *si el relleno fuese limpio*. Sin medir: los frames de los
+      huecos son más difíciles que los apartados (el tracker perdió el balón por algo), así
+      que la precisión allí será menor que la medida.
+  - La inferencia ahora va por 8 tramos que se guardan y se reintentan: la primera pasada
+    con `ballnet_r1` se cortó en el frame 50.975 porque Google Drive devolvió el vídeo a
+    medias ("partial file"). El tramo 4 (el descanso) tarda ~20 min; el pase entero, 68 min.
+  - Tampoco se ha medido el valor en spellF1. Para eso, simular en el IDSSE la
+    recuperación con la cobertura y la tasa de error medidas, no con el balón limpio de
+    la curva de visibilidad.
+  - Nada de esto toca `config.py` ni la entrega.
+
 ### Los documentos (`trabajo/`)
 
 - `resumen-simple.md` — el reto sin jerga. Empezar por aquí.
@@ -300,9 +395,15 @@ Por orden de lo que yo haría. Nada de esto está empezado salvo que se diga.
    `vendor/NOTICE.md`, y probar la reproducción en una máquina limpia (**no se ha hecho**).
 3. **Un detector de balón propio sobre el vídeo** (la línea de visión). La curva de visibilidad
    (§2, 7-11) dice que merece la pena *si llega*: subir al 70 % de balón visible vale unos
-   +2 pp, y al 80 % unos +3,5 pp. Pero el plan lo estima en 7,5 días, quedan 10 hasta la
-   entrega, y su criterio de abandono (50 % de recall al 90 % de precisión a los tres días)
-   sigue en pie. No se ha empezado.
+   +2 pp, y al 80 % unos +3,5 pp. **Empezado el 8-11** (§2, "Detector de balón"): el detector
+   por frame está en el criterio de abandono a 60 px y por debajo a 30 px. Siguen tres
+   pasos:
+   1. ~~Inferencia y `rescore` con `ballnet_r1`~~ (hecho el 10-11): rellena el 9,6 % de los
+      frames sin balón al ~90 % de precisión (59,3 % → 63,2 % de visibilidad), con un umbral
+      inestable entre mitades.
+   2. Simular ese relleno, con sus errores, en el IDSSE para estimar el valor en spellF1.
+   3. Sólo si sale positivo, meter el balón rellenado en el pipeline. Eso cambia la
+      reproducción: la entrega pasaría a depender del vídeo y de torch.
 4. **Los saques del Smart Tagging** como pista de reinicios. El equipo de las fases ya está
    conectado (§2, 8-11). Los 59 saques no: sus ventanas son de 5 a 35 s, y el 7-11 los cortes
    del detector caían en ellas igual que al azar, así que como pista de dónde cortar son
@@ -344,6 +445,8 @@ Lo que salió mal, cómo se detectó y en qué quedó. Está aquí para que nadi
 | Sesgo de agregación en dos categorías de 512 y 854 frames (0,14 % de los datos) | `VALIDACION.md` hallazgo 4 | se muestran con su `n` y marcadas; no se concluye nada de ellas |
 | La recalibración mejora spellF1 emitiendo **menos** posesiones y más largas (~1.540 → ~1.390 predichas frente a 1.945 reales) | `VALIDACION.md` hallazgo 5 | se sabe y se dice: mejora la métrica alejándose de la estructura real; el techo de 0,50 viene de ahí |
 | Estimé 50 min para la rejilla ampliada; tardó 348 | las ventanas grandes multiplican la caché por partido | documentado para la próxima vez |
+| El sistema mató dos entrenamientos del detector de balón por falta de memoria (época 10 de 12 las dos veces) | aviso de Claude Code; el proceso ocupaba ~8 GB: la copia de los recortes más las páginas del fichero mapeado, que Windows cuenta como del proceso | `train.py` guarda cada época y reanuda solo, y suelta el mapeo tras copiar (~5 GB) |
+| El detector de balón parecía no pasar de ~50 % de precisión hiciera lo que se hiciera | corte por bloques apartados: el del saque de la segunda parte acertaba el 28 % | eran el descanso y el pre-saque, con varios balones en el campo; se evalúa sólo en juego (decidido tras verlo, §2) |
 | Un comando de ejemplo con un marcador (`USUARIO`) se ejecutó tal cual e invitó al repo privado a un usuario ajeno de GitHub | se vio en la salida | invitación revocada en el acto; verificado 0 pendientes y un solo colaborador. Nunca llegó a tener acceso (las invitaciones requieren aceptación) |
 
 Pregunta abierta, contestada en parte el 8-11: el pipeline usa el tracking táctico y el equipo
@@ -373,6 +476,9 @@ usan, por los motivos del `README.md` (no separan jugada de parada; otra línea 
   transfiere a BAR-ATH no se puede comprobar (el Smart Tagging sale neutro).
 - **El peso del Smart Tagging sale de un tagging simulado**, no del real: cuánto acierta el de
   Metrica no se puede medir sin etiquetas, solo acotar por su acuerdo con nuestra emisión.
+- **El detector de balón se evalúa donde el ATD sí ve el balón**, que son los frames fáciles
+  por definición. Donde el ATD lo pierde (lo que se quiere rellenar) no hay referencia; su
+  precisión allí es desconocida y probablemente menor.
 
 ---
 
@@ -381,7 +487,7 @@ usan, por los motivos del `README.md` (no separan jugada de parada; otra línea 
 ```bash
 python3.12 -m venv .venv && source .venv/bin/activate   # numpy 2.5.4 pide Python >= 3.12
 pip install -r requirements-dev.txt
-python -m pytest -q                      # 103 tests
+python -m pytest -q                      # 108 tests
 ```
 
 Para regenerar la entrega hacen falta los datos del partido (no están en el repo, no pueden
@@ -396,8 +502,23 @@ python -m mtah status
 Para rehacer las mediciones del arnés hace falta además `pip install -r requirements-train.txt`
 (kloppy, para descargar el IDSSE). La primera llamada a `idsse.load` descarga cada partido (~2 min
 cada uno) y lo deja en `out/cache/`; después `python -m mtah.training.boundaries` y
-`python -m mtah.training.visibility` corren en minutos. Los
-scripts de `trabajo/handoff-plugin-data/` se escribieron para correr desde la carpeta de
+`python -m mtah.training.visibility` corren en minutos. El detector de balón (`src/mtah/vision/`) necesita `pip install -r requirements-vision.txt`
+(torch con CUDA desde su índice, ver el fichero), una GPU y `MTAH_VISION_DIR` apuntando a un
+disco con ~5 GB libres fuera de OneDrive. Orden, con los tiempos en una RTX 3050:
+
+1. `python -m mtah.vision.dataset` (20 min).
+2. `python -m mtah.vision.train` (30 min).
+3. `python -m mtah.vision.mine` (9 min).
+4. `python -m mtah.vision.refine` (1 min).
+5. `python -m mtah.vision.train --labels refined --hard --name ballnet_r1` (30 min).
+6. `python -m mtah.vision.detect holdout|fill --model ...` (6 / 45 min).
+7. `python -m mtah.vision.evaluate peaks --model ...`.
+8. `python -m mtah.vision.rescore --model ...`.
+
+El entrenamiento usa ~5 GB de RAM; con poca memoria libre el sistema lo ha matado dos veces,
+y por eso guarda cada época y reanuda solo.
+
+Los scripts de `trabajo/handoff-plugin-data/` se escribieron para correr desde la carpeta de
 trabajo original (`~/Documents/Hackaton/`) con rutas absolutas; cada uno dice arriba qué hace
 y qué fichero produce.
 
