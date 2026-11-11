@@ -1,4 +1,4 @@
-# Estado del proyecto — 8 de noviembre de 2026
+# Estado del proyecto — 11 de noviembre de 2026
 
 Documento para el equipo. Este repositorio tiene dos partes:
 
@@ -178,8 +178,9 @@ Es la pieza que convirtió "no podemos medir" en "podemos medir en siete partido
 - **Comprobaciones sin etiquetas en BAR-ATH**, que no eligen nada pero avisarían de un salto de dominio grosero: el
   score medio en los frames puntuados es 0,063 (0,061-0,064 en el IDSSE) y el 2,2 % pasa de 0,5 (2,7 % en el IDSSE).
   Cambia el 3,8 % de los frames puntuados y baja de 369 a 333 segmentos, la misma dirección que en el arnés. En la
-  ventana pública baja de 0,4903 a 0,4444 (14 → 10 posesiones de 17) con macroF1 igual; es menos de una posesión y
-  la ventana no es criterio, pero queda dicho.
+  ventana pública baja de 0,4903 a 0,4444 con macroF1 igual: predice 10 posesiones en vez de 14 (17 reales) y, a
+  IoU 0,5, acierta 6 en vez de 8 con 4 falsas en vez de 6 (contado el 11-11). Son dos posesiones de 17; la ventana
+  no es criterio, pero queda dicho.
 
 **La curva de visibilidad, medida el 7-11** (`python -m mtah.training.visibility`, 1 min). Mismo modelo y mismas
 degradaciones, devolviendo huecos de balón enteros. spellF1 medio de los 7 partidos:
@@ -227,8 +228,8 @@ tablas en `datos/smart_tagging_lomo.json` y `smart_tagging_robustez.json`).
   en el mejor ajuste; −0,20 en el de copia, donde casi siempre elegía 0).
 - **Qué no dice.** Es una simulación con un supuesto sobre los errores del tagging real, calibrado con un solo
   número por cuartil. Ninguno de los intervalos del escenario que mejor ajusta excluye el cero. En BAR-ATH cambia el
-  2,1 % de los frames puntuados y baja de 334 a 316 segmentos. En la ventana pública baja de 0,4444 a 0,4148, menos
-  de una posesión (10 de 17 en los dos casos).
+  2,1 % de los frames puntuados y baja de 334 a 316 segmentos. En la ventana pública baja de 0,4444 a 0,4148: las
+  mismas 10 posesiones predichas y las mismas 6 acertadas a IoU 0,5, con peor solape en una (contado el 11-11).
 
 ### Los documentos (`trabajo/`)
 
@@ -290,7 +291,25 @@ Dónde falla el modelo hoy (`datos/diagnostico_errores.csv`, config de hoy):
 
 ## 4. Qué falta
 
-Por orden de lo que yo haría. Nada de esto está empezado salvo que se diga.
+### Plan hasta el 17 (acordado el 11-11, tras mergear `fronteras-deteccion` en `main`)
+
+Quedan seis días. Lo que se hace, quién, y en qué orden:
+
+| cuándo | qué | quién | cómo se sabe que está |
+|---|---|---|---|
+| hasta el 14 | **Los saques del Smart Tagging como equipo que saca** (córners y saques de puerta; los de banda van con `N/A`). Es lo que falta en los huecos largos: sin balón la emisión da P(H) = P(A) y el modelo vive de la inercia, dure 5 s o 266 s el hueco. A diferencia de las fases, esto **sí se mide de verdad**: el IDSSE trae los eventos de saque con equipo, no hay que simular nada | Simon | mismo LOMO anidado de §2; entra solo si gana en validación y se cuenta con su intervalo |
+| hasta el 14 | **Reproducción en máquina limpia**: clonar, `pip install -r requirements.txt`, `source scripts/env.sh`, `build`, y que salga el sha256 `e7938350…`. La entrega depende ahora de un pickle con versión exacta de scikit-learn y de Python ≥ 3.12; si falla, falla en manos de los organizadores. Ojo: `python -m mtah` necesita `PYTHONPATH=src` (lo pone `env.sh`) o instalar el paquete | Brayan | el sha coincide en una máquina que no sea la nuestra |
+| **viernes 14** | **Decidir y congelar la entrega.** Tres candidatas, las tres reproducibles con dos valores de `config.py`: la del 31-10 (`73c361d5…`, 0,3965 medido), con detector (`5d97eccc…`, 0,4073 medido fuera de muestra) y con detector + tagging (`e7938350…`, +0,6 pp *estimados* encima, intervalo que incluye el cero). Después del 14 no se toca ningún hiperparámetro: el 31-10 se vio que la mitad de cada ganancia de rejilla era sobreajuste | todos | `config.py` congelado y el sha de la entrega escrito en §1 |
+| 14-16 | **El documento técnico corto** (2-3 páginas): qué hace el modelo, cómo se midió, qué no sabemos. Sale de este fichero | Brayan | PDF en `trabajo/` |
+| 16 | **Repo público.** Auditoría de `data/` (se hace en cada push), atribución a la DFL (ya está), `vendor/NOTICE.md`, decidir si `trabajo/` se queda | Brayan | el repo es público y el validador pasa sobre el CSV entregado |
+| — | **`detector-balon` se aparca** sin mergear. Lo único que se rescata es su sección de documentación (qué se probó y por qué no da más), para no repetir el experimento. Si se retoma, su siguiente paso está escrito: simular el relleno *con sus errores* en el IDSSE antes de tocar el pipeline | — | — |
+
+Convenciones del equipo, para que el historial sea uniforme: commits en español y sin líneas
+`Co-Authored-By` ni marcas de herramienta.
+
+### Lo demás, por orden de lo que yo haría
+
+Nada de esto está empezado salvo que se diga.
 
 1. **El documento técnico final.** No existe como tal; el material está en `trabajo/`. La
    frase sobre el sobreajuste que va en él es la del §2 (29-30 oct), no "no se sobreajustó".
