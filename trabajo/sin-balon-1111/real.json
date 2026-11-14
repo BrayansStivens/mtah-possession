@@ -1,0 +1,104 @@
+{
+ "entrega": {
+  "spell_f1_public": 0.4148148148148148,
+  "macro_f1_public": 0.8002811405054774,
+  "n_pred_public": 10,
+  "n_gt_public": 17,
+  "n_spells_match": 202,
+  "mean_duration_s": 17.345148514851484,
+  "share": {
+   "H": 0.35735283934607853,
+   "A": 0.1940424406856481,
+   "D": 0.44860471996827334
+  },
+  "same_as_delivery": 1.0,
+  "same_seen": 1.0,
+  "same_unseen": 1.0,
+  "weak_agreement_alive": 0.8707201661921982
+ },
+ "equipo (c sustituye, 3.0)": {
+  "spell_f1_public": 0.6285714285714284,
+  "macro_f1_public": 0.8391186545241296,
+  "n_pred_public": 11,
+  "n_gt_public": 17,
+  "n_spells_match": 200,
+  "mean_duration_s": 17.9642,
+  "share": {
+   "H": 0.3435416758468308,
+   "A": 0.2218787966535941,
+   "D": 0.43457952749957507
+  },
+  "same_as_delivery": 0.8873515174024437,
+  "same_seen": 0.8649882183115036,
+  "same_unseen": 0.919944928298501,
+  "weak_agreement_alive": 0.8743529947101986
+ },
+ "equipo (a suma, 2.0)": {
+  "spell_f1_public": 0.6142857142857142,
+  "macro_f1_public": 0.8423880640857265,
+  "n_pred_public": 11,
+  "n_gt_public": 17,
+  "n_spells_match": 185,
+  "mean_duration_s": 19.478918918918918,
+  "share": {
+   "H": 0.35889510692006016,
+   "A": 0.20821871242689965,
+   "D": 0.43288618065304013
+  },
+  "same_as_delivery": 0.8967436121795074,
+  "same_seen": 0.8733839981319125,
+  "same_unseen": 0.9307891032285012,
+  "weak_agreement_alive": 0.8919021501907274
+ },
+ "muerto (b, 1.0, 0.5)": {
+  "spell_f1_public": 0.4,
+  "macro_f1_public": 0.8001145068793097,
+  "n_pred_public": 9,
+  "n_gt_public": 17,
+  "n_spells_match": 192,
+  "mean_duration_s": 18.304375,
+  "share": {
+   "H": 0.35844816407209,
+   "A": 0.19463416783648188,
+   "D": 0.44691766809142813
+  },
+  "same_as_delivery": 0.9515098484800796,
+  "same_seen": 0.9530112297535398,
+  "same_unseen": 0.9493216589576597,
+  "weak_agreement_alive": 0.8665655071740007
+ },
+ "equipo c + muerto b": {
+  "spell_f1_public": 0.6222222222222222,
+  "macro_f1_public": 0.8367878594982571,
+  "n_pred_public": 10,
+  "n_gt_public": 17,
+  "n_spells_match": 187,
+  "mean_duration_s": 19.069732620320856,
+  "share": {
+   "H": 0.34337800663489804,
+   "A": 0.21782483617341383,
+   "D": 0.4387971571916881
+  },
+  "same_as_delivery": 0.8659738003361513,
+  "same_seen": 0.8426560808372429,
+  "same_unseen": 0.8999582321365036,
+  "weak_agreement_alive": 0.879753829738587
+ },
+ "equipo a + muerto b": {
+  "spell_f1_public": 0.6074074074074074,
+  "macro_f1_public": 0.8403862130036188,
+  "n_pred_public": 10,
+  "n_gt_public": 17,
+  "n_spells_match": 172,
+  "mean_duration_s": 20.774651162790697,
+  "share": {
+   "H": 0.355357333954437,
+   "A": 0.20697860339802465,
+   "D": 0.4376640626475384
+  },
+  "same_as_delivery": 0.8772040262626135,
+  "same_seen": 0.8511686161292377,
+  "same_unseen": 0.9151493587859474,
+  "weak_agreement_alive": 0.8977925153955472
+ }
+}

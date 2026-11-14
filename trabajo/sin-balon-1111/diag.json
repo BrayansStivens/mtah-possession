@@ -1,0 +1,268 @@
+{
+ "frames": {
+  "visto": {
+   "frames": 592654,
+   "aciertos": 518319,
+   "err_equipo": 52939,
+   "err_muerto_no_visto": 13245,
+   "err_muerto_inventado": 8151,
+   "gt_D": 268252
+  },
+  "hueco 1-12": {
+   "frames": 314,
+   "aciertos": 291,
+   "err_equipo": 21,
+   "err_muerto_no_visto": 0,
+   "err_muerto_inventado": 2,
+   "gt_D": 103
+  },
+  "hueco 13-50": {
+   "frames": 198,
+   "aciertos": 198,
+   "err_equipo": 0,
+   "err_muerto_no_visto": 0,
+   "err_muerto_inventado": 0,
+   "gt_D": 88
+  },
+  "hueco 51-125": {
+   "frames": 854,
+   "aciertos": 687,
+   "err_equipo": 167,
+   "err_muerto_no_visto": 0,
+   "err_muerto_inventado": 0,
+   "gt_D": 366
+  },
+  "hueco 126-250": {
+   "frames": 61216,
+   "aciertos": 47787,
+   "err_equipo": 7072,
+   "err_muerto_no_visto": 2107,
+   "err_muerto_inventado": 4250,
+   "gt_D": 25590
+  },
+  "hueco >250": {
+   "frames": 347408,
+   "aciertos": 256389,
+   "err_equipo": 47077,
+   "err_muerto_no_visto": 14745,
+   "err_muerto_inventado": 29197,
+   "gt_D": 155140
+  },
+  "sin balon (todo)": {
+   "frames": 409990,
+   "aciertos": 305352,
+   "err_equipo": 54337,
+   "err_muerto_no_visto": 16852,
+   "err_muerto_inventado": 33449,
+   "gt_D": 181287
+  },
+  "sin balon a +-50 (control NaN)": {
+   "frames": 325178,
+   "aciertos": 237418,
+   "err_equipo": 45643,
+   "err_muerto_no_visto": 13903,
+   "err_muerto_inventado": 28214,
+   "gt_D": 144770
+  },
+  "todo": {
+   "frames": 1002644,
+   "aciertos": 823671,
+   "err_equipo": 107276,
+   "err_muerto_no_visto": 30097,
+   "err_muerto_inventado": 41600,
+   "gt_D": 449539
+  }
+ },
+ "spells": {
+  "gt": {
+   "por_fraccion_sin_balon": {
+    "0 %": [
+     827,
+     298
+    ],
+    "0-25 %": [
+     153,
+     85
+    ],
+    "25-50 %": [
+     163,
+     90
+    ],
+    "50-75 %": [
+     180,
+     78
+    ],
+    "75-100 %": [
+     622,
+     93
+    ]
+   },
+   "por_duracion": {
+    "<3 s": [
+     412,
+     24
+    ],
+    "3-6 s": [
+     453,
+     74
+    ],
+    "6-12 s": [
+     471,
+     166
+    ],
+    "12-25 s": [
+     383,
+     224
+    ],
+    ">25 s": [
+     226,
+     156
+    ]
+   }
+  },
+  "pred": {
+   "por_fraccion_sin_balon": {
+    "0 %": [
+     558,
+     296
+    ],
+    "0-25 %": [
+     148,
+     91
+    ],
+    "25-50 %": [
+     161,
+     87
+    ],
+    "50-75 %": [
+     146,
+     74
+    ],
+    "75-100 %": [
+     243,
+     96
+    ]
+   },
+   "por_duracion": {
+    "<3 s": [
+     88,
+     16
+    ],
+    "3-6 s": [
+     197,
+     71
+    ],
+    "6-12 s": [
+     334,
+     162
+    ],
+    "12-25 s": [
+     374,
+     220
+    ],
+    ">25 s": [
+     263,
+     175
+    ]
+   }
+  }
+ },
+ "transitions": {
+  "a_muerto | con balon": [
+   439,
+   360
+  ],
+  "reinicio | con balon": [
+   440,
+   304
+  ],
+  "robo | con balon": [
+   769,
+   142
+  ],
+  "robo | sin balon a +-12": [
+   466,
+   19
+  ],
+  "reinicio | sin balon a +-12": [
+   264,
+   75
+  ],
+  "a_muerto | sin balon a +-12": [
+   271,
+   100
+  ]
+ },
+ "per_match": {
+  "J03WMX": {
+   "spell_f1": 0.38441558441558443,
+   "macro_f1": 0.788790934800009,
+   "n_pred": 173,
+   "n_gt": 289,
+   "visible": 0.5907773674871718
+  },
+  "J03WN1": {
+   "spell_f1": 0.38091451292246525,
+   "macro_f1": 0.7718979735901649,
+   "n_pred": 193,
+   "n_gt": 310,
+   "visible": 0.5859594097244297
+  },
+  "J03WOH": {
+   "spell_f1": 0.4591928251121077,
+   "macro_f1": 0.8204802500394326,
+   "n_pred": 180,
+   "n_gt": 266,
+   "visible": 0.5917909251242585
+  },
+  "J03WOY": {
+   "spell_f1": 0.3776824034334764,
+   "macro_f1": 0.7759597895172572,
+   "n_pred": 178,
+   "n_gt": 288,
+   "visible": 0.5936886119997755
+  },
+  "J03WPY": {
+   "spell_f1": 0.40884955752212393,
+   "macro_f1": 0.8044408462809157,
+   "n_pred": 175,
+   "n_gt": 277,
+   "visible": 0.5938882847391783
+  },
+  "J03WQQ": {
+   "spell_f1": 0.4778523489932886,
+   "macro_f1": 0.7981981975235976,
+   "n_pred": 194,
+   "n_gt": 253,
+   "visible": 0.5973374547753697
+  },
+  "J03WR9": {
+   "spell_f1": 0.3887058823529412,
+   "macro_f1": 0.797579923372087,
+   "n_pred": 163,
+   "n_gt": 262,
+   "visible": 0.5843334922689191
+  }
+ },
+ "mean_spell_f1": 0.4110875878217125,
+ "mean_macro_f1": 0.7939068450176376,
+ "atd_reparto_huecos": {
+  "visto": 0.593074274347369,
+  "hueco 1-12": 0.00032104345417576814,
+  "hueco 13-50": 0.00013848933317386076,
+  "hueco 51-125": 0.0,
+  "hueco 126-250": 0.058826491750442224,
+  "hueco >250": 0.3476397011148391,
+  "sin balon a +-50 (control NaN)": 0.32336000302158546
+ },
+ "idsse_reparto_huecos": {
+  "visto": 0.5910911549862164,
+  "hueco 1-12": 0.00031317197330258794,
+  "hueco 13-50": 0.00019747786851564462,
+  "hueco 51-125": 0.0008517479783452551,
+  "hueco 126-250": 0.06105457171239243,
+  "hueco >250": 0.3464918754812276,
+  "sin balon (todo)": 0.40890884501378355,
+  "sin balon a +-50 (control NaN)": 0.32432049660697115
+ }
+}

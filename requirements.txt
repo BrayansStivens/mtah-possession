@@ -3,7 +3,8 @@
 numpy==2.5.4
 pandas==3.0.6
 
-# Necesario desde el 7-11: carga el detector de fronteras (models/boundary_detector.joblib).
+# Necesario desde el 7-11: carga el detector de fronteras (models/boundary_detector.joblib)
+# y, desde el 12-11, el clasificador de equipo (models/team_classifier.joblib).
 # Version exacta: un pickle de scikit-learn solo es fiable con la version que lo escribio,
-# y boundary_detector.load() falla con cualquier otra.
+# y los load() de los dos modelos fallan con cualquier otra.
 scikit-learn==1.8.0

@@ -9,11 +9,12 @@ import numpy as np
 
 from . import submission
 from .config import DEFAULT
+from .constants import GRADED_BLOCKS
 from .decode import viterbi
 from . import features as feature_set
 from .features import tagging
 from .io import atd, smart_tagging
-from .models import boundary_detector, emissions
+from .models import boundary_detector, emissions, team_classifier
 
 
 def labels_from_tracking(tracking, config=None, team_tags=None):
@@ -24,7 +25,10 @@ def labels_from_tracking(tracking, config=None, team_tags=None):
     config = config or DEFAULT
 
     features = feature_set.build_all(tracking, config)
-    cost = emissions.costs(features, config, team_tags=team_tags)
+    team_logit = None
+    if config["team_classifier_weight"] > 0:
+        team_logit = team_classifier.home_logit(tracking, blocks=GRADED_BLOCKS)
+    cost = emissions.costs(features, config, team_tags=team_tags, team_logit=team_logit)
     transition = viterbi.switch_costs(turnover=config["switch_turnover"],
                                       to_dead=config["switch_to_dead"],
                                       from_dead=config["switch_from_dead"])

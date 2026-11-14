@@ -1,0 +1,47 @@
+{
+ "todas (9)": {
+  "columns": 87,
+  "auc_all": 0.9517528119350483,
+  "auc_unseen": 0.9546702439781994,
+  "domain_seen": 0.9330655244256052,
+  "domain_ref_seen": 0.5334499155576201,
+  "domain_unseen": 0.8730655902355415,
+  "domain_ref_unseen": 0.5894044550420882
+ },
+ "sin opp": {
+  "columns": 78,
+  "auc_all": 0.9511749331321061,
+  "auc_unseen": 0.953885261913175,
+  "domain_seen": 0.9233375493845397,
+  "domain_ref_seen": 0.5323095904204793,
+  "domain_unseen": 0.8431488549086774,
+  "domain_ref_unseen": 0.5809741045428597
+ },
+ "sin opp, cen, len": {
+  "columns": 57,
+  "auc_all": 0.9505620590713274,
+  "auc_unseen": 0.9533246880303876,
+  "domain_seen": 0.7235683350203349,
+  "domain_ref_seen": 0.5307302076608268,
+  "domain_unseen": 0.6589742550790183,
+  "domain_ref_unseen": 0.5853293584034639
+ },
+ "anchura y lineas": {
+  "columns": 27,
+  "auc_all": 0.9179581077114133,
+  "auc_unseen": 0.9211546673079221,
+  "domain_seen": 0.7012774792883995,
+  "domain_ref_seen": 0.5281896416748473,
+  "domain_unseen": 0.6589307037885022,
+  "domain_ref_unseen": 0.5901968455367932
+ },
+ "solo anchura": {
+  "columns": 9,
+  "auc_all": 0.905863273771507,
+  "auc_unseen": 0.9100441493015169,
+  "domain_seen": 0.601566431405143,
+  "domain_ref_seen": 0.5168956491161564,
+  "domain_unseen": 0.5164060910953028,
+  "domain_ref_unseen": 0.5355461402015084
+ }
+}

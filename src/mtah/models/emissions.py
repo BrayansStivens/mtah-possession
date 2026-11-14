@@ -107,13 +107,32 @@ def costs_from_logits(home, dead, config=None):
     return out
 
 
-def costs(features, config=None, team_tags=None):
+def team_classifier_logit(team_logit, config=None):
+    """(n,) lo que el clasificador de equipo suma al logit de local: peso * su logit.
+
+    Fuera de `home_logit` por lo mismo que el Smart Tagging: el detector de fronteras se
+    entreno sin el. Ver training/team_classifier.py para el peso.
+    """
+    config = config or DEFAULT
+    team_logit = np.asarray(team_logit, dtype=np.float64)
+    if team_logit.ndim != 1 or not np.isfinite(team_logit).all():
+        raise ValueError("team_logit tiene que ser (n,) y finito")
+    return config["team_classifier_weight"] * team_logit
+
+
+def costs(features, config=None, team_tags=None, team_logit=None):
     """(n, 3) coste por frame y estado, menor es mejor. Columnas en orden H, A, D.
 
     `team_tags=None` es "no hay Smart Tagging" (el IDSSE); la entrega lo pasa siempre.
+    `team_logit=None` es "sin clasificador de equipo" (models/team_classifier.py).
     """
     config = config or DEFAULT
     home = home_logit(features, config)
+    if team_logit is not None:
+        if len(team_logit) != len(home):
+            raise ValueError("team_logit tiene %d frames y los features %d"
+                             % (len(team_logit), len(home)))
+        home = home + team_classifier_logit(team_logit, config)
     if team_tags is not None:
         if len(team_tags) != len(home):
             raise ValueError("team_tags tiene %d frames y los features %d"

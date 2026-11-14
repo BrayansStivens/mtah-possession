@@ -1,4 +1,4 @@
-# Estado del proyecto — 11 de noviembre de 2026
+# Estado del proyecto — 12 de noviembre de 2026
 
 Documento para el equipo. Este repositorio tiene dos partes:
 
@@ -20,8 +20,9 @@ no está medido, se dice.
 | Métrica de ranking | **spellF1** (posesiones acertadas por solape temporal). Desempate: macroF1 por frame |
 | Mínimo oficial a superar | **0,2433** (`baseline_smooth50`) |
 | **Dónde estamos, medido** | **0,4073** de media en 7 partidos de Bundesliga degradados para parecerse a nuestros datos, dejando cada partido fuera del entrenamiento del detector (0,3965 sin el detector de fronteras). El Smart Tagging (8-11) suma **+0,5 a +0,9 pp estimados** con un tagging simulado: el IDSSE no tiene uno real, así que esa parte no es medible del todo (§2) |
-| En los 5 minutos públicos | 0,4148 (0,4444 sin el tagging, 0,4903 sin el detector) — **lectura, no criterio**: 17 posesiones, una fallada mueve 6 puntos |
-| La entrega de hoy | `out/submission.csv`, generada el 8-11 con `config.py` tal cual está (sha256 `e7938350…`); pasa el validador oficial; 103 tests en verde. Con `smart_tagging_team_weight = 0` sale la del 7-11 (`5d97eccc…`), y además con `boundary_discount_weight = 0` la del 31-10 (`73c361d5…`) |
+| **Candidata del 12-11** | **0,5712** en esos mismos 7 partidos con el **clasificador de equipo sin balón** (rama `equipo-sin-balon`), frente a 0,4111 del mismo modelo sin él: **+16,0 pp**, con el clasificador y su peso elegidos sin ver el partido que se puntúa. En tres semillas de degradación, +16,1 pp de media y mejor en las 21 ejecuciones. **Es una cota optimista**: el IDSSE degradado conserva a los jugadores cuando falta el balón y nuestro partido no; con huecos colocados como en el partido real baja a +12,6 pp (§2) |
+| En los 5 minutos públicos | 0,4148 (0,4444 sin el tagging, 0,4903 sin el detector); la candidata del 12-11, 0,6286 — **lectura, no criterio**: 17 posesiones, una fallada mueve 6 puntos |
+| La entrega de hoy | `out/submission.csv`, generada el 8-11 (sha256 `e7938350…`); pasa el validador oficial. **No cambia el 12-11.** En `main` sale con `config.py` tal cual está. En la rama `equipo-sin-balon`, `config.py` tal cual da la candidata (`out/candidato_equipo.csv`, sha256 `a43c52fb…`, pasa el validador; 120 tests en verde) y la entrega sale con `team_classifier_weight = 0`. Con `smart_tagging_team_weight = 0` además sale la del 7-11 (`5d97eccc…`), y con `boundary_discount_weight = 0` además la del 31-10 (`73c361d5…`) |
 | Qué configuración lleva | la de `config.py`; cada valor tiene escrito al lado de dónde sale. **Ninguno viene ya de los 5 minutos públicos** (prohibido desde el 22-10) |
 
 Si todo se parase hoy, hay algo válido que entregar y está 15 puntos por encima del mínimo.
@@ -41,6 +42,11 @@ Si todo se parase hoy, hay algo válido que entregar y está 15 puntos por encim
   jugadores y no necesita el balón; *local/visitante* sale de la geometría balón-jugador. Se
   separan porque el balón falta en el **41 %** de los frames puntuados y la primera mitad
   sigue funcionando sin él.
+- Desde el 12-11, en la rama `equipo-sin-balon`: señales de forma y movimiento de cada equipo
+  en su propio sentido de ataque (`features/team_signals.py`) y un clasificador entrenado en
+  el IDSSE que lee de ellas quién tiene la posesión, sin mirar el balón
+  (`models/team_classifier.{py,joblib,json}`). Suma al logit de local con
+  `team_classifier_weight`; con peso 0 no se carga y sale la entrega del 8-11 al byte.
 - Decodificación Viterbi offline (`decode/viterbi.py`) con costes de cambio y duración mínima.
   Gana al voto por mayoría del baseline en las dos métricas a la vez (tabla en `README.md`).
 - Nunca se escribe `X` en un frame puntuado: en spellF1 da igual y en macroF1 se paga.
@@ -61,6 +67,8 @@ Es la pieza que convirtió "no podemos medir" en "podemos medir en siete partido
 - `harness.py`: puntúa el pipeline sobre un partido completo con etiquetas reales.
 - `recalibrate.py`: re-deriva los hiperparámetros sobre esos partidos (medianas por clase +
   descenso por coordenadas en 4 partidos de ajuste, comprobación en 3 de validación).
+- `team_classifier.py` (12-11): el leave-one-match-out anidado del clasificador de equipo y,
+  con `export`, el modelo guardado. Misma estructura que `boundaries.py` para el detector.
 
 ### Las decisiones medidas (cronología)
 
@@ -78,6 +86,8 @@ Es la pieza que convirtió "no podemos medir" en "podemos medir en siete partido
 | 7 nov | **Detector de fronteras** entrenado en el IDSSE, medido con leave-one-match-out anidado y tres brazos (ver abajo) | **+1,17 pp** spellF1 y +1,12 pp macroF1 sobre el modelo anterior (21 ejecuciones, 16 mejoran); **+1,07 pp sobre encarecer los cambios sin detector, positivo en los 7 partidos** | `training/boundaries.py`, `datos/fronteras_lomo_anidado.json` |
 | 7 nov | **El detector entra en la entrega.** Entrenado con los 7 partidos; peso 0,95 y escala 2,0 elegidos con el mismo procedimiento, fuera de muestra | reexportar da el mismo modelo byte a byte; la entrega cambia en el 3,8 % de los frames puntuados (369 → 333 segmentos) | `models/boundary_detector.{joblib,json}`, `config.py` |
 | 7 nov | Curva de visibilidad del balón (Paso cero de `plan-detector-balon.md`) | **no es plana**: de 59 % a 70 / 80 / 90 % de balón visible da +2,2 / +3,5 / +6,3 pp recuperando primero lo fácil, en los 7 partidos | `training/visibility.py`, `datos/curva_visibilidad.json` |
+| 11-12 nov | Diagnóstico de los frames sin balón, y nueve señales de equipo que no lo miran | acierto por frame 87,5 % con el balón visto y 74,5 % sin él; de las posesiones con 75-100 % de frames sin balón se recupera el 15,0 %; sin balón el fallo dominante es el equipo cambiado (13,3 % de esos frames) | `trabajo/sin-balon-1111/RESUMEN.md`, `diag.json` |
+| 12 nov | **Clasificador de equipo sin balón**, integrado como candidato en la rama `equipo-sin-balon` (ver abajo). **La entrega no cambia** | **+16,11 pp** spellF1 y +6,46 pp macroF1 sobre el modelo sin él, LOMO anidado, 7 partidos × 3 semillas, **21 de 21 mejoran** (de +10,9 a +20,1 pp); +12,6 pp con huecos colocados como en el partido real (semilla 0, 7 de 7) | `features/team_signals.py`, `models/team_classifier.{py,joblib,json}`, `training/team_classifier.py`, `datos/equipo_sin_balon_lomo.json` |
 
 **Qué entró el 7-11 desde `DeteccionPosesionBalon`** (la otra línea, hecha sin acceso a este repo):
 
@@ -231,6 +241,75 @@ tablas en `datos/smart_tagging_lomo.json` y `smart_tagging_robustez.json`).
   2,1 % de los frames puntuados y baja de 334 a 316 segmentos. En la ventana pública baja de 0,4444 a 0,4148: las
   mismas 10 posesiones predichas y las mismas 6 acertadas a IoU 0,5, con peor solape en una (contado el 11-11).
 
+**El clasificador de equipo sin balón, candidato desde el 12-11** (`python -m mtah.training.team_classifier` y
+`... export`; tabla en `datos/equipo_sin_balon_lomo.json`; la exploración previa, con lo que se descartó, en
+`trabajo/sin-balon-1111/RESUMEN.md`). Está en la rama `equipo-sin-balon`. **La entrega no cambia** hasta que se
+decida el 14.
+
+- **Por qué.** El balón falta en el 41 % de los frames y ahí la geometría balón-jugador no tiene qué leer: la
+  emisión arrastra lo último que vio. En el IDSSE degradado el acierto por frame es 87,5 % con el balón visto y
+  74,5 % sin él, y de las posesiones que pasan sin balón el 75 % o más de sus frames solo se recupera el 15,0 %.
+  Sin balón el fallo dominante es el equipo cambiado (13,3 % de esos frames), por delante del muerto inventado
+  (8,2 %) y del muerto perdido (4,1 %) (`sin-balon-1111/diag.json`, semilla 0).
+- **Qué es.** Seis señales por equipo, medidas en el eje de ataque de cada uno: anchura, línea defensiva, línea de
+  ataque, velocidad media hacia la portería rival, velocidad media y fracción de jugadores en sprint, suavizadas
+  en ventanas de 1, 3 y 8 s (`features/team_signals.py`, 57 columnas). El sentido de ataque sale del propio
+  tracking, sin metadatos. Un gradient boosting las convierte en un logit de "la posesión es del local". Se entrena
+  con las dos perspectivas y se usa la mitad de la diferencia entre ellas: cambiar los equipos de nombre le cambia
+  el signo exacto, así que no puede aprender "el local suele tener el balón". Fuera de muestra separa al equipo
+  con AUC 0,919 a 0,963 según el partido (0,911 a 0,966 en los frames sin balón); la emisión
+  a mano, en frames sin balón a 2 s, 0,70.
+- **Cómo entra.** `models/team_classifier.home_logit` da el logit por frame y `emissions.costs` lo suma al de local
+  con `team_classifier_weight`, igual que el Smart Tagging: *después* del detector de fronteras, que lee
+  `home_logit` y se entrenó sin él. Peso 0 = la entrega del 8-11 al byte, sin cargar el modelo (hay un test).
+  El modelo comprueba al cargar su sha256, la versión de scikit-learn y que las señales son las del entrenamiento.
+- **Qué se midió.** LOMO anidado dentro del decodificador entregado, detector incluido y puntuando fuera de
+  muestra: para cada partido de fuera, clasificador entrenado con los otros 6 y peso elegido en esos 6 con
+  clasificadores que no vieron ni ese partido ni el de fuera. Modelo y peso se fijan en la semilla 0; las semillas
+  1 y 2 solo cambian el patrón de oclusión. El IDSSE no tiene Smart Tagging, así que el control es el modelo sin
+  tagging.
+
+  | semilla | sin clasificador | con clasificador | diferencia | partidos mejor | macroF1 | peso 0,5 fijo | peso 1,0 fijo |
+  |---|---|---|---|---|---|---|---|
+  | 0 | 0,4111 | 0,5712 | **+16,01 pp** | 7 de 7 | +6,32 pp | +11,41 | +13,77 |
+  | 1 | 0,4042 | 0,5755 | **+17,13 pp** | 7 de 7 | +6,75 pp | +12,02 | +14,97 |
+  | 2 | 0,4290 | 0,5808 | **+15,18 pp** | 7 de 7 | +6,32 pp | +10,91 | +13,33 |
+  | **media** | | | **+16,11 pp** | **21 de 21** | +6,46 pp | +11,45 | +14,02 |
+
+  El peso elegido fue 2,0 en los 7 pliegues. La ejecución que menos gana, +10,9 pp; la que más, +20,1 pp.
+  Predice 206 posesiones de media por partido donde antes 179; las reales son 278. El macroF1
+  medio pasa de 0,793 a 0,858.
+- **Decisión: peso 2,0, y no se amplía la rejilla.** Es el borde (0,5 / 1,0 / 2,0) y la ganancia sigue creciendo
+  con el peso, pero la medida es optimista por lo de abajo y un peso mayor apostaría más a ella. El 31-10 ya se
+  vio que la mitad de cada ganancia de rejilla era sobreajuste.
+- **Por qué seis señales y no las nueve del experimento.** Un clasificador de dominio distingue las señales de
+  BAR-ATH de las del IDSSE con AUC 0,93 usando las nueve y 0,72 con estas seis (0,53 entre partidos del IDSSE). Las
+  tres que se quitan (centroide, longitud del bloque, jugadores en campo rival) no cuestan nada en validación
+  (+16,00 pp con nueve, +16,01 con seis, semilla 0). El subconjunto se eligió mirando la distribución sin
+  etiquetas del partido, no su nota.
+- **Qué no dice.** Tres cosas, por orden de importancia:
+  1. *El arnés conserva a los jugadores y BAR-ATH no.* En BAR-ATH hay 19,2 jugadores seguidos de media cuando
+     falta el balón y 21,4 cuando está, y el 14,3 % de los frames sin balón tienen menos de 16 (1,0 % con
+     balón). En el IDSSE degradado son 20,4 y 6,4 % en los dos casos. El clasificador se midió con equipos casi
+     completos justo donde aquí faltan jugadores. **No se ha medido cuánto pierde con 16 a 19 jugadores.**
+  2. *Los huecos del arnés caen al azar.* BAR-ATH pierde el balón sobre todo con los jugadores parados (93,9 % de
+     frames sin balón en el tramo de menos actividad, 9,8 % en el de más). Recolocando los huecos según la
+     actividad la ganancia baja a **+12,55 pp** (7 de 7), solo en la semilla 0 y con una curva más suave que la
+     real (`sin-balon-1111/realista.json`).
+  3. *La deriva residual no es cero*: 0,72 frente a 0,53. Y contra las fases del Smart Tagging en frames sin
+     balón el clasificador de nueve señales da AUC 0,70 donde la emisión a mano da 0,85, y sumados 0,83
+     (`sin-balon-1111/atd_check.json`; con el balón visto es al revés, 0,91 frente a 0,80). Es un diagnóstico débil (fases de ~18 s, y Metrica etiqueta con el mismo
+     tracking), pero no es una confirmación.
+- **En BAR-ATH** (sin etiquetas, solo se describe): la candidata cambia el 10,1 % de los frames puntuados respecto
+  a la entrega y predice 190 posesiones donde la entrega 202. **Cambia más donde el balón se ve** (12,5 % de
+  esos frames) **que donde falta** (6,6 %): el 73,5 % de los frames que cambian tienen balón. Aquí la entrega ya
+  marca muerto el 84,2 % de los frames sin balón y el clasificador solo decide entre equipos, así que en este
+  partido actúa sobre todo como segunda opinión con el balón a la vista. De los cambios, el 73,5 % son de un
+  equipo al otro, el 19,5 % de muerto a equipo y el 7,0 % de equipo a muerto. Reparto H / A / D:
+  0,358 / 0,207 / 0,436, frente a 0,357 / 0,194 / 0,449. En la ventana pública lee 0,6286 de spellF1 (0,4148 la
+  entrega), macroF1 0,8643 (0,8003) y 11 posesiones predichas de 17 (10). **Lectura, no criterio**: en el mismo
+  experimento dos clasificadores más débiles subían en el IDSSE y bajaban a 0,3333 en esa ventana.
+
 ### Los documentos (`trabajo/`)
 
 - `resumen-simple.md` — el reto sin jerga. Empezar por aquí.
@@ -240,6 +319,8 @@ tablas en `datos/smart_tagging_lomo.json` y `smart_tagging_robustez.json`).
   corrige a la primera en lo del sobreajuste.
 - `handoff-plugin-data/datos/` — todas las tablas; `handoff-plugin-data/*.py` los scripts que
   las producen.
+- `sin-balon-1111/RESUMEN.md` — el diagnóstico de los frames sin balón (11 y 12-11), lo que se
+  probó, lo que se descartó y las ideas que quedan; al lado, sus scripts y tablas de agregados.
 - Hay además un dashboard interactivo (artefacto privado de claude.ai, "Posesión FC Medallo")
   alimentado con exactamente esas tablas. Pedidle el enlace a Brayan.
 
@@ -291,15 +372,15 @@ Dónde falla el modelo hoy (`datos/diagnostico_errores.csv`, config de hoy):
 
 ## 4. Qué falta
 
-### Plan hasta el 17 (acordado el 11-11, tras mergear `fronteras-deteccion` en `main`)
+### Plan hasta el 17 (acordado el 11-11, tras mergear `fronteras-deteccion` en `main`; el 12-11 se añade la cuarta candidata)
 
 Quedan seis días. Lo que se hace, quién, y en qué orden:
 
 | cuándo | qué | quién | cómo se sabe que está |
 |---|---|---|---|
 | hasta el 14 | **Los saques del Smart Tagging como equipo que saca** (córners y saques de puerta; los de banda van con `N/A`). Es lo que falta en los huecos largos: sin balón la emisión da P(H) = P(A) y el modelo vive de la inercia, dure 5 s o 266 s el hueco. A diferencia de las fases, esto **sí se mide de verdad**: el IDSSE trae los eventos de saque con equipo, no hay que simular nada | Simon | mismo LOMO anidado de §2; entra solo si gana en validación y se cuenta con su intervalo |
-| hasta el 14 | **Reproducción en máquina limpia**: clonar, `pip install -r requirements.txt`, `source scripts/env.sh`, `build`, y que salga el sha256 `e7938350…`. La entrega depende ahora de un pickle con versión exacta de scikit-learn y de Python ≥ 3.12; si falla, falla en manos de los organizadores. Ojo: `python -m mtah` necesita `PYTHONPATH=src` (lo pone `env.sh`) o instalar el paquete | Brayan | el sha coincide en una máquina que no sea la nuestra |
-| **viernes 14** | **Decidir y congelar la entrega.** Tres candidatas, las tres reproducibles con dos valores de `config.py`: la del 31-10 (`73c361d5…`, 0,3965 medido), con detector (`5d97eccc…`, 0,4073 medido fuera de muestra) y con detector + tagging (`e7938350…`, +0,6 pp *estimados* encima, intervalo que incluye el cero). Después del 14 no se toca ningún hiperparámetro: el 31-10 se vio que la mitad de cada ganancia de rejilla era sobreajuste | todos | `config.py` congelado y el sha de la entrega escrito en §1 |
+| hasta el 14 | **Reproducción en máquina limpia**: clonar, `pip install -r requirements.txt`, `source scripts/env.sh`, `build`, y que salga el sha256 `e7938350…` en `main` (`a43c52fb…` en la rama `equipo-sin-balon`, que hay que probar también si la candidata sigue viva el 14). La entrega depende ahora de un pickle con versión exacta de scikit-learn y de Python ≥ 3.12, y la candidata de dos; si falla, falla en manos de los organizadores. Ojo: `python -m mtah` necesita `PYTHONPATH=src` (lo pone `env.sh`) o instalar el paquete | Brayan | el sha coincide en una máquina que no sea la nuestra |
+| **viernes 14** | **Decidir y congelar la entrega.** Cuatro candidatas, reproducibles con tres valores de `config.py`: la del 31-10 (`73c361d5…`, 0,3965 medido), con detector (`5d97eccc…`, 0,4073 medido fuera de muestra), con detector + tagging (`e7938350…`, +0,6 pp *estimados* encima, intervalo que incluye el cero) y, desde el 12-11, con el clasificador de equipo sin balón encima de todo (`a43c52fb…`, rama `equipo-sin-balon`, +16,1 pp medidos fuera de muestra en el IDSSE, +12,6 pp con huecos como los reales; cota optimista, §2). Adoptarla es mergear la rama; descartarla es no mergearla o poner `team_classifier_weight = 0`. Después del 14 no se toca ningún hiperparámetro: el 31-10 se vio que la mitad de cada ganancia de rejilla era sobreajuste | todos | `config.py` congelado y el sha de la entrega escrito en §1 |
 | 14-16 | **El documento técnico corto** (2-3 páginas): qué hace el modelo, cómo se midió, qué no sabemos. Sale de este fichero | Brayan | PDF en `trabajo/` |
 | 16 | **Repo público.** Auditoría de `data/` (se hace en cada push), atribución a la DFL (ya está), `vendor/NOTICE.md`, decidir si `trabajo/` se queda | Brayan | el repo es público y el validador pasa sobre el CSV entregado |
 | — | **`detector-balon` se aparca** sin mergear. Lo único que se rescata es su sección de documentación (qué se probó y por qué no da más), para no repetir el experimento. Si se retoma, su siguiente paso está escrito: simular el relleno *con sus errores* en el IDSSE antes de tocar el pipeline | — | — |
@@ -390,6 +471,11 @@ usan, por los motivos del `README.md` (no separan jugada de parada; otra línea 
 - **La vía supervisada solo está medida en el arnés**: el detector de fronteras gana +1,1 pp
   en Bundesliga degradada y +0,4 a +1,1 pp con los huecos colocados de forma adversa; si
   transfiere a BAR-ATH no se puede comprobar (el Smart Tagging sale neutro).
+- **El clasificador de equipo (candidata del 12-11) solo está medido con equipos casi completos.**
+  El IDSSE degradado conserva a los jugadores cuando falta el balón; BAR-ATH pierde de media dos y
+  en el 14 % de esos frames quedan menos de 16. No se ha corrido la degradación que los quita, ni
+  los huecos realistas en las semillas 1 y 2, ni se han reajustado los costes de cambio con el
+  clasificador puesto. Los +16,1 pp son una cota superior de lo que cabe esperar aquí.
 - **El peso del Smart Tagging sale de un tagging simulado**, no del real: cuánto acierta el de
   Metrica no se puede medir sin etiquetas, solo acotar por su acuerdo con nuestra emisión.
 
@@ -400,7 +486,7 @@ usan, por los motivos del `README.md` (no separan jugada de parada; otra línea 
 ```bash
 python3.12 -m venv .venv && source .venv/bin/activate   # numpy 2.5.4 pide Python >= 3.12
 pip install -r requirements-dev.txt
-python -m pytest -q                      # 103 tests
+python -m pytest -q                      # 120 tests en la rama equipo-sin-balon, 103 en main
 ```
 
 Para regenerar la entrega hacen falta los datos del partido (no están en el repo, no pueden
@@ -414,8 +500,8 @@ python -m mtah status
 
 Para rehacer las mediciones del arnés hace falta además `pip install -r requirements-train.txt`
 (kloppy, para descargar el IDSSE). La primera llamada a `idsse.load` descarga cada partido (~2 min
-cada uno) y lo deja en `out/cache/`; después `python -m mtah.training.boundaries` y
-`python -m mtah.training.visibility` corren en minutos. Los
+cada uno) y lo deja en `out/cache/`; después `python -m mtah.training.boundaries`,
+`python -m mtah.training.visibility` y `python -m mtah.training.team_classifier` corren en minutos. Los
 scripts de `trabajo/handoff-plugin-data/` se escribieron para correr desde la carpeta de
 trabajo original (`~/Documents/Hackaton/`) con rutas absolutas; cada uno dice arriba qué hace
 y qué fichero produce.

@@ -1,0 +1,107 @@
+{
+ "match": "J03WOH",
+ "seed": 0,
+ "seconds": 7.5,
+ "direction_dirty": [
+  {
+   "block": [
+    0,
+    69424
+   ],
+   "direction": -1.0,
+   "agreement": 0.9866472689559806
+  },
+  {
+   "block": [
+    69424,
+    137214
+   ],
+   "direction": 1.0,
+   "agreement": 0.8708069036731081
+  }
+ ],
+ "direction_clean": [
+  {
+   "block": [
+    0,
+    69424
+   ],
+   "direction": -1.0,
+   "agreement": 1.0
+  },
+  {
+   "block": [
+    69424,
+    137214
+   ],
+   "direction": 1.0,
+   "agreement": 0.8866204454934357
+  }
+ ],
+ "direction_same_as_clean": 1.0,
+ "dead_names": [
+  "act_12",
+  "act_50",
+  "act_125",
+  "spd_p25_12",
+  "spd_p25_50",
+  "spd_p25_125",
+  "spd_p75_12",
+  "spd_p75_50",
+  "spd_p75_125",
+  "slow_12",
+  "slow_50",
+  "slow_125",
+  "fast_12",
+  "fast_50",
+  "fast_125",
+  "all_len_12",
+  "all_len_50",
+  "all_len_125",
+  "all_wid_12",
+  "all_wid_50",
+  "all_wid_125",
+  "drift_12",
+  "drift_50",
+  "drift_125",
+  "touch_12",
+  "touch_50",
+  "touch_125",
+  "box_12",
+  "box_50",
+  "box_125",
+  "n_12",
+  "n_50",
+  "n_125",
+  "ball_speed_6",
+  "ball_seen_6",
+  "ball_speed_25",
+  "ball_seen_25",
+  "ball_speed_75",
+  "ball_seen_75",
+  "ball_out_12",
+  "since",
+  "until",
+  "gap",
+  "edge_prev",
+  "edge_next",
+  "jump",
+  "speed_prev",
+  "hand_dead_logit"
+ ],
+ "ballteam_names": [
+  "ctl_6",
+  "near_6",
+  "ctl_25",
+  "near_25",
+  "ctl_50",
+  "near_50",
+  "ctl_125",
+  "near_125",
+  "ctl_prev",
+  "ctl_next",
+  "since",
+  "until",
+  "hand_home_logit"
+ ]
+}

@@ -23,8 +23,8 @@ pip install -r requirements-dev.txt      # + pytest, matplotlib
 ```
 
 Python 3.12 o superior (lo pide `numpy==2.5.4`). La versión de scikit-learn tiene que ser
-exactamente la pinneada: el detector de fronteras es un modelo guardado y se niega a
-cargar con otra.
+exactamente la pinneada: el detector de fronteras y el clasificador de equipo son modelos
+guardados y se niegan a cargar con otra.
 
 ## Los datos
 
@@ -93,8 +93,10 @@ src/mtah/
   io/smart_tagging.py   fases tacticas y saques -> intervalos en frames
   features/geometry.py  distancias, control, actividad, forma de equipo
   features/boundaries.py que cambia entre justo antes y justo despues de cada frame
+  features/team_signals.py forma y movimiento de cada equipo en su eje de ataque, sin balon
   models/emissions.py   features -> coste por frame y estado
   models/boundary_detector.{py,joblib,json}  score de frontera, entrenado en el IDSSE
+  models/team_classifier.{py,joblib,json}    quien tiene la posesion sin mirar el balon, idem
   decode/viterbi.py     coste -> segmentos. El nucleo del reto
   pipeline.py           el encadenado completo
   submission.py         construir, escribir y validar el CSV
@@ -122,6 +124,17 @@ balón (BUILD UP, PROGRESSION, ...; los DEFENDING IN * nombran al rival) suman �
 local donde existen, el 40 % de los frames. El IDSSE no tiene tagging, así que el peso se eligió
 con uno simulado sobre sus etiquetas y calibrado por su acuerdo con nuestra emisión en este
 partido (`training/team_tags.py`, ver `ESTADO.md`): +0,5 a +0,9 pp estimados.
+
+Desde el 12-11, y como candidato hasta el congelado del 14, un **clasificador de equipo sin
+balón**: gradient boosting que lee de quién es la posesión en la forma y el movimiento de los
+dos equipos (anchura, líneas de defensa y de ataque, velocidad hacia la portería rival,
+sprints), cada uno medido en su propio sentido de ataque, y suma su logit ×2 al de local.
+Existe por el 41 % de frames sin balón, donde la geometría balón-jugador no tiene qué leer.
+Entrenado en los 7 partidos del IDSSE degradados; medido dejando cada partido fuera, con el
+peso elegido sin verlo, da **+16,1 pp de `spellF1`** en tres semillas. Es una cota optimista:
+el IDSSE degradado conserva a los jugadores cuando falta el balón y este partido no (ver
+`ESTADO.md`). Con `team_classifier_weight = 0` no se carga y sale la entrega del 8-11 byte a
+byte. Se regenera con `python -m mtah.training.team_classifier export`.
 
 ## Tres decisiones y por qué
 
@@ -182,9 +195,10 @@ Código propio bajo MIT. `vendor/` es copia literal del repositorio oficial de l
 competición (MIT, ver `vendor/NOTICE.md`). Los datos del partido no están cubiertos por
 ninguna de las dos y no se redistribuyen.
 
-`src/mtah/models/boundary_detector.joblib` es una obra derivada del dataset IDSSE —
+`src/mtah/models/boundary_detector.joblib` y `src/mtah/models/team_classifier.joblib` son
+obras derivadas del dataset IDSSE —
 Bassek, M., Rein, R., Weber, H. et al. "An integrated dataset of spatiotemporal and event
 data in elite soccer". *Sci Data* 12, 195 (2025), doi:10.1038/s41597-025-04505-y — publicado
 bajo **CC-BY 4.0** con autorización de la **Deutsche Fußball Liga (DFL)**. Datos:
-doi:10.6084/m9.figshare.28196177. El repositorio no contiene ningún dato del IDSSE, solo el
-modelo entrenado sobre él.
+doi:10.6084/m9.figshare.28196177. El repositorio no contiene ningún dato del IDSSE, solo los
+dos modelos entrenados sobre él.

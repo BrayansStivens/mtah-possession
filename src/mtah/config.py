@@ -255,6 +255,24 @@ DEFAULT = {
     # y cae a +0,10 en el mejor ajuste. La eleccion automatica por pliegue era mas ruidosa
     # (+0,39). Tablas en trabajo/handoff-plugin-data/datos/smart_tagging_robustez.json.
     "smart_tagging_team_weight": 0.5,
+
+    # ------------------------------------------------------------ clasificador de equipo
+    # models/team_classifier.py: un logit de "tiene la posesion el local" leido de la forma
+    # y el movimiento de los dos equipos, sin el balon (features/team_signals.py). Se suma
+    # al logit de local despues del detector, como el Smart Tagging (models/emissions.py).
+    # Ataca los frames sin balon: el 41 % del total, donde el modelo de antes acierta el
+    # 74,5 % frente al 87,5 % con balon. Medido con leave-one-match-out anidado en los 7
+    # partidos IDSSE x 3 semillas (ESTADO.md, 12-11): +16,11 pp spellF1 sobre el modelo sin
+    # clasificador, mejor en las 21 ejecuciones. El peso lo elige
+    # `python -m mtah.training.team_classifier export` sobre los 7 con logits fuera de
+    # muestra; se copia de models/team_classifier.json.
+    # Elegido el 12-11: peso 2,0 (spellF1 fuera de muestra 0,5712 frente a 0,4111 sin
+    # clasificador; 0,5251 con 0,5 y 0,5488 con 1,0). Es el borde de la rejilla y no se
+    # amplia: el IDSSE degradado conserva a los jugadores y el partido del reto no siempre,
+    # y sus senales se distinguen de las del IDSSE (AUC de dominio 0,72), asi que la
+    # ganancia de arriba es una cota optimista y un peso mayor apostaria mas a ella.
+    # Peso 0 = el modelo del 8-11 exactamente, sin cargar el clasificador.
+    "team_classifier_weight": 2.0,
 }
 
 

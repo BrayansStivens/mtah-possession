@@ -1,0 +1,133 @@
+{
+  "artifact_sha256": "074ba38e1a2b7dc4c84e911f5f1c9d6b3eabf4610a7088ac0c8471bfd6f87cd9",
+  "chosen_weight": 2.0,
+  "control_macro_f1": 0.793907,
+  "control_spell_f1": 0.411088,
+  "degradation_seed": 0,
+  "feature_names": [
+    "own_wid_12",
+    "own_dfl_12",
+    "own_atl_12",
+    "own_tide_12",
+    "own_spd_12",
+    "own_spr_12",
+    "rival_wid_12",
+    "rival_dfl_12",
+    "rival_atl_12",
+    "rival_tide_12",
+    "rival_spd_12",
+    "rival_spr_12",
+    "diff_wid_12",
+    "diff_dfl_12",
+    "diff_atl_12",
+    "diff_tide_12",
+    "diff_spd_12",
+    "diff_spr_12",
+    "sum_tide_12",
+    "own_wid_37",
+    "own_dfl_37",
+    "own_atl_37",
+    "own_tide_37",
+    "own_spd_37",
+    "own_spr_37",
+    "rival_wid_37",
+    "rival_dfl_37",
+    "rival_atl_37",
+    "rival_tide_37",
+    "rival_spd_37",
+    "rival_spr_37",
+    "diff_wid_37",
+    "diff_dfl_37",
+    "diff_atl_37",
+    "diff_tide_37",
+    "diff_spd_37",
+    "diff_spr_37",
+    "sum_tide_37",
+    "own_wid_100",
+    "own_dfl_100",
+    "own_atl_100",
+    "own_tide_100",
+    "own_spd_100",
+    "own_spr_100",
+    "rival_wid_100",
+    "rival_dfl_100",
+    "rival_atl_100",
+    "rival_tide_100",
+    "rival_spd_100",
+    "rival_spr_100",
+    "diff_wid_100",
+    "diff_dfl_100",
+    "diff_atl_100",
+    "diff_tide_100",
+    "diff_spd_100",
+    "diff_spr_100",
+    "sum_tide_100"
+  ],
+  "feature_settings": {
+    "max_speed_ms": 12.0,
+    "signals": [
+      "wid",
+      "dfl",
+      "atl",
+      "tide",
+      "spd",
+      "spr"
+    ],
+    "sprint_speed_ms": 5.0,
+    "sum_signals": [
+      "tide"
+    ],
+    "velocity_lag_frames": 5,
+    "windows_frames": [
+      12,
+      37,
+      100
+    ]
+  },
+  "grid": [
+    [
+      0.411088,
+      0.793907,
+      0.0
+    ],
+    [
+      0.525148,
+      0.846455,
+      0.5
+    ],
+    [
+      0.548826,
+      0.853848,
+      1.0
+    ],
+    [
+      0.571222,
+      0.85712,
+      2.0
+    ]
+  ],
+  "model_params": {
+    "early_stopping": false,
+    "l2_regularization": 1.0,
+    "learning_rate": 0.1,
+    "max_iter": 200,
+    "max_leaf_nodes": 31,
+    "min_samples_leaf": 200,
+    "random_state": 0
+  },
+  "out_of_fold_auc": 0.9505620590713274,
+  "out_of_fold_auc_ball_unseen": 0.9533246880303876,
+  "out_of_fold_macro_f1": 0.85712,
+  "out_of_fold_spell_f1": 0.571222,
+  "sklearn_version": "1.8.0",
+  "train_stride_frames": 4,
+  "trained_on": [
+    "J03WMX",
+    "J03WN1",
+    "J03WOH",
+    "J03WOY",
+    "J03WPY",
+    "J03WQQ",
+    "J03WR9"
+  ]
+}

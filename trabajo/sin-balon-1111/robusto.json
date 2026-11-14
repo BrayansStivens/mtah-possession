@@ -1,0 +1,186 @@
+{
+ "entrega": {
+  "delta": {
+   "rand": [
+    0.0,
+    0,
+    0
+   ],
+   "real": [
+    0.0,
+    0,
+    0
+   ]
+  },
+  "real_match": {
+   "spell_public": 0.4148148148148148,
+   "macro_public": 0.8002811405054774,
+   "n_pred_public": 10,
+   "n_spells": 202,
+   "same": 1.0,
+   "same_unseen": 1.0,
+   "weak": 0.8707201661921982
+  },
+  "models": {}
+ },
+ "todas (9)": {
+  "delta": {
+   "rand": [
+    16.001545891473466,
+    7,
+    0
+   ],
+   "real": [
+    12.698109270231992,
+    7,
+    0
+   ]
+  },
+  "real_match": {
+   "spell_public": 0.6142857142857142,
+   "macro_public": 0.8423880640857265,
+   "n_pred_public": 11,
+   "n_spells": 185,
+   "same": 0.8967436121795074,
+   "same_unseen": 0.9307891032285012,
+   "weak": 0.8919021501907274
+  },
+  "models": {
+   "columns": 87,
+   "auc_all": 0.9517528119350483,
+   "auc_unseen": 0.9546702439781994,
+   "domain_seen": 0.9330655244256052,
+   "domain_ref_seen": 0.5334499155576201,
+   "domain_unseen": 0.8730655902355415,
+   "domain_ref_unseen": 0.5894044550420882
+  }
+ },
+ "sin opp": {
+  "delta": {
+   "rand": [
+    16.50662976212426,
+    7,
+    0
+   ],
+   "real": [
+    13.044872511768444,
+    7,
+    0
+   ]
+  },
+  "real_match": {
+   "spell_public": 0.6142857142857142,
+   "macro_public": 0.8411856012026435,
+   "n_pred_public": 11,
+   "n_spells": 185,
+   "same": 0.8965232882403671,
+   "same_unseen": 0.9292112061630803,
+   "weak": 0.8916578027655372
+  },
+  "models": {
+   "columns": 78,
+   "auc_all": 0.9511749331321061,
+   "auc_unseen": 0.953885261913175,
+   "domain_seen": 0.9233375493845397,
+   "domain_ref_seen": 0.5323095904204793,
+   "domain_unseen": 0.8431488549086774,
+   "domain_ref_unseen": 0.5809741045428597
+  }
+ },
+ "sin opp, cen, len": {
+  "delta": {
+   "rand": [
+    16.0134492753891,
+    7,
+    0
+   ],
+   "real": [
+    12.551095585816606,
+    7,
+    0
+   ]
+  },
+  "real_match": {
+   "spell_public": 0.6285714285714284,
+   "macro_public": 0.8642738920745071,
+   "n_pred_public": 11,
+   "n_spells": 190,
+   "same": 0.8989027867830817,
+   "same_unseen": 0.9341769410454341,
+   "weak": 0.8944875351488044
+  },
+  "models": {
+   "columns": 57,
+   "auc_all": 0.9505620590713274,
+   "auc_unseen": 0.9533246880303876,
+   "domain_seen": 0.7235683350203349,
+   "domain_ref_seen": 0.5307302076608268,
+   "domain_unseen": 0.6589742550790183,
+   "domain_ref_unseen": 0.5853293584034639
+  }
+ },
+ "anchura y lineas": {
+  "delta": {
+   "rand": [
+    7.9796261557529276,
+    7,
+    0
+   ],
+   "real": [
+    5.3507564848007965,
+    7,
+    0
+   ]
+  },
+  "real_match": {
+   "spell_public": 0.33333333333333337,
+   "macro_public": 0.801228976953062,
+   "n_pred_public": 7,
+   "n_spells": 190,
+   "same": 0.9034540498687499,
+   "same_unseen": 0.9368377086459477,
+   "weak": 0.8882970714447037
+  },
+  "models": {
+   "columns": 27,
+   "auc_all": 0.9179581077114133,
+   "auc_unseen": 0.9211546673079221,
+   "domain_seen": 0.7012774792883995,
+   "domain_ref_seen": 0.5281896416748473,
+   "domain_unseen": 0.6589307037885022,
+   "domain_ref_unseen": 0.5901968455367932
+  }
+ },
+ "solo anchura": {
+  "delta": {
+   "rand": [
+    5.182094488538387,
+    5,
+    2
+   ],
+   "real": [
+    2.6656954755093523,
+    6,
+    1
+   ]
+  },
+  "real_match": {
+   "spell_public": 0.3333333333333333,
+   "macro_public": 0.8122891244158333,
+   "n_pred_public": 7,
+   "n_spells": 171,
+   "same": 0.9111087330114506,
+   "same_unseen": 0.9445106198660335,
+   "weak": 0.8990302552848274
+  },
+  "models": {
+   "columns": 9,
+   "auc_all": 0.905863273771507,
+   "auc_unseen": 0.9100441493015169,
+   "domain_seen": 0.601566431405143,
+   "domain_ref_seen": 0.5168956491161564,
+   "domain_unseen": 0.5164060910953028,
+   "domain_ref_unseen": 0.5355461402015084
+  }
+ }
+}

@@ -1,0 +1,1274 @@
+{
+  "folds": [
+    {
+      "held_out": "J03WMX",
+      "choice": {
+        "weight": 2.0,
+        "inner_spell_f1": 0.570155,
+        "inner_macro_f1": 0.852783,
+        "grid": [
+          [
+            0.415533,
+            0.794759,
+            0.0
+          ],
+          [
+            0.531189,
+            0.846883,
+            0.5
+          ],
+          [
+            0.550325,
+            0.852057,
+            1.0
+          ],
+          [
+            0.570155,
+            0.852783,
+            2.0
+          ]
+        ]
+      },
+      "seeds": {
+        "0": {
+          "control": {
+            "spell_f1": 0.38441558441558443,
+            "macro_f1": 0.788790934800009,
+            "n_pred_spells": 173,
+            "n_gt_spells": 289
+          },
+          "chosen": {
+            "spell_f1": 0.567951318458418,
+            "macro_f1": 0.8751597724656931,
+            "n_pred_spells": 204,
+            "n_gt_spells": 289
+          },
+          "by_weight": {
+            "0": {
+              "spell_f1": 0.38441558441558443,
+              "macro_f1": 0.788790934800009,
+              "n_pred_spells": 173,
+              "n_gt_spells": 289
+            },
+            "0.5": {
+              "spell_f1": 0.5072340425531915,
+              "macro_f1": 0.8522718661239317,
+              "n_pred_spells": 181,
+              "n_gt_spells": 289
+            },
+            "1": {
+              "spell_f1": 0.5371900826446281,
+              "macro_f1": 0.8686973643308221,
+              "n_pred_spells": 195,
+              "n_gt_spells": 289
+            },
+            "2": {
+              "spell_f1": 0.567951318458418,
+              "macro_f1": 0.8751597724656931,
+              "n_pred_spells": 204,
+              "n_gt_spells": 289
+            }
+          },
+          "team": {
+            "auc": 0.9507429109892404,
+            "auc_ball_unseen": 0.954163959657096
+          }
+        },
+        "1": {
+          "control": {
+            "spell_f1": 0.4,
+            "macro_f1": 0.8015431016602346,
+            "n_pred_spells": 178,
+            "n_gt_spells": 289
+          },
+          "chosen": {
+            "spell_f1": 0.5572580645161291,
+            "macro_f1": 0.8766433178627729,
+            "n_pred_spells": 207,
+            "n_gt_spells": 289
+          },
+          "by_weight": {
+            "0": {
+              "spell_f1": 0.4,
+              "macro_f1": 0.8015431016602346,
+              "n_pred_spells": 178,
+              "n_gt_spells": 289
+            },
+            "0.5": {
+              "spell_f1": 0.5147679324894514,
+              "macro_f1": 0.8665558256127942,
+              "n_pred_spells": 185,
+              "n_gt_spells": 289
+            },
+            "1": {
+              "spell_f1": 0.5481481481481482,
+              "macro_f1": 0.874049549855093,
+              "n_pred_spells": 197,
+              "n_gt_spells": 289
+            },
+            "2": {
+              "spell_f1": 0.5572580645161291,
+              "macro_f1": 0.8766433178627729,
+              "n_pred_spells": 207,
+              "n_gt_spells": 289
+            }
+          },
+          "team": {
+            "auc": 0.950068743547466,
+            "auc_ball_unseen": 0.9640250326209677
+          }
+        },
+        "2": {
+          "control": {
+            "spell_f1": 0.4336134453781512,
+            "macro_f1": 0.803760864612535,
+            "n_pred_spells": 187,
+            "n_gt_spells": 289
+          },
+          "chosen": {
+            "spell_f1": 0.5694501018329939,
+            "macro_f1": 0.8727599128314648,
+            "n_pred_spells": 202,
+            "n_gt_spells": 289
+          },
+          "by_weight": {
+            "0": {
+              "spell_f1": 0.4336134453781512,
+              "macro_f1": 0.803760864612535,
+              "n_pred_spells": 187,
+              "n_gt_spells": 289
+            },
+            "0.5": {
+              "spell_f1": 0.5308333333333334,
+              "macro_f1": 0.8563852641285404,
+              "n_pred_spells": 191,
+              "n_gt_spells": 289
+            },
+            "1": {
+              "spell_f1": 0.5576763485477179,
+              "macro_f1": 0.8715800158911434,
+              "n_pred_spells": 193,
+              "n_gt_spells": 289
+            },
+            "2": {
+              "spell_f1": 0.5694501018329939,
+              "macro_f1": 0.8727599128314648,
+              "n_pred_spells": 202,
+              "n_gt_spells": 289
+            }
+          },
+          "team": {
+            "auc": 0.9501475206116327,
+            "auc_ball_unseen": 0.9544794500161029
+          }
+        }
+      }
+    },
+    {
+      "held_out": "J03WN1",
+      "choice": {
+        "weight": 2.0,
+        "inner_spell_f1": 0.582587,
+        "inner_macro_f1": 0.860833,
+        "grid": [
+          [
+            0.416116,
+            0.797575,
+            0.0
+          ],
+          [
+            0.538647,
+            0.853365,
+            0.5
+          ],
+          [
+            0.560993,
+            0.858501,
+            1.0
+          ],
+          [
+            0.582587,
+            0.860833,
+            2.0
+          ]
+        ]
+      },
+      "seeds": {
+        "0": {
+          "control": {
+            "spell_f1": 0.38091451292246525,
+            "macro_f1": 0.7718979735901649,
+            "n_pred_spells": 193,
+            "n_gt_spells": 310
+          },
+          "chosen": {
+            "spell_f1": 0.5068702290076337,
+            "macro_f1": 0.8257408158561654,
+            "n_pred_spells": 214,
+            "n_gt_spells": 310
+          },
+          "by_weight": {
+            "0": {
+              "spell_f1": 0.38091451292246525,
+              "macro_f1": 0.7718979735901649,
+              "n_pred_spells": 193,
+              "n_gt_spells": 310
+            },
+            "0.5": {
+              "spell_f1": 0.47416173570019726,
+              "macro_f1": 0.8152001681506901,
+              "n_pred_spells": 197,
+              "n_gt_spells": 310
+            },
+            "1": {
+              "spell_f1": 0.4890625,
+              "macro_f1": 0.8236554919765723,
+              "n_pred_spells": 202,
+              "n_gt_spells": 310
+            },
+            "2": {
+              "spell_f1": 0.5068702290076337,
+              "macro_f1": 0.8257408158561654,
+              "n_pred_spells": 214,
+              "n_gt_spells": 310
+            }
+          },
+          "team": {
+            "auc": 0.9192803437531719,
+            "auc_ball_unseen": 0.9365362309857435
+          }
+        },
+        "1": {
+          "control": {
+            "spell_f1": 0.35303643724696354,
+            "macro_f1": 0.7630090096909513,
+            "n_pred_spells": 184,
+            "n_gt_spells": 310
+          },
+          "chosen": {
+            "spell_f1": 0.516504854368932,
+            "macro_f1": 0.8402528761215705,
+            "n_pred_spells": 205,
+            "n_gt_spells": 310
+          },
+          "by_weight": {
+            "0": {
+              "spell_f1": 0.35303643724696354,
+              "macro_f1": 0.7630090096909513,
+              "n_pred_spells": 184,
+              "n_gt_spells": 310
+            },
+            "0.5": {
+              "spell_f1": 0.47641325536062373,
+              "macro_f1": 0.8268548393420939,
+              "n_pred_spells": 203,
+              "n_gt_spells": 310
+            },
+            "1": {
+              "spell_f1": 0.4929133858267717,
+              "macro_f1": 0.8348071222619508,
+              "n_pred_spells": 198,
+              "n_gt_spells": 310
+            },
+            "2": {
+              "spell_f1": 0.516504854368932,
+              "macro_f1": 0.8402528761215705,
+              "n_pred_spells": 205,
+              "n_gt_spells": 310
+            }
+          },
+          "team": {
+            "auc": 0.9197104017638863,
+            "auc_ball_unseen": 0.9254614909288233
+          }
+        },
+        "2": {
+          "control": {
+            "spell_f1": 0.37258064516129036,
+            "macro_f1": 0.7651112022715774,
+            "n_pred_spells": 186,
+            "n_gt_spells": 310
+          },
+          "chosen": {
+            "spell_f1": 0.5145038167938931,
+            "macro_f1": 0.8375698939772617,
+            "n_pred_spells": 214,
+            "n_gt_spells": 310
+          },
+          "by_weight": {
+            "0": {
+              "spell_f1": 0.37258064516129036,
+              "macro_f1": 0.7651112022715774,
+              "n_pred_spells": 186,
+              "n_gt_spells": 310
+            },
+            "0.5": {
+              "spell_f1": 0.4734375,
+              "macro_f1": 0.8226419779346205,
+              "n_pred_spells": 202,
+              "n_gt_spells": 310
+            },
+            "1": {
+              "spell_f1": 0.5025242718446602,
+              "macro_f1": 0.8335637668574457,
+              "n_pred_spells": 205,
+              "n_gt_spells": 310
+            },
+            "2": {
+              "spell_f1": 0.5145038167938931,
+              "macro_f1": 0.8375698939772617,
+              "n_pred_spells": 214,
+              "n_gt_spells": 310
+            }
+          },
+          "team": {
+            "auc": 0.9187941041745336,
+            "auc_ball_unseen": 0.910531704865583
+          }
+        }
+      }
+    },
+    {
+      "held_out": "J03WOH",
+      "choice": {
+        "weight": 2.0,
+        "inner_spell_f1": 0.563682,
+        "inner_macro_f1": 0.852591,
+        "grid": [
+          [
+            0.40307,
+            0.789478,
+            0.0
+          ],
+          [
+            0.52163,
+            0.842945,
+            0.5
+          ],
+          [
+            0.546599,
+            0.851201,
+            1.0
+          ],
+          [
+            0.563682,
+            0.852591,
+            2.0
+          ]
+        ]
+      },
+      "seeds": {
+        "0": {
+          "control": {
+            "spell_f1": 0.4591928251121077,
+            "macro_f1": 0.8204802500394326,
+            "n_pred_spells": 180,
+            "n_gt_spells": 266
+          },
+          "chosen": {
+            "spell_f1": 0.5842794759825327,
+            "macro_f1": 0.8757261914339423,
+            "n_pred_spells": 192,
+            "n_gt_spells": 266
+          },
+          "by_weight": {
+            "0": {
+              "spell_f1": 0.4591928251121077,
+              "macro_f1": 0.8204802500394326,
+              "n_pred_spells": 180,
+              "n_gt_spells": 266
+            },
+            "0.5": {
+              "spell_f1": 0.5601789709172259,
+              "macro_f1": 0.875180950013896,
+              "n_pred_spells": 181,
+              "n_gt_spells": 266
+            },
+            "1": {
+              "spell_f1": 0.5475555555555556,
+              "macro_f1": 0.8725959891008613,
+              "n_pred_spells": 184,
+              "n_gt_spells": 266
+            },
+            "2": {
+              "spell_f1": 0.5842794759825327,
+              "macro_f1": 0.8757261914339423,
+              "n_pred_spells": 192,
+              "n_gt_spells": 266
+            }
+          },
+          "team": {
+            "auc": 0.9559846668799151,
+            "auc_ball_unseen": 0.9571689705016566
+          }
+        },
+        "1": {
+          "control": {
+            "spell_f1": 0.4152380952380953,
+            "macro_f1": 0.8091859401811549,
+            "n_pred_spells": 154,
+            "n_gt_spells": 266
+          },
+          "chosen": {
+            "spell_f1": 0.5825327510917031,
+            "macro_f1": 0.8699276721254942,
+            "n_pred_spells": 192,
+            "n_gt_spells": 266
+          },
+          "by_weight": {
+            "0": {
+              "spell_f1": 0.4152380952380953,
+              "macro_f1": 0.8091859401811549,
+              "n_pred_spells": 154,
+              "n_gt_spells": 266
+            },
+            "0.5": {
+              "spell_f1": 0.5209090909090909,
+              "macro_f1": 0.864677815429947,
+              "n_pred_spells": 174,
+              "n_gt_spells": 266
+            },
+            "1": {
+              "spell_f1": 0.555855855855856,
+              "macro_f1": 0.8699072086031371,
+              "n_pred_spells": 178,
+              "n_gt_spells": 266
+            },
+            "2": {
+              "spell_f1": 0.5825327510917031,
+              "macro_f1": 0.8699276721254942,
+              "n_pred_spells": 192,
+              "n_gt_spells": 266
+            }
+          },
+          "team": {
+            "auc": 0.9560793521635171,
+            "auc_ball_unseen": 0.9615677714421081
+          }
+        },
+        "2": {
+          "control": {
+            "spell_f1": 0.4521739130434782,
+            "macro_f1": 0.8208943406926935,
+            "n_pred_spells": 171,
+            "n_gt_spells": 266
+          },
+          "chosen": {
+            "spell_f1": 0.6043668122270742,
+            "macro_f1": 0.8765357105764773,
+            "n_pred_spells": 192,
+            "n_gt_spells": 266
+          },
+          "by_weight": {
+            "0": {
+              "spell_f1": 0.4521739130434782,
+              "macro_f1": 0.8208943406926935,
+              "n_pred_spells": 171,
+              "n_gt_spells": 266
+            },
+            "0.5": {
+              "spell_f1": 0.5630289532293986,
+              "macro_f1": 0.872885833787166,
+              "n_pred_spells": 183,
+              "n_gt_spells": 266
+            },
+            "1": {
+              "spell_f1": 0.5753303964757709,
+              "macro_f1": 0.872967108739199,
+              "n_pred_spells": 188,
+              "n_gt_spells": 266
+            },
+            "2": {
+              "spell_f1": 0.6043668122270742,
+              "macro_f1": 0.8765357105764773,
+              "n_pred_spells": 192,
+              "n_gt_spells": 266
+            }
+          },
+          "team": {
+            "auc": 0.956265288853366,
+            "auc_ball_unseen": 0.9491844576210897
+          }
+        }
+      }
+    },
+    {
+      "held_out": "J03WOY",
+      "choice": {
+        "weight": 2.0,
+        "inner_spell_f1": 0.573669,
+        "inner_macro_f1": 0.86109,
+        "grid": [
+          [
+            0.416655,
+            0.796898,
+            0.0
+          ],
+          [
+            0.531908,
+            0.85202,
+            0.5
+          ],
+          [
+            0.553041,
+            0.858626,
+            1.0
+          ],
+          [
+            0.573669,
+            0.86109,
+            2.0
+          ]
+        ]
+      },
+      "seeds": {
+        "0": {
+          "control": {
+            "spell_f1": 0.3776824034334764,
+            "macro_f1": 0.7759597895172572,
+            "n_pred_spells": 178,
+            "n_gt_spells": 288
+          },
+          "chosen": {
+            "spell_f1": 0.5769980506822613,
+            "macro_f1": 0.8358542531527254,
+            "n_pred_spells": 225,
+            "n_gt_spells": 288
+          },
+          "by_weight": {
+            "0": {
+              "spell_f1": 0.3776824034334764,
+              "macro_f1": 0.7759597895172572,
+              "n_pred_spells": 178,
+              "n_gt_spells": 288
+            },
+            "0.5": {
+              "spell_f1": 0.5178861788617886,
+              "macro_f1": 0.826202448199652,
+              "n_pred_spells": 204,
+              "n_gt_spells": 288
+            },
+            "1": {
+              "spell_f1": 0.5591999999999999,
+              "macro_f1": 0.8291036774042002,
+              "n_pred_spells": 212,
+              "n_gt_spells": 288
+            },
+            "2": {
+              "spell_f1": 0.5769980506822613,
+              "macro_f1": 0.8358542531527254,
+              "n_pred_spells": 225,
+              "n_gt_spells": 288
+            }
+          },
+          "team": {
+            "auc": 0.9471279958063802,
+            "auc_ball_unseen": 0.9641735797867844
+          }
+        },
+        "1": {
+          "control": {
+            "spell_f1": 0.39213973799126634,
+            "macro_f1": 0.7931354522640777,
+            "n_pred_spells": 170,
+            "n_gt_spells": 288
+          },
+          "chosen": {
+            "spell_f1": 0.5930232558139534,
+            "macro_f1": 0.8388189629376477,
+            "n_pred_spells": 228,
+            "n_gt_spells": 288
+          },
+          "by_weight": {
+            "0": {
+              "spell_f1": 0.39213973799126634,
+              "macro_f1": 0.7931354522640777,
+              "n_pred_spells": 170,
+              "n_gt_spells": 288
+            },
+            "0.5": {
+              "spell_f1": 0.5305954825462013,
+              "macro_f1": 0.8344355123492325,
+              "n_pred_spells": 199,
+              "n_gt_spells": 288
+            },
+            "1": {
+              "spell_f1": 0.5731462925851702,
+              "macro_f1": 0.8332026719649281,
+              "n_pred_spells": 211,
+              "n_gt_spells": 288
+            },
+            "2": {
+              "spell_f1": 0.5930232558139534,
+              "macro_f1": 0.8388189629376477,
+              "n_pred_spells": 228,
+              "n_gt_spells": 288
+            }
+          },
+          "team": {
+            "auc": 0.9474954535846951,
+            "auc_ball_unseen": 0.9541635308697715
+          }
+        },
+        "2": {
+          "control": {
+            "spell_f1": 0.40774193548387094,
+            "macro_f1": 0.7852877715535228,
+            "n_pred_spells": 177,
+            "n_gt_spells": 288
+          },
+          "chosen": {
+            "spell_f1": 0.5880952380952381,
+            "macro_f1": 0.8375667250723438,
+            "n_pred_spells": 216,
+            "n_gt_spells": 288
+          },
+          "by_weight": {
+            "0": {
+              "spell_f1": 0.40774193548387094,
+              "macro_f1": 0.7852877715535228,
+              "n_pred_spells": 177,
+              "n_gt_spells": 288
+            },
+            "0.5": {
+              "spell_f1": 0.537759336099585,
+              "macro_f1": 0.8335775610892178,
+              "n_pred_spells": 194,
+              "n_gt_spells": 288
+            },
+            "1": {
+              "spell_f1": 0.5751004016064256,
+              "macro_f1": 0.837451177807799,
+              "n_pred_spells": 210,
+              "n_gt_spells": 288
+            },
+            "2": {
+              "spell_f1": 0.5880952380952381,
+              "macro_f1": 0.8375667250723438,
+              "n_pred_spells": 216,
+              "n_gt_spells": 288
+            }
+          },
+          "team": {
+            "auc": 0.9470660495059187,
+            "auc_ball_unseen": 0.9507687482101141
+          }
+        }
+      }
+    },
+    {
+      "held_out": "J03WPY",
+      "choice": {
+        "weight": 2.0,
+        "inner_spell_f1": 0.578008,
+        "inner_macro_f1": 0.856174,
+        "grid": [
+          [
+            0.411461,
+            0.792151,
+            0.0
+          ],
+          [
+            0.528043,
+            0.847203,
+            0.5
+          ],
+          [
+            0.54983,
+            0.853287,
+            1.0
+          ],
+          [
+            0.578008,
+            0.856174,
+            2.0
+          ]
+        ]
+      },
+      "seeds": {
+        "0": {
+          "control": {
+            "spell_f1": 0.40884955752212393,
+            "macro_f1": 0.8044408462809157,
+            "n_pred_spells": 175,
+            "n_gt_spells": 277
+          },
+          "chosen": {
+            "spell_f1": 0.6101694915254238,
+            "macro_f1": 0.8744862956217299,
+            "n_pred_spells": 195,
+            "n_gt_spells": 277
+          },
+          "by_weight": {
+            "0": {
+              "spell_f1": 0.40884955752212393,
+              "macro_f1": 0.8044408462809157,
+              "n_pred_spells": 175,
+              "n_gt_spells": 277
+            },
+            "0.5": {
+              "spell_f1": 0.5222707423580786,
+              "macro_f1": 0.853538772510117,
+              "n_pred_spells": 181,
+              "n_gt_spells": 277
+            },
+            "1": {
+              "spell_f1": 0.575,
+              "macro_f1": 0.8671280411387072,
+              "n_pred_spells": 187,
+              "n_gt_spells": 277
+            },
+            "2": {
+              "spell_f1": 0.6101694915254238,
+              "macro_f1": 0.8744862956217299,
+              "n_pred_spells": 195,
+              "n_gt_spells": 277
+            }
+          },
+          "team": {
+            "auc": 0.9494380165530281,
+            "auc_ball_unseen": 0.9515515552390591
+          }
+        },
+        "1": {
+          "control": {
+            "spell_f1": 0.4097345132743363,
+            "macro_f1": 0.7807415049176999,
+            "n_pred_spells": 175,
+            "n_gt_spells": 277
+          },
+          "chosen": {
+            "spell_f1": 0.5978678038379531,
+            "macro_f1": 0.8714064620252219,
+            "n_pred_spells": 192,
+            "n_gt_spells": 277
+          },
+          "by_weight": {
+            "0": {
+              "spell_f1": 0.4097345132743363,
+              "macro_f1": 0.7807415049176999,
+              "n_pred_spells": 175,
+              "n_gt_spells": 277
+            },
+            "0.5": {
+              "spell_f1": 0.5470459518599563,
+              "macro_f1": 0.8541508323106312,
+              "n_pred_spells": 180,
+              "n_gt_spells": 277
+            },
+            "1": {
+              "spell_f1": 0.5791304347826086,
+              "macro_f1": 0.8632232510415881,
+              "n_pred_spells": 183,
+              "n_gt_spells": 277
+            },
+            "2": {
+              "spell_f1": 0.5978678038379531,
+              "macro_f1": 0.8714064620252219,
+              "n_pred_spells": 192,
+              "n_gt_spells": 277
+            }
+          },
+          "team": {
+            "auc": 0.9501168467018374,
+            "auc_ball_unseen": 0.9590267652169825
+          }
+        },
+        "2": {
+          "control": {
+            "spell_f1": 0.4328888888888889,
+            "macro_f1": 0.8025092869731094,
+            "n_pred_spells": 173,
+            "n_gt_spells": 277
+          },
+          "chosen": {
+            "spell_f1": 0.622127659574468,
+            "macro_f1": 0.8757835658699435,
+            "n_pred_spells": 193,
+            "n_gt_spells": 277
+          },
+          "by_weight": {
+            "0": {
+              "spell_f1": 0.4328888888888889,
+              "macro_f1": 0.8025092869731094,
+              "n_pred_spells": 173,
+              "n_gt_spells": 277
+            },
+            "0.5": {
+              "spell_f1": 0.5523809523809524,
+              "macro_f1": 0.8565797866980414,
+              "n_pred_spells": 185,
+              "n_gt_spells": 277
+            },
+            "1": {
+              "spell_f1": 0.593939393939394,
+              "macro_f1": 0.8678840624324415,
+              "n_pred_spells": 185,
+              "n_gt_spells": 277
+            },
+            "2": {
+              "spell_f1": 0.622127659574468,
+              "macro_f1": 0.8757835658699435,
+              "n_pred_spells": 193,
+              "n_gt_spells": 277
+            }
+          },
+          "team": {
+            "auc": 0.9497767476739207,
+            "auc_ball_unseen": 0.931823555502715
+          }
+        }
+      }
+    },
+    {
+      "held_out": "J03WQQ",
+      "choice": {
+        "weight": 2.0,
+        "inner_spell_f1": 0.565529,
+        "inner_macro_f1": 0.856891,
+        "grid": [
+          [
+            0.39996,
+            0.793192,
+            0.0
+          ],
+          [
+            0.518189,
+            0.847111,
+            0.5
+          ],
+          [
+            0.551612,
+            0.854227,
+            1.0
+          ],
+          [
+            0.565529,
+            0.856891,
+            2.0
+          ]
+        ]
+      },
+      "seeds": {
+        "0": {
+          "control": {
+            "spell_f1": 0.4778523489932886,
+            "macro_f1": 0.7981981975235976,
+            "n_pred_spells": 194,
+            "n_gt_spells": 253
+          },
+          "chosen": {
+            "spell_f1": 0.6070686070686071,
+            "macro_f1": 0.8624248443910406,
+            "n_pred_spells": 228,
+            "n_gt_spells": 253
+          },
+          "by_weight": {
+            "0": {
+              "spell_f1": 0.4778523489932886,
+              "macro_f1": 0.7981981975235976,
+              "n_pred_spells": 194,
+              "n_gt_spells": 253
+            },
+            "0.5": {
+              "spell_f1": 0.5842105263157895,
+              "macro_f1": 0.8547111050617536,
+              "n_pred_spells": 203,
+              "n_gt_spells": 253
+            },
+            "1": {
+              "spell_f1": 0.5896995708154507,
+              "macro_f1": 0.8619437632957503,
+              "n_pred_spells": 213,
+              "n_gt_spells": 253
+            },
+            "2": {
+              "spell_f1": 0.6070686070686071,
+              "macro_f1": 0.8624248443910406,
+              "n_pred_spells": 228,
+              "n_gt_spells": 253
+            }
+          },
+          "team": {
+            "auc": 0.9627066685768769,
+            "auc_ball_unseen": 0.95269978160341
+          }
+        },
+        "1": {
+          "control": {
+            "spell_f1": 0.4926503340757239,
+            "macro_f1": 0.805333868480192,
+            "n_pred_spells": 196,
+            "n_gt_spells": 253
+          },
+          "chosen": {
+            "spell_f1": 0.6215644820295984,
+            "macro_f1": 0.862700063390096,
+            "n_pred_spells": 220,
+            "n_gt_spells": 253
+          },
+          "by_weight": {
+            "0": {
+              "spell_f1": 0.4926503340757239,
+              "macro_f1": 0.805333868480192,
+              "n_pred_spells": 196,
+              "n_gt_spells": 253
+            },
+            "0.5": {
+              "spell_f1": 0.572949002217295,
+              "macro_f1": 0.8537989012043196,
+              "n_pred_spells": 198,
+              "n_gt_spells": 253
+            },
+            "1": {
+              "spell_f1": 0.5961123110151187,
+              "macro_f1": 0.8602688653479232,
+              "n_pred_spells": 210,
+              "n_gt_spells": 253
+            },
+            "2": {
+              "spell_f1": 0.6215644820295984,
+              "macro_f1": 0.862700063390096,
+              "n_pred_spells": 220,
+              "n_gt_spells": 253
+            }
+          },
+          "team": {
+            "auc": 0.9629379933050752,
+            "auc_ball_unseen": 0.9663656476419501
+          }
+        },
+        "2": {
+          "control": {
+            "spell_f1": 0.4868008948545861,
+            "macro_f1": 0.804192609392396,
+            "n_pred_spells": 194,
+            "n_gt_spells": 253
+          },
+          "chosen": {
+            "spell_f1": 0.6413223140495867,
+            "macro_f1": 0.8667274587819597,
+            "n_pred_spells": 231,
+            "n_gt_spells": 253
+          },
+          "by_weight": {
+            "0": {
+              "spell_f1": 0.4868008948545861,
+              "macro_f1": 0.804192609392396,
+              "n_pred_spells": 194,
+              "n_gt_spells": 253
+            },
+            "0.5": {
+              "spell_f1": 0.5809523809523809,
+              "macro_f1": 0.8614770611291244,
+              "n_pred_spells": 209,
+              "n_gt_spells": 253
+            },
+            "1": {
+              "spell_f1": 0.593939393939394,
+              "macro_f1": 0.86331380193247,
+              "n_pred_spells": 209,
+              "n_gt_spells": 253
+            },
+            "2": {
+              "spell_f1": 0.6413223140495867,
+              "macro_f1": 0.8667274587819597,
+              "n_pred_spells": 231,
+              "n_gt_spells": 253
+            }
+          },
+          "team": {
+            "auc": 0.9632285496458906,
+            "auc_ball_unseen": 0.9596604776974768
+          }
+        }
+      }
+    },
+    {
+      "held_out": "J03WR9",
+      "choice": {
+        "weight": 2.0,
+        "inner_spell_f1": 0.568939,
+        "inner_macro_f1": 0.856791,
+        "grid": [
+          [
+            0.414818,
+            0.793295,
+            0.0
+          ],
+          [
+            0.528493,
+            0.846043,
+            0.5
+          ],
+          [
+            0.542963,
+            0.853168,
+            1.0
+          ],
+          [
+            0.568939,
+            0.856791,
+            2.0
+          ]
+        ]
+      },
+      "seeds": {
+        "0": {
+          "control": {
+            "spell_f1": 0.3887058823529412,
+            "macro_f1": 0.797579923372087,
+            "n_pred_spells": 163,
+            "n_gt_spells": 262
+          },
+          "chosen": {
+            "spell_f1": 0.5452173913043479,
+            "macro_f1": 0.8504487002881671,
+            "n_pred_spells": 198,
+            "n_gt_spells": 262
+          },
+          "by_weight": {
+            "0": {
+              "spell_f1": 0.3887058823529412,
+              "macro_f1": 0.797579923372087,
+              "n_pred_spells": 163,
+              "n_gt_spells": 262
+            },
+            "0.5": {
+              "spell_f1": 0.5100917431192662,
+              "macro_f1": 0.8480767696257757,
+              "n_pred_spells": 174,
+              "n_gt_spells": 262
+            },
+            "1": {
+              "spell_f1": 0.5440715883668904,
+              "macro_f1": 0.8538118830995646,
+              "n_pred_spells": 185,
+              "n_gt_spells": 262
+            },
+            "2": {
+              "spell_f1": 0.5452173913043479,
+              "macro_f1": 0.8504487002881671,
+              "n_pred_spells": 198,
+              "n_gt_spells": 262
+            }
+          },
+          "team": {
+            "auc": 0.961667254805639,
+            "auc_ball_unseen": 0.9607924121868145
+          }
+        },
+        "1": {
+          "control": {
+            "spell_f1": 0.366903073286052,
+            "macro_f1": 0.7775624868188152,
+            "n_pred_spells": 161,
+            "n_gt_spells": 262
+          },
+          "chosen": {
+            "spell_f1": 0.5598233995584989,
+            "macro_f1": 0.8431451050067249,
+            "n_pred_spells": 191,
+            "n_gt_spells": 262
+          },
+          "by_weight": {
+            "0": {
+              "spell_f1": 0.366903073286052,
+              "macro_f1": 0.7775624868188152,
+              "n_pred_spells": 161,
+              "n_gt_spells": 262
+            },
+            "0.5": {
+              "spell_f1": 0.5085846867749421,
+              "macro_f1": 0.8396509091285044,
+              "n_pred_spells": 169,
+              "n_gt_spells": 262
+            },
+            "1": {
+              "spell_f1": 0.532420091324201,
+              "macro_f1": 0.8402066909476646,
+              "n_pred_spells": 176,
+              "n_gt_spells": 262
+            },
+            "2": {
+              "spell_f1": 0.5598233995584989,
+              "macro_f1": 0.8431451050067249,
+              "n_pred_spells": 191,
+              "n_gt_spells": 262
+            }
+          },
+          "team": {
+            "auc": 0.9617438222650904,
+            "auc_ball_unseen": 0.9596335752428212
+          }
+        },
+        "2": {
+          "control": {
+            "spell_f1": 0.4169265033407572,
+            "macro_f1": 0.7895726855467057,
+            "n_pred_spells": 187,
+            "n_gt_spells": 262
+          },
+          "chosen": {
+            "spell_f1": 0.5257641921397379,
+            "macro_f1": 0.8464988554169931,
+            "n_pred_spells": 196,
+            "n_gt_spells": 262
+          },
+          "by_weight": {
+            "0": {
+              "spell_f1": 0.4169265033407572,
+              "macro_f1": 0.7895726855467057,
+              "n_pred_spells": 187,
+              "n_gt_spells": 262
+            },
+            "0.5": {
+              "spell_f1": 0.5282511210762332,
+              "macro_f1": 0.8468748704393544,
+              "n_pred_spells": 184,
+              "n_gt_spells": 262
+            },
+            "1": {
+              "spell_f1": 0.5371937639198219,
+              "macro_f1": 0.8488996918518058,
+              "n_pred_spells": 187,
+              "n_gt_spells": 262
+            },
+            "2": {
+              "spell_f1": 0.5257641921397379,
+              "macro_f1": 0.8464988554169931,
+              "n_pred_spells": 196,
+              "n_gt_spells": 262
+            }
+          },
+          "team": {
+            "auc": 0.961582299955045,
+            "auc_ball_unseen": 0.9648987220587716
+          }
+        }
+      }
+    }
+  ],
+  "summary": {
+    "0": {
+      "control_spell_f1": 0.4110875878217125,
+      "chosen": {
+        "delta_spell_f1_pp": 16.013449275389096,
+        "matches_better": 7,
+        "matches_worse": 0,
+        "delta_macro_f1_pp": 6.321327972657141
+      },
+      "weight_0.5": {
+        "delta_spell_f1_pp": 11.406011786764997,
+        "matches_better": 7,
+        "matches_worse": 0,
+        "delta_macro_f1_pp": 5.254773779462174
+      },
+      "weight_1": {
+        "delta_spell_f1_pp": 13.773802609007674,
+        "matches_better": 7,
+        "matches_worse": 0,
+        "delta_macro_f1_pp": 5.994118503185915
+      },
+      "weight_2": {
+        "delta_spell_f1_pp": 16.013449275389096,
+        "matches_better": 7,
+        "matches_worse": 0,
+        "delta_macro_f1_pp": 6.321327972657141
+      }
+    },
+    "1": {
+      "control_spell_f1": 0.40424317015891964,
+      "chosen": {
+        "delta_spell_f1_pp": 17.126748858633295,
+        "matches_better": 7,
+        "matches_worse": 0,
+        "delta_macro_f1_pp": 6.748329935091466
+      },
+      "weight_0.5": {
+        "delta_spell_f1_pp": 12.022331586358902,
+        "matches_better": 7,
+        "matches_worse": 0,
+        "delta_macro_f1_pp": 5.851618162348533
+      },
+      "weight_1": {
+        "delta_spell_f1_pp": 14.971776120363383,
+        "matches_better": 7,
+        "matches_worse": 0,
+        "delta_macro_f1_pp": 6.35934280013085
+      },
+      "weight_2": {
+        "delta_spell_f1_pp": 17.126748858633295,
+        "matches_better": 7,
+        "matches_worse": 0,
+        "delta_macro_f1_pp": 6.748329935091466
+      }
+    },
+    "2": {
+      "control_spell_f1": 0.4289608894501461,
+      "chosen": {
+        "delta_spell_f1_pp": 15.184341550885275,
+        "matches_better": 7,
+        "matches_worse": 0,
+        "delta_macro_f1_pp": 6.3159051640557715
+      },
+      "weight_0.5": {
+        "delta_spell_f1_pp": 10.913105013155153,
+        "matches_better": 7,
+        "matches_worse": 0,
+        "delta_macro_f1_pp": 5.4156227737646425
+      },
+      "weight_1": {
+        "delta_spell_f1_pp": 13.328253487459449,
+        "matches_better": 7,
+        "matches_worse": 0,
+        "delta_macro_f1_pp": 6.06186949242521
+      },
+      "weight_2": {
+        "delta_spell_f1_pp": 15.184341550885275,
+        "matches_better": 7,
+        "matches_worse": 0,
+        "delta_macro_f1_pp": 6.3159051640557715
+      }
+    }
+  },
+  "settings": {
+    "weights": [
+      0.0,
+      0.5,
+      1.0,
+      2.0
+    ],
+    "stride": 4,
+    "model": {
+      "max_iter": 200,
+      "learning_rate": 0.1,
+      "max_leaf_nodes": 31,
+      "min_samples_leaf": 200,
+      "l2_regularization": 1.0,
+      "early_stopping": false,
+      "random_state": 0
+    },
+    "features": {
+      "signals": [
+        "wid",
+        "dfl",
+        "atl",
+        "tide",
+        "spd",
+        "spr"
+      ],
+      "sum_signals": [
+        "tide"
+      ],
+      "windows_frames": [
+        12,
+        37,
+        100
+      ],
+      "velocity_lag_frames": 5,
+      "max_speed_ms": 12.0,
+      "sprint_speed_ms": 5.0
+    }
+  }
+}
