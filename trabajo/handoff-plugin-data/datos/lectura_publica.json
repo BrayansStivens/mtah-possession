@@ -1,0 +1,32 @@
+{
+ "_que_es": "spellF1 de cada entrega conservada en out/ sobre los 5 minutos con ground truth publico. Son 17 posesiones: es una lectura, nunca un criterio para elegir entre entregas.",
+ "rows": [
+  {
+   "entrega": "31-10",
+   "que_lleva": "recalibrada",
+   "sha256": "73c361d5",
+   "spellF1": 0.4903,
+   "macroF1": 0.8009,
+   "posesiones_predichas": 14,
+   "posesiones_reales": 17
+  },
+  {
+   "entrega": "8-11",
+   "que_lleva": "con detector y Smart Tagging",
+   "sha256": "e7938350",
+   "spellF1": 0.4148,
+   "macroF1": 0.8003,
+   "posesiones_predichas": 10,
+   "posesiones_reales": 17
+  },
+  {
+   "entrega": "15-11",
+   "que_lleva": "con clasificador de equipo",
+   "sha256": "a43c52fb",
+   "spellF1": 0.6286,
+   "macroF1": 0.8643,
+   "posesiones_predichas": 11,
+   "posesiones_reales": 17
+  }
+ ]
+}

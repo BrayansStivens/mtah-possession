@@ -24,6 +24,14 @@ Lo que sí hay aquí, y es seguro:
 | `recalibracion.json` | la config recalibrada del 28-10 (histórica: `activity_smooth` volvió a 50 el 31-10), las medianas por clase medidas, y los scores de ese día |
 | `ventana_publica_5min.csv` | 7.500 filas: ground truth público y nuestra etiqueta, por fotograma |
 | `partido_completo_1hz.csv` | nuestra etiqueta a 1 muestra por segundo, las dos partes (sin ground truth: es privado) |
+| `clasificador_equipo.json` | (15-11) las 21 ejecuciones del leave-one-match-out del clasificador de equipo: spellF1 sin y con él por partido y semilla |
+| `clasificador_equipo_resumen.json` | (15-11) su resumen por semilla y en media, más la medida con huecos de balón como los del partido real |
+| `lectura_publica.json` | (15-11) spellF1 de cada entrega conservada sobre los 5 minutos públicos. Lectura, nunca criterio |
+
+Desde el 15-11 `scores_por_partido.csv`, `diagnostico_errores.csv` y `agregados_por_config.json`
+traen dos configuraciones más, `detector` y `equipo` (la de hoy), medidas con modelos que no
+vieron el partido que se puntúa (`regenera_equipo.py`). Las dos vistas temporales son la
+entrega que genera `main` (sha256 `a43c52fb…`).
 
 Y en `figuras/` las tres gráficas ya hechas a mano con matplotlib, por si sirven de referencia.
 

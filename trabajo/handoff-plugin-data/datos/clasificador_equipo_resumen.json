@@ -1,0 +1,67 @@
+{
+ "_que_es": "Resumen del anterior por semilla y en media, mas la medida con los huecos de balon colocados como en el partido real (semilla 0, trabajo/sin-balon-1111/realista.json y robusto.json).",
+ "rows": [
+  {
+   "huecos": "azar",
+   "semilla": "0",
+   "sin_clasificador": 0.4111,
+   "con_clasificador": 0.5712,
+   "ganancia_pp": 16.01,
+   "ganancia_min_pp": 12.51,
+   "ganancia_max_pp": 20.13,
+   "ganancia_macroF1_pp": 6.32,
+   "mejoran": 7,
+   "empeoran": 0,
+   "ejecuciones": 7
+  },
+  {
+   "huecos": "azar",
+   "semilla": "1",
+   "sin_clasificador": 0.4042,
+   "con_clasificador": 0.5755,
+   "ganancia_pp": 17.13,
+   "ganancia_min_pp": 12.89,
+   "ganancia_max_pp": 20.09,
+   "ganancia_macroF1_pp": 6.75,
+   "mejoran": 7,
+   "empeoran": 0,
+   "ejecuciones": 7
+  },
+  {
+   "huecos": "azar",
+   "semilla": "2",
+   "sin_clasificador": 0.429,
+   "con_clasificador": 0.5808,
+   "ganancia_pp": 15.18,
+   "ganancia_min_pp": 10.88,
+   "ganancia_max_pp": 18.92,
+   "ganancia_macroF1_pp": 6.32,
+   "mejoran": 7,
+   "empeoran": 0,
+   "ejecuciones": 7
+  },
+  {
+   "huecos": "azar",
+   "semilla": "media",
+   "sin_clasificador": 0.4148,
+   "con_clasificador": 0.5758,
+   "ganancia_pp": 16.11,
+   "ganancia_min_pp": 10.88,
+   "ganancia_max_pp": 20.13,
+   "ganancia_macroF1_pp": 6.46,
+   "mejoran": 21,
+   "empeoran": 0,
+   "ejecuciones": 21
+  },
+  {
+   "huecos": "realistas",
+   "semilla": "0",
+   "sin_clasificador": 0.4511,
+   "con_clasificador": 0.5766,
+   "ganancia_pp": 12.55,
+   "mejoran": 7,
+   "empeoran": 0,
+   "ejecuciones": 7
+  }
+ ]
+}

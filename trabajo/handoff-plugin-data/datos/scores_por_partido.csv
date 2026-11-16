@@ -13,3 +13,17 @@ J03WOY,ajuste,recalibrado,0.379,0.7622,288,207,10.6,15.2
 J03WPY,validacion,recalibrado,0.3889,0.7906,277,192,11.8,16.4
 J03WQQ,validacion,recalibrado,0.4584,0.7838,253,213,13.3,15.7
 J03WR9,validacion,recalibrado,0.3771,0.7732,262,192,13.0,16.7
+J03WMX,ajuste,detector,0.3844,0.7888,289,173,11.8,19.3
+J03WN1,ajuste,detector,0.3809,0.7719,310,193,8.8,13.3
+J03WOH,ajuste,detector,0.4592,0.8205,266,180,10.8,16.3
+J03WOY,ajuste,detector,0.3777,0.776,288,178,10.6,17.6
+J03WPY,validacion,detector,0.4088,0.8044,277,175,11.8,18.0
+J03WQQ,validacion,detector,0.4779,0.7982,253,194,13.3,17.1
+J03WR9,validacion,detector,0.3887,0.7976,262,163,13.0,19.8
+J03WMX,ajuste,equipo,0.568,0.8752,289,204,11.8,17.1
+J03WN1,ajuste,equipo,0.5069,0.8257,310,214,8.8,12.5
+J03WOH,ajuste,equipo,0.5843,0.8757,266,192,10.8,15.9
+J03WOY,ajuste,equipo,0.577,0.8359,288,225,10.6,14.8
+J03WPY,validacion,equipo,0.6102,0.8745,277,195,11.8,17.2
+J03WQQ,validacion,equipo,0.6071,0.8624,253,228,13.3,15.3
+J03WR9,validacion,equipo,0.5452,0.8504,262,198,13.0,17.2

@@ -40,13 +40,15 @@ completas por solape temporal, no frames sueltos. El minimo oficial a batir es
 | `handoff-plugin-data/datos/` | Tablas de resultados en JSON y CSV. |
 | `handoff-plugin-data/*.py` | Los scripts que producen esas tablas. |
 | `handoff-plugin-data/regenera_datos.py` | Rehace los ficheros que alimentan el dashboard del equipo con el `config.py` de hoy (comprueba antes que reproduce los del 28-10). Correr tras cada cambio de `config.py`. |
+| `handoff-plugin-data/regenera_equipo.py` | Anade a esos ficheros las dos configuraciones que llevan modelos entrenados en el IDSSE (detector de fronteras y clasificador de equipo), cada partido puntuado con modelos que no lo vieron. Comprueba antes que reproduce `datos/equipo_sin_balon_lomo.json`. Correr despues de `regenera_datos.py`. |
 | `sin-balon-1111/RESUMEN.md` | Diagnostico de los frames sin balon (11 y 12-11) y las ideas que salieron; sus scripts y tablas de agregados estan al lado. De aqui sale el clasificador de equipo (rama `equipo-sin-balon`, en `main` desde el 15-11). |
 | `figuras/` | Graficas para los documentos. |
 
 ## Estado de las mediciones (31-10-2026)
 
 El dashboard del equipo (artefacto privado de claude.ai, "Posesion FC Medallo")
-se regenero el 2-11 con estos mismos numeros; sus ficheros son los de
+se regenero el 2-11 con estos mismos numeros y el 15-11 con los del detector y el
+clasificador de equipo (`regenera_equipo.py`); sus ficheros son los de
 `handoff-plugin-data/datos/`.
 
 Sobre los 7 partidos externos, con `config.py` tal cual esta hoy (semilla 0 de

@@ -47,3 +47,51 @@ recalibrado,recall_posesiones_por_duracion,2-5 s,11.02,463
 recalibrado,recall_posesiones_por_duracion,5-10 s,34.81,451
 recalibrado,recall_posesiones_por_duracion,10-20 s,54.31,394
 recalibrado,recall_posesiones_por_duracion,>20 s,65.18,336
+detector,error_por_racha_sin_balon,balon visible,12.54,592654
+detector,error_por_racha_sin_balon,1-25 fr,4.49,512
+detector,error_por_racha_sin_balon,26-125 fr,19.56,854
+detector,error_por_racha_sin_balon,126-500 fr,24.08,131727
+detector,error_por_racha_sin_balon,>500 fr,26.26,276897
+detector,error_por_distancia_a_transicion,0-12 fr,46.7,64788
+detector,error_por_distancia_a_transicion,13-25 fr,37.04,62778
+detector,error_por_distancia_a_transicion,26-75 fr,28.63,201171
+detector,error_por_distancia_a_transicion,76-250 fr,13.43,382358
+detector,error_por_distancia_a_transicion,>250 fr,5.66,291549
+detector,confusion_pct_fila,real H -> pred H,75.11,219370
+detector,confusion_pct_fila,real H -> pred A,16.26,47503
+detector,confusion_pct_fila,real H -> pred D,8.63,25205
+detector,confusion_pct_fila,real A -> pred H,22.9,59773
+detector,confusion_pct_fila,real A -> pred A,70.82,184859
+detector,confusion_pct_fila,real A -> pred D,6.28,16395
+detector,confusion_pct_fila,real D -> pred H,3.45,15531
+detector,confusion_pct_fila,real D -> pred A,3.24,14566
+detector,confusion_pct_fila,real D -> pred D,93.3,419442
+detector,recall_posesiones_por_duracion,<2 s,3.99,301
+detector,recall_posesiones_por_duracion,2-5 s,11.45,463
+detector,recall_posesiones_por_duracion,5-10 s,33.04,451
+detector,recall_posesiones_por_duracion,10-20 s,52.79,394
+detector,recall_posesiones_por_duracion,>20 s,66.07,336
+equipo,error_por_racha_sin_balon,balon visible,10.3,592654
+equipo,error_por_racha_sin_balon,1-25 fr,0.39,512
+equipo,error_por_racha_sin_balon,26-125 fr,16.74,854
+equipo,error_por_racha_sin_balon,126-500 fr,16.34,131727
+equipo,error_por_racha_sin_balon,>500 fr,16.94,276897
+equipo,error_por_distancia_a_transicion,0-12 fr,43.95,64788
+equipo,error_por_distancia_a_transicion,13-25 fr,30.8,62778
+equipo,error_por_distancia_a_transicion,26-75 fr,19.81,201171
+equipo,error_por_distancia_a_transicion,76-250 fr,8.14,382358
+equipo,error_por_distancia_a_transicion,>250 fr,3.71,291549
+equipo,confusion_pct_fila,real H -> pred H,83.49,243859
+equipo,confusion_pct_fila,real H -> pred A,11.1,32430
+equipo,confusion_pct_fila,real H -> pred D,5.41,15789
+equipo,confusion_pct_fila,real A -> pred H,10.57,27600
+equipo,confusion_pct_fila,real A -> pred A,85.41,222954
+equipo,confusion_pct_fila,real A -> pred D,4.01,10473
+equipo,confusion_pct_fila,real D -> pred H,4.24,19081
+equipo,confusion_pct_fila,real D -> pred A,5.39,24228
+equipo,confusion_pct_fila,real D -> pred D,90.37,406230
+equipo,recall_posesiones_por_duracion,<2 s,8.31,301
+equipo,recall_posesiones_por_duracion,2-5 s,27.86,463
+equipo,recall_posesiones_por_duracion,5-10 s,57.43,451
+equipo,recall_posesiones_por_duracion,10-20 s,75.13,394
+equipo,recall_posesiones_por_duracion,>20 s,81.25,336

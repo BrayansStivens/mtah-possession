@@ -82,7 +82,7 @@
  },
  {
   "config": "recalibrado",
-  "etiqueta": "Hoy (config.py)",
+  "etiqueta": "Recalibrado (31-10)",
   "orden_config": 4,
   "grupo": "ajuste",
   "orden_grupo": 1,
@@ -91,7 +91,7 @@
  },
  {
   "config": "recalibrado",
-  "etiqueta": "Hoy (config.py)",
+  "etiqueta": "Recalibrado (31-10)",
   "orden_config": 4,
   "grupo": "validacion",
   "orden_grupo": 2,
@@ -100,11 +100,65 @@
  },
  {
   "config": "recalibrado",
-  "etiqueta": "Hoy (config.py)",
+  "etiqueta": "Recalibrado (31-10)",
   "orden_config": 4,
   "grupo": "todos",
   "orden_grupo": 3,
   "spellF1": 0.3965,
   "macroF1": 0.779
+ },
+ {
+  "config": "detector",
+  "etiqueta": "Con detector (7-11)",
+  "orden_config": 5,
+  "grupo": "ajuste",
+  "orden_grupo": 1,
+  "spellF1": 0.4006,
+  "macroF1": 0.7893
+ },
+ {
+  "config": "detector",
+  "etiqueta": "Con detector (7-11)",
+  "orden_config": 5,
+  "grupo": "validacion",
+  "orden_grupo": 2,
+  "spellF1": 0.4251,
+  "macroF1": 0.8001
+ },
+ {
+  "config": "detector",
+  "etiqueta": "Con detector (7-11)",
+  "orden_config": 5,
+  "grupo": "todos",
+  "orden_grupo": 3,
+  "spellF1": 0.4111,
+  "macroF1": 0.7939
+ },
+ {
+  "config": "equipo",
+  "etiqueta": "Hoy (con clasificador)",
+  "orden_config": 6,
+  "grupo": "ajuste",
+  "orden_grupo": 1,
+  "spellF1": 0.5591,
+  "macroF1": 0.8531
+ },
+ {
+  "config": "equipo",
+  "etiqueta": "Hoy (con clasificador)",
+  "orden_config": 6,
+  "grupo": "validacion",
+  "orden_grupo": 2,
+  "spellF1": 0.5875,
+  "macroF1": 0.8624
+ },
+ {
+  "config": "equipo",
+  "etiqueta": "Hoy (con clasificador)",
+  "orden_config": 6,
+  "grupo": "todos",
+  "orden_grupo": 3,
+  "spellF1": 0.5712,
+  "macroF1": 0.8571
  }
 ]

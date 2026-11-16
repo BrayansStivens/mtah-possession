@@ -18,7 +18,11 @@ el dashboard citaba cifras que el fichero ya no produce. Este script:
 Antes de escribir nada comprueba que, con la config "actual", reproduce el fichero viejo
 exactamente (misma cache, misma config -> mismos numeros). Si eso falla, no escribe.
 
-Uso:  .venv/bin/python handoff-plugin-data/regenera_datos.py
+Uso:  source scripts/env.sh && python trabajo/handoff-plugin-data/regenera_datos.py
+
+Las configuraciones posteriores (detector de fronteras, clasificador de equipo) llevan
+modelos entrenados en estos mismos partidos y no se pueden puntuar asi: van aparte, fuera
+de muestra, en regenera_equipo.py.
 """
 
 import csv
@@ -31,7 +35,7 @@ import numpy as np
 
 AQUI = os.path.dirname(os.path.abspath(__file__))
 DATOS = os.path.join(AQUI, "datos")
-REPO = os.path.join(AQUI, "..", "mtah-possession")
+REPO = os.path.join(AQUI, "..", "..")
 sys.path.insert(0, os.path.join(REPO, "src"))
 
 from mtah import evaluate as ev                                   # noqa: E402
@@ -116,17 +120,25 @@ def distancia_a_transicion(gt, runs):
 
 
 def diagnostico(partidos, cfg, nombre):
-    """Las cuatro tablas en formato largo, agregadas sobre los 7 partidos."""
+    """Las cuatro tablas de una configuracion de config.py sobre la cache de la recalibracion."""
+    return diagnostico_de(((m.gt_codes, decodificar(m, cfg), m.raw["ball_seen"])
+                           for m in partidos), nombre)
+
+
+def diagnostico_de(partidos, nombre):
+    """Las cuatro tablas en formato largo, agregadas sobre los partidos.
+
+    `partidos` da por cada uno (codigos reales, codigos predichos, balon visto).
+    """
     err_racha, n_racha = {}, {}
     err_dist, n_dist = {}, {}
     conf = np.zeros((3, 3), dtype=np.int64)
     rec, n_rec = {}, {}
-    for m in partidos:
-        gt, pred = m.gt_codes, decodificar(m, cfg)
+    for gt, pred, ball_seen in partidos:
         runs = pm.valid_runs(gt)
         graded = gt != pm.X
         err = (pred != gt) & graded
-        r = racha_sin_balon(np.asarray(m.raw["ball_seen"], dtype=bool))
+        r = racha_sin_balon(np.asarray(ball_seen, dtype=bool))
         cat = np.where(r == 0, "balon visible",
                        np.where(r <= 25, "1-25 fr", np.where(r <= 125, "26-125 fr",
                                 np.where(r <= 500, "126-500 fr", ">500 fr"))))
