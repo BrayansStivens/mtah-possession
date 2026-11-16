@@ -74,6 +74,37 @@ def test_iguala_el_histograma_objetivo_sin_balon():
     assert (counts < 16).mean() == pytest.approx(0.2, abs=0.03)
 
 
+def test_persistente_quita_los_mismos_slots_en_toda_la_racha():
+    tr = _tracking()
+    spec = _spec([18], [1.0])                             # 4 menos en cada frame sin balon
+    out = degrade.thin_where_ball_unseen(tr, spec, np.random.default_rng(0), persistent=True)
+    gone = ~np.isfinite(out.players_xy[:, :, 0])
+    for start in range(0, tr.n_frames, 300):              # rachas sin balon de 100 frames
+        run = gone[start:start + 100]
+        assert run.sum(axis=1).tolist() == [4] * 100
+        assert (run == run[0]).all()
+    # Rachas distintas sortean de nuevo.
+    assert not all((gone[s] == gone[0]).all() for s in range(300, tr.n_frames, 300))
+
+
+def test_persistente_y_por_frame_dan_el_mismo_histograma():
+    tr = _tracking()
+    spec = _spec([15, 19, 21], [0.2, 0.5, 0.3])
+    counts = {}
+    for persistent in (False, True):
+        out = degrade.thin_where_ball_unseen(tr, spec, np.random.default_rng(1),
+                                             persistent=persistent)
+        counts[persistent] = np.isfinite(out.players_xy[~tr.ball_seen, :, 0]).sum(axis=1)
+    assert np.array_equal(np.sort(counts[False]), np.sort(counts[True]))
+
+
+def test_por_frame_parpadea():
+    tr = _tracking()
+    out = degrade.thin_where_ball_unseen(tr, _spec([18], [1.0]), np.random.default_rng(0))
+    gone = ~np.isfinite(out.players_xy[:100, :, 0])
+    assert not (gone == gone[0]).all()
+
+
 def test_donde_ya_hay_menos_no_se_toca():
     tr = _tracking()
     xy = tr.players_xy.copy()
@@ -113,3 +144,21 @@ def test_apply_no_cambia_con_el_histograma_nuevo():
 ])
 def test_regla_de_decision(deltas, verdict):
     assert missing_players.decide(deltas)["verdict"] == verdict
+
+
+def test_decide_el_brazo_persistente_salvo_que_el_facil_ya_diga_volver():
+    keep, revert = {"verdict": "mantener"}, {"verdict": "volver a peso 0"}
+    assert missing_players.final_verdict({"thinned": keep, "persistent": revert}) \
+        == "volver a peso 0"
+    assert missing_players.final_verdict({"thinned": revert, "persistent": keep}) \
+        == "volver a peso 0"
+    assert missing_players.final_verdict({"thinned": keep, "persistent": keep}) == "mantener"
+
+
+def test_desequilibrio_entre_equipos():
+    n_tracked = np.array([20, 20, 18, 22])
+    n_home = np.array([10, 10, 12, 11])                   # sin balon: |24-18| = 6 y |22-22| = 0
+    seen = np.array([True, True, False, False])
+    counts = missing_players.player_counts(n_tracked, n_home, seen)
+    assert counts["team_gap_unseen"] == pytest.approx(3.0)
+    assert counts["mean_ball_unseen"] == pytest.approx(20.0)

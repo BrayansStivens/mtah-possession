@@ -269,7 +269,7 @@ def _thin_to_histogram(players_xy, players_speed, spec, rng):
     return players_xy, players_speed
 
 
-def thin_where_ball_unseen(tracking, spec, rng):
+def thin_where_ball_unseen(tracking, spec, rng, persistent=False):
     """Tracking nuevo con menos jugadores **solo en los frames sin balon**, como en el ATD.
 
     `apply` iguala el histograma de objetos del ATD en todo el partido, pero lo hace igual
@@ -282,6 +282,11 @@ def thin_where_ball_unseen(tracking, spec, rng):
     Asi la distribucion final es la del ATD (salvo donde ya habia menos, que se queda como
     esta), en vez del minimo de dos tiradas independientes, que quitaria de mas. Los que se
     quitan se eligen al azar, igual que en `_thin_to_histogram`.
+
+    `persistent=False` sortea los que se quitan en cada frame: parpadean, y las ventanas de
+    1 a 8 s de las senales de equipo promedian ese ruido. `persistent=True` sortea una vez
+    por racha sin balon: los mismos slots desaparecen durante toda la racha, que es como
+    pierde el ATD un track (tramos de ~2700 frames de media). Mismo histograma por frame.
     """
     if spec.n_tracked_unseen_values is None:
         raise ValueError("el spec no tiene histograma sin balon; vuelve a medirlo con estimate()")
@@ -297,7 +302,11 @@ def thin_where_ball_unseen(tracking, spec, rng):
         target = np.empty(len(frames), dtype=np.int64)
         target[order] = target_sorted
         excess = np.maximum(count - target, 0)
-        keys = rng.random(live.shape)
+        if persistent:
+            run_id = np.cumsum(np.diff(frames, prepend=frames[0] - 2) > 1) - 1
+            keys = rng.random((int(run_id[-1]) + 1, live.shape[1]))[run_id]
+        else:
+            keys = rng.random(live.shape)
         keys[~live] = np.inf
         rank = np.argsort(np.argsort(keys, axis=1), axis=1)
         drop = rank < excess[:, None]
