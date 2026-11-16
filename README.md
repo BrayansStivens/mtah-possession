@@ -58,6 +58,11 @@ source scripts/env.sh
 ./scripts/reproduce.sh <nombre_equipo>   # -> out/<nombre_equipo>.csv
 ```
 
+Funciona en Linux, macOS y Windows (Git Bash). Pide Python ≥ 3.12 y se para si no lo es;
+`PYTHON=ruta/al/python ./scripts/reproduce.sh ...` elige el intérprete (en Windows, el del venv:
+`.venv/Scripts/python.exe`). Comprobado el 16-11 desde un clon nuevo con un venv recién creado
+en Windows 11 y en Ubuntu 24.04: los dos dan el mismo fichero byte a byte (sha256 en `ESTADO.md`).
+
 Equivalente, paso a paso:
 
 ```bash

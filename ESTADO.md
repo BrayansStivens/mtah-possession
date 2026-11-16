@@ -23,7 +23,7 @@ no está medido, se dice.
 | **Dónde estamos, medido** | **0,4073** de media en 7 partidos de Bundesliga degradados para parecerse a nuestros datos, dejando cada partido fuera del entrenamiento del detector (0,3965 sin el detector de fronteras). El Smart Tagging (8-11) suma **+0,5 a +0,9 pp estimados** con un tagging simulado: el IDSSE no tiene uno real, así que esa parte no es medible del todo (§2) |
 | **Con el clasificador de equipo** | **0,5712** en esos mismos 7 partidos con el **clasificador de equipo sin balón** (del 12-11, en `main` desde el 15-11), frente a 0,4111 del mismo modelo sin él: **+16,0 pp**, con el clasificador y su peso elegidos sin ver el partido que se puntúa. En tres semillas de degradación, +16,1 pp de media y mejor en las 21 ejecuciones. **Es una cota optimista**: con huecos colocados como en el partido real baja a +12,6 pp (§2). Quitando jugadores donde falta el balón como los pierde nuestro partido (16-11), **aguanta: +16,3 pp, 21 de 21** (§2) |
 | En los 5 minutos públicos | 0,4148 (0,4444 sin el tagging, 0,4903 sin el detector); con el clasificador de equipo, 0,6286 — **lectura, no criterio**: 17 posesiones, una fallada mueve 6 puntos |
-| Lo que genera `main` | Desde el 15-11, `config.py` tal cual está genera el CSV con el clasificador de equipo (sha256 `a43c52fb…`; pasa el validador oficial; 139 tests en verde desde el 16-11; **reproducido al byte en una segunda máquina el 15-11**, §6). **El CSV que se envíe tiene que ser el que genera `main`.** La entrega anterior, del 8-11 (`e7938350…`), sale con `team_classifier_weight = 0`. Con `smart_tagging_team_weight = 0` además sale la del 7-11 (`5d97eccc…`), y con `boundary_discount_weight = 0` además la del 31-10 (`73c361d5…`) |
+| Lo que genera `main` | Desde el 15-11, `config.py` tal cual está genera el CSV con el clasificador de equipo (sha256 `a43c52fb…`; pasa el validador oficial; 139 tests en verde desde el 16-11; **reproducido al byte el 16-11 desde un clon nuevo con un venv recién creado, en Windows y en Linux**, §2). **El CSV que se envíe tiene que ser el que genera `main`.** La entrega anterior, del 8-11 (`e7938350…`), sale con `team_classifier_weight = 0`. Con `smart_tagging_team_weight = 0` además sale la del 7-11 (`5d97eccc…`), y con `boundary_discount_weight = 0` además la del 31-10 (`73c361d5…`) |
 | Qué configuración lleva | la de `config.py`; cada valor tiene escrito al lado de dónde sale. **Ninguno viene ya de los 5 minutos públicos** (prohibido desde el 22-10) |
 
 Si todo se parase hoy, hay algo válido que entregar y está 15 puntos por encima del mínimo.
@@ -95,6 +95,8 @@ Es la pieza que convirtió "no podemos medir" en "podemos medir en siete partido
 | 15 nov | La rama `equipo-sin-balon` se mergea en `main`: el clasificador de equipo entra en lo que genera `config.py` | `main` genera `a43c52fb…` (pasa el validador, 120 tests); con `team_classifier_weight = 0` sale `e7938350…` al byte. No se midió nada nuevo: valen los números y los límites del 12-11 | `config.py` |
 | 15 nov | Dashboard regenerado con la entrega de hoy: las tablas llevan ahora «con detector» y «hoy (con clasificador)», cada partido puntuado con modelos que no lo vieron | los 14 partidos-config reproducen exactamente `equipo_sin_balon_lomo.json`; por posesiones, el recall pasa de 0,33 a 0,50 y el techo de spellF1 de 0,50 a 0,67; las posesiones de menos de 5 s recuperadas, de una de cada doce a una de cada cinco | `regenera_equipo.py`, `datos/clasificador_equipo*.json`, `datos/lectura_publica.json` |
 | 15 nov | **Reproducción en una segunda máquina** (Simon, Windows 11): `main` en `f49dc9c`, Python 3.12.2 con las versiones exactas de `requirements.txt`, datos leídos del Drive de la organización y la caché del tracking apartada para parsear el `_atd.txt` desde cero | `build` da **`a43c52fb…` al byte** y pasa el validador; con `team_classifier_weight = 0`, `e7938350…` al byte; 120 tests en verde; los dos modelos cargan con su sha256. `scripts/reproduce.sh` **no arranca en Windows desde Git Bash** (ver §7) | `config.py`, `scripts/reproduce.sh` |
+| 16 nov | **`reproduce.sh` y `env.sh` arreglados para Windows** (Git Bash): con `cygpath` pasan `PYTHONPATH` en formato Windows y con `;`; en Linux y macOS no cambia nada. `reproduce.sh` se para si el Python es < 3.12 y acepta `PYTHON=...` | con Python 3.11 se para con el aviso; con el venv da `a43c52fb…` | `scripts/reproduce.sh`, `scripts/env.sh` |
+| 16 nov | **Reproducción limpia en dos sistemas**, como la harían los organizadores: `git clone` de GitHub (rama `medicion-jugadores-sin-balon`, `68fb042`), venv recién creado, `pip install -r requirements-dev.txt` (numpy 2.5.4, pandas 3.0.6, scikit-learn 1.8.0, pytest 9.0.1), `./scripts/reproduce.sh FC_Medallo` sin caché previa. (1) Windows 11, Python 3.12.2, Git Bash, datos leídos del Drive. (2) Linux, Ubuntu 24.04 en WSL2, Python 3.12.3, clon en el sistema de ficheros de Linux, los cuatro ficheros tácticos copiados del Drive (sin vídeo) | **los dos dan `a43c52fb…` al byte**, pasan el validador y **139 tests en verde**. 46 s en Windows y 17 s en Linux. En Ubuntu `python3.12-venv` no venía instalado; se hizo el venv con `--without-pip` y `get-pip.py` (sin sudo). Falta una máquina que no sea la de Simon | `scripts/reproduce.sh` |
 | 15-16 nov | **Prueba de estrés del clasificador de equipo con jugadores perdidos sin balón** (ver abajo). Mismos modelos que se entregaron y peso 2,0 fijo; regla de decisión escrita y commiteada antes de correr. **No cambia nada de la entrega** | **+16,28 pp** spellF1 con los mismos jugadores ausentes toda la racha sin balón, **21 de 21 mejoran** (de +12,5 a +19,9 pp); +15,84 pp si se sortean en cada frame; la degradación de siempre reproduce la tabla del 12-11 al decimal (+16,11 pp). Decisión: **se mantiene `a43c52fb…`** | `training/missing_players.py`, `degrade.thin_where_ball_unseen`, `datos/equipo_sin_balon_jugadores.json` |
 
 **Qué entró el 7-11 desde `DeteccionPosesionBalon`** (la otra línea, hecha sin acceso a este repo):
@@ -436,7 +438,7 @@ Quedan seis días. Lo que se hace, quién, y en qué orden:
 | cuándo | qué | quién | cómo se sabe que está |
 |---|---|---|---|
 | hasta el 14 | **Los saques del Smart Tagging como equipo que saca** (córners y saques de puerta; los de banda van con `N/A`). Es lo que falta en los huecos largos: sin balón la emisión da P(H) = P(A) y el modelo vive de la inercia, dure 5 s o 266 s el hueco. A diferencia de las fases, esto **sí se mide de verdad**: el IDSSE trae los eventos de saque con equipo, no hay que simular nada | Simon | mismo LOMO anidado de §2; entra solo si gana en validación y se cuenta con su intervalo |
-| hasta el 14 | **Reproducción en máquina limpia**: clonar, `pip install -r requirements.txt`, `source scripts/env.sh`, `build`, y que salga el sha256 `a43c52fb…` en `main` (desde el merge del 15-11; antes `e7938350…`). La entrega depende ahora de dos pickles con versión exacta de scikit-learn y de Python ≥ 3.12; si falla, falla en manos de los organizadores. Ojo: `python -m mtah` necesita `PYTHONPATH=src` (lo pone `env.sh`) o instalar el paquete. **Hecho el 15-11 en la máquina de Simon: sale `a43c52fb…` al byte** (§2, cronología). No fue del todo limpia (venv ya existente, sin clonar de nuevo) | Brayan / Simon | el sha coincide en una máquina que no sea la nuestra ✅ |
+| hasta el 14 | **Reproducción en máquina limpia**: clonar, `pip install -r requirements.txt`, `source scripts/env.sh`, `build`, y que salga el sha256 `a43c52fb…` en `main` (desde el merge del 15-11; antes `e7938350…`). La entrega depende ahora de dos pickles con versión exacta de scikit-learn y de Python ≥ 3.12; si falla, falla en manos de los organizadores. Ojo: `python -m mtah` necesita `PYTHONPATH=src` (lo pone `env.sh`) o instalar el paquete. **Hecho el 15-11 en la máquina de Simon: sale `a43c52fb…` al byte** (§2, cronología), y **el 16-11 en limpio**: clon nuevo de GitHub y venv recién creado, en Windows 11 y en Linux (Ubuntu 24.04, WSL2); los dos dan `a43c52fb…` al byte y 139 tests en verde | Brayan / Simon | el sha coincide en una máquina que no sea la nuestra ✅ |
 | **viernes 14** | **Decidir y congelar la entrega.** Cuatro candidatas, reproducibles con tres valores de `config.py`: la del 31-10 (`73c361d5…`, 0,3965 medido), con detector (`5d97eccc…`, 0,4073 medido fuera de muestra), con detector + tagging (`e7938350…`, +0,6 pp *estimados* encima, intervalo que incluye el cero) y, desde el 12-11, con el clasificador de equipo sin balón encima de todo (`a43c52fb…`, rama `equipo-sin-balon`, +16,1 pp medidos fuera de muestra en el IDSSE, +12,6 pp con huecos como los reales; cota optimista, §2). **El 15-11 la rama se mergeó en `main`**: `config.py` tal cual genera `a43c52fb…`. Volver a la del 8-11 es poner `team_classifier_weight = 0`. Después del 14 no se toca ningún hiperparámetro: el 31-10 se vio que la mitad de cada ganancia de rejilla era sobreajuste | todos | `config.py` congelado y el sha de la entrega escrito en §1 |
 | 14-16 | **El documento técnico corto** (2-3 páginas): qué hace el modelo, cómo se midió, qué no sabemos. Sale de este fichero | Brayan | PDF en `trabajo/` |
 | 16 | **Repo público: ya lo es desde el 30-10** (comprobado el 14-11). Queda: auditoría de `data/` (se hace en cada push), atribución a la DFL (ya está), `vendor/NOTICE.md`, decidir si `trabajo/` se queda | Brayan | el repo es público y el validador pasa sobre el CSV entregado |
@@ -455,8 +457,8 @@ Nada de esto está empezado salvo que se diga.
 2. **Dejar el repositorio listo para hacerlo público.** Antes de publicar: comprobar otra vez
    que no entra nada de `data/` (hoy: 0 ficheros, auditado en cada push), citar el paper del
    IDSSE y acreditar a la DFL (**condición de la licencia CC-BY, no cortesía**), revisar
-   `vendor/NOTICE.md`, y probar la reproducción en una máquina limpia (**hecho en parte el
-   15-11**: una segunda máquina da el mismo sha256, pero con un venv ya existente; ver §6).
+   `vendor/NOTICE.md`, y probar la reproducción en una máquina limpia (**hecho el 16-11**:
+   clon nuevo y venv recién creado en Windows y en Linux, mismo sha256; ver §2).
 3. **Un detector de balón propio sobre el vídeo** (la línea de visión). La curva de visibilidad
    (§2, 7-11) dice que merece la pena *si llega*: subir al 70 % de balón visible vale unos
    +2 pp, y al 80 % unos +3,5 pp. Pero el plan lo estima en 7,5 días, quedan 10 hasta la
@@ -522,11 +524,11 @@ usan, por los motivos del `README.md` (no separan jugada de parada; otra línea 
 - **No se ha medido la dispersión de los centros de clase** (solo la mediana), así que no se
   puede juzgar cuán separables son H y A por esas señales.
 - **No hay intervalos por partido**: una evaluación por partido y configuración.
-- **La reproducción en una segunda máquina está hecha, pero no del todo limpia.** El 15-11, en
-  la máquina de Simon (Windows 11, Python 3.12.2, versiones exactas), `main` genera
-  `a43c52fb…` al byte con los datos del Drive y el tracking parseado desde cero. Falta un clon
-  nuevo con un venv recién creado, y en Linux, que es donde más probablemente lo corran los
-  organizadores. En Windows `./scripts/reproduce.sh` no arranca desde Git Bash (§7).
+- **La reproducción limpia está hecha, pero en un solo ordenador.** El 16-11, desde un clon
+  nuevo de GitHub y un venv recién creado, `./scripts/reproduce.sh` da `a43c52fb…` al byte en
+  Windows 11 (Python 3.12.2) y en Linux (Ubuntu 24.04 en WSL2, Python 3.12.3), con 139 tests
+  en verde (§2). Los dos sistemas corren en la máquina de Simon; no se ha probado en macOS ni
+  en otra máquina física. En Linux faltaba `python3.12-venv` y se resolvió sin sudo (§7).
 - **No se ha ejecutado SAST, linting en CI ni pruebas de carga**; los tests son unitarios y de
   contrato.
 - **No consta que se haya probado el lector con los datos de muestra de Metrica** (fase E de
@@ -563,17 +565,24 @@ python -m mtah status
 ./scripts/reproduce.sh FC_Medallo        # -> out/FC_Medallo.csv
 ```
 
-En Windows desde Git Bash, `reproduce.sh` falla con `No module named mtah`: exporta
-`PYTHONPATH` como ruta POSIX (`/d/...:`) y el Python de Windows no la entiende. Mientras no se
-arregle, se corren a mano sus tres pasos con la ruta en formato Windows:
+`reproduce.sh` funciona en Linux, macOS y Windows con Git Bash (desde el 16-11; antes fallaba
+en Windows con `No module named mtah`). Se para si el Python es < 3.12; `PYTHON=...` elige el
+intérprete. Lo que se corrió el 16-11 para la reproducción limpia:
 
 ```bash
-export PYTHONPATH="$(cygpath -w "$PWD/src")"
+# Windows, Git Bash (el 'python' del sistema puede no ser 3.12: se usa el del venv)
+git clone https://github.com/BrayansStivens/mtah-possession.git && cd mtah-possession
+py -3.12 -m venv .venv && .venv/Scripts/python.exe -m pip install -r requirements-dev.txt
 export MTAH_DATA_DIR='<carpeta del Drive que contiene tactical/>'
-.venv/Scripts/python.exe -m mtah status
-.venv/Scripts/python.exe -m mtah build --out out/FC_Medallo.csv   # ~40 s
-.venv/Scripts/python.exe -m mtah validate out/FC_Medallo.csv
-sha256sum out/FC_Medallo.csv                                      # a43c52fb…
+PYTHON=.venv/Scripts/python.exe ./scripts/reproduce.sh FC_Medallo   # ~45 s
+sha256sum out/FC_Medallo.csv                                         # a43c52fb…
+
+# Linux (Ubuntu 24.04). Si falta python3.12-venv y no hay sudo:
+#   python3.12 -m venv --without-pip .venv && curl -sS https://bootstrap.pypa.io/get-pip.py | .venv/bin/python
+python3.12 -m venv .venv && source .venv/bin/activate && pip install -r requirements-dev.txt
+export MTAH_DATA_DIR=<carpeta con tactical/>    # basta atd.xml, atd.txt y smart_tagging.xml
+./scripts/reproduce.sh FC_Medallo                                    # ~20 s
+sha256sum out/FC_Medallo.csv                                         # a43c52fb…
 ```
 
 Para rehacer las mediciones del arnés hace falta además `pip install -r requirements-train.txt`
