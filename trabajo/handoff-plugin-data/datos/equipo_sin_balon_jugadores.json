@@ -1,0 +1,1617 @@
+{
+  "folds": [
+    {
+      "held_out": "J03WMX",
+      "seeds": {
+        "0": {
+          "standard": {
+            "control": {
+              "spell_f1": 0.38441558441558443,
+              "macro_f1": 0.788790934800009,
+              "n_pred_spells": 173,
+              "n_gt_spells": 289
+            },
+            "weighted": {
+              "spell_f1": 0.567951318458418,
+              "macro_f1": 0.8751597724656931,
+              "n_pred_spells": 204,
+              "n_gt_spells": 289
+            },
+            "team": {
+              "auc": 0.9507429109892404,
+              "auc_ball_unseen": 0.954163959657096
+            },
+            "delta_spell_f1_pp": 18.353573404283352
+          },
+          "thinned": {
+            "control": {
+              "spell_f1": 0.39654427645788337,
+              "macro_f1": 0.7940854724761189,
+              "n_pred_spells": 174,
+              "n_gt_spells": 289
+            },
+            "weighted": {
+              "spell_f1": 0.5740890688259108,
+              "macro_f1": 0.8748216447393479,
+              "n_pred_spells": 205,
+              "n_gt_spells": 289
+            },
+            "team": {
+              "auc": 0.9505750900194516,
+              "auc_ball_unseen": 0.9536703156265006
+            },
+            "delta_spell_f1_pp": 17.754479236802744,
+            "players": {
+              "mean_ball_seen": 20.469455203284088,
+              "mean_ball_unseen": 19.112165804496676,
+              "unseen_below_16": 0.1433378534478429,
+              "team_gap_unseen": 0.8142735171513233
+            }
+          },
+          "persistent": {
+            "control": {
+              "spell_f1": 0.3905376344086022,
+              "macro_f1": 0.7930095019942399,
+              "n_pred_spells": 176,
+              "n_gt_spells": 289
+            },
+            "weighted": {
+              "spell_f1": 0.5707317073170731,
+              "macro_f1": 0.8759283885476843,
+              "n_pred_spells": 203,
+              "n_gt_spells": 289
+            },
+            "team": {
+              "auc": 0.9494832629830205,
+              "auc_ball_unseen": 0.9511713183970025
+            },
+            "delta_spell_f1_pp": 18.019407290847095,
+            "players": {
+              "mean_ball_seen": 20.469455203284088,
+              "mean_ball_unseen": 19.112165804496676,
+              "unseen_below_16": 0.1433378534478429,
+              "team_gap_unseen": 0.8024877370967471
+            }
+          }
+        },
+        "1": {
+          "standard": {
+            "control": {
+              "spell_f1": 0.4,
+              "macro_f1": 0.8015431016602346,
+              "n_pred_spells": 178,
+              "n_gt_spells": 289
+            },
+            "weighted": {
+              "spell_f1": 0.5572580645161291,
+              "macro_f1": 0.8766433178627729,
+              "n_pred_spells": 207,
+              "n_gt_spells": 289
+            },
+            "team": {
+              "auc": 0.950068743547466,
+              "auc_ball_unseen": 0.9640250326209677
+            },
+            "delta_spell_f1_pp": 15.725806451612911
+          },
+          "thinned": {
+            "control": {
+              "spell_f1": 0.3991434689507495,
+              "macro_f1": 0.8026264511680551,
+              "n_pred_spells": 178,
+              "n_gt_spells": 289
+            },
+            "weighted": {
+              "spell_f1": 0.554655870445344,
+              "macro_f1": 0.8752548625183252,
+              "n_pred_spells": 205,
+              "n_gt_spells": 289
+            },
+            "team": {
+              "auc": 0.9497081322695227,
+              "auc_ball_unseen": 0.9633037562915943
+            },
+            "delta_spell_f1_pp": 15.551240149459456,
+            "players": {
+              "mean_ball_seen": 20.4626982458599,
+              "mean_ball_unseen": 19.13052485043337,
+              "unseen_below_16": 0.14260618816393497,
+              "team_gap_unseen": 0.8108417162460019
+            }
+          },
+          "persistent": {
+            "control": {
+              "spell_f1": 0.3940042826552463,
+              "macro_f1": 0.8014359185337829,
+              "n_pred_spells": 178,
+              "n_gt_spells": 289
+            },
+            "weighted": {
+              "spell_f1": 0.5550200803212851,
+              "macro_f1": 0.8737861034967224,
+              "n_pred_spells": 209,
+              "n_gt_spells": 289
+            },
+            "team": {
+              "auc": 0.9481300280034989,
+              "auc_ball_unseen": 0.9601080049895145
+            },
+            "delta_spell_f1_pp": 16.101579766603884,
+            "players": {
+              "mean_ball_seen": 20.4626982458599,
+              "mean_ball_unseen": 19.13052485043337,
+              "unseen_below_16": 0.14260618816393497,
+              "team_gap_unseen": 0.8113720355976864
+            }
+          }
+        },
+        "2": {
+          "standard": {
+            "control": {
+              "spell_f1": 0.4336134453781512,
+              "macro_f1": 0.803760864612535,
+              "n_pred_spells": 187,
+              "n_gt_spells": 289
+            },
+            "weighted": {
+              "spell_f1": 0.5694501018329939,
+              "macro_f1": 0.8727599128314648,
+              "n_pred_spells": 202,
+              "n_gt_spells": 289
+            },
+            "team": {
+              "auc": 0.9501475206116327,
+              "auc_ball_unseen": 0.9544794500161029
+            },
+            "delta_spell_f1_pp": 13.583665645484272
+          },
+          "thinned": {
+            "control": {
+              "spell_f1": 0.4352941176470589,
+              "macro_f1": 0.8065879107395336,
+              "n_pred_spells": 187,
+              "n_gt_spells": 289
+            },
+            "weighted": {
+              "spell_f1": 0.5635627530364372,
+              "macro_f1": 0.8713341815608637,
+              "n_pred_spells": 205,
+              "n_gt_spells": 289
+            },
+            "team": {
+              "auc": 0.9501410767065431,
+              "auc_ball_unseen": 0.9545292747800094
+            },
+            "delta_spell_f1_pp": 12.826863538937832,
+            "players": {
+              "mean_ball_seen": 20.46970630997383,
+              "mean_ball_unseen": 19.144952660354715,
+              "unseen_below_16": 0.14073543139085212,
+              "team_gap_unseen": 0.8116082144285904
+            }
+          },
+          "persistent": {
+            "control": {
+              "spell_f1": 0.43452631578947365,
+              "macro_f1": 0.8010329480793308,
+              "n_pred_spells": 186,
+              "n_gt_spells": 289
+            },
+            "weighted": {
+              "spell_f1": 0.5722448979591837,
+              "macro_f1": 0.8728942810232988,
+              "n_pred_spells": 201,
+              "n_gt_spells": 289
+            },
+            "team": {
+              "auc": 0.9497113386210632,
+              "auc_ball_unseen": 0.9532776089967879
+            },
+            "delta_spell_f1_pp": 13.771858216971001,
+            "players": {
+              "mean_ball_seen": 20.46970630997383,
+              "mean_ball_unseen": 19.144952660354715,
+              "unseen_below_16": 0.14073543139085212,
+              "team_gap_unseen": 0.8162088278437125
+            }
+          }
+        }
+      }
+    },
+    {
+      "held_out": "J03WN1",
+      "seeds": {
+        "0": {
+          "standard": {
+            "control": {
+              "spell_f1": 0.38091451292246525,
+              "macro_f1": 0.7718979735901649,
+              "n_pred_spells": 193,
+              "n_gt_spells": 310
+            },
+            "weighted": {
+              "spell_f1": 0.5068702290076337,
+              "macro_f1": 0.8257408158561654,
+              "n_pred_spells": 214,
+              "n_gt_spells": 310
+            },
+            "team": {
+              "auc": 0.9192803437531719,
+              "auc_ball_unseen": 0.9365362309857435
+            },
+            "delta_spell_f1_pp": 12.595571608516842
+          },
+          "thinned": {
+            "control": {
+              "spell_f1": 0.38403193612774456,
+              "macro_f1": 0.7705499021419834,
+              "n_pred_spells": 191,
+              "n_gt_spells": 310
+            },
+            "weighted": {
+              "spell_f1": 0.5001912045889102,
+              "macro_f1": 0.8260035553526728,
+              "n_pred_spells": 213,
+              "n_gt_spells": 310
+            },
+            "team": {
+              "auc": 0.9182433144478503,
+              "auc_ball_unseen": 0.9343995617572469
+            },
+            "delta_spell_f1_pp": 11.615926846116565,
+            "players": {
+              "mean_ball_seen": 19.990379630857515,
+              "mean_ball_unseen": 18.784975772879275,
+              "unseen_below_16": 0.14326417798403057,
+              "team_gap_unseen": 1.1414897973111309
+            }
+          },
+          "persistent": {
+            "control": {
+              "spell_f1": 0.3785288270377733,
+              "macro_f1": 0.7678878660900871,
+              "n_pred_spells": 193,
+              "n_gt_spells": 310
+            },
+            "weighted": {
+              "spell_f1": 0.5064638783269961,
+              "macro_f1": 0.8270439902529682,
+              "n_pred_spells": 216,
+              "n_gt_spells": 310
+            },
+            "team": {
+              "auc": 0.9184077826565878,
+              "auc_ball_unseen": 0.9347640273654377
+            },
+            "delta_spell_f1_pp": 12.793505128922284,
+            "players": {
+              "mean_ball_seen": 19.990379630857515,
+              "mean_ball_unseen": 18.784975772879275,
+              "unseen_below_16": 0.14326417798403057,
+              "team_gap_unseen": 1.1685832252781
+            }
+          }
+        },
+        "1": {
+          "standard": {
+            "control": {
+              "spell_f1": 0.35303643724696354,
+              "macro_f1": 0.7630090096909513,
+              "n_pred_spells": 184,
+              "n_gt_spells": 310
+            },
+            "weighted": {
+              "spell_f1": 0.516504854368932,
+              "macro_f1": 0.8402528761215705,
+              "n_pred_spells": 205,
+              "n_gt_spells": 310
+            },
+            "team": {
+              "auc": 0.9197104017638863,
+              "auc_ball_unseen": 0.9254614909288233
+            },
+            "delta_spell_f1_pp": 16.34684171219685
+          },
+          "thinned": {
+            "control": {
+              "spell_f1": 0.3586206896551724,
+              "macro_f1": 0.7675079633343419,
+              "n_pred_spells": 183,
+              "n_gt_spells": 310
+            },
+            "weighted": {
+              "spell_f1": 0.5131782945736434,
+              "macro_f1": 0.8400097837970755,
+              "n_pred_spells": 206,
+              "n_gt_spells": 310
+            },
+            "team": {
+              "auc": 0.9211325717708547,
+              "auc_ball_unseen": 0.9289155383578258
+            },
+            "delta_spell_f1_pp": 15.455760491847098,
+            "players": {
+              "mean_ball_seen": 19.98152753966146,
+              "mean_ball_unseen": 18.807014556908147,
+              "unseen_below_16": 0.1426917510853835,
+              "team_gap_unseen": 1.1390482676428024
+            }
+          },
+          "persistent": {
+            "control": {
+              "spell_f1": 0.3556451612903226,
+              "macro_f1": 0.7640145533106216,
+              "n_pred_spells": 186,
+              "n_gt_spells": 310
+            },
+            "weighted": {
+              "spell_f1": 0.5057915057915057,
+              "macro_f1": 0.83358199983236,
+              "n_pred_spells": 208,
+              "n_gt_spells": 310
+            },
+            "team": {
+              "auc": 0.9176243845486871,
+              "auc_ball_unseen": 0.9210527726255523
+            },
+            "delta_spell_f1_pp": 15.014634450118308,
+            "players": {
+              "mean_ball_seen": 19.98152753966146,
+              "mean_ball_unseen": 18.807014556908147,
+              "unseen_below_16": 0.1426917510853835,
+              "team_gap_unseen": 1.124985102579382
+            }
+          }
+        },
+        "2": {
+          "standard": {
+            "control": {
+              "spell_f1": 0.37258064516129036,
+              "macro_f1": 0.7651112022715774,
+              "n_pred_spells": 186,
+              "n_gt_spells": 310
+            },
+            "weighted": {
+              "spell_f1": 0.5145038167938931,
+              "macro_f1": 0.8375698939772617,
+              "n_pred_spells": 214,
+              "n_gt_spells": 310
+            },
+            "team": {
+              "auc": 0.9187941041745336,
+              "auc_ball_unseen": 0.910531704865583
+            },
+            "delta_spell_f1_pp": 14.192317163260276
+          },
+          "thinned": {
+            "control": {
+              "spell_f1": 0.3767535070140281,
+              "macro_f1": 0.7641735660505867,
+              "n_pred_spells": 189,
+              "n_gt_spells": 310
+            },
+            "weighted": {
+              "spell_f1": 0.5139579349904398,
+              "macro_f1": 0.8368592676367901,
+              "n_pred_spells": 213,
+              "n_gt_spells": 310
+            },
+            "team": {
+              "auc": 0.9184768297645628,
+              "auc_ball_unseen": 0.909629682475254
+            },
+            "delta_spell_f1_pp": 13.720442797641175,
+            "players": {
+              "mean_ball_seen": 19.995785175279398,
+              "mean_ball_unseen": 18.82352228891695,
+              "unseen_below_16": 0.14039336435503122,
+              "team_gap_unseen": 1.1403241709768375
+            }
+          },
+          "persistent": {
+            "control": {
+              "spell_f1": 0.3753968253968254,
+              "macro_f1": 0.7631111823133764,
+              "n_pred_spells": 194,
+              "n_gt_spells": 310
+            },
+            "weighted": {
+              "spell_f1": 0.5099236641221373,
+              "macro_f1": 0.8344394397595533,
+              "n_pred_spells": 214,
+              "n_gt_spells": 310
+            },
+            "team": {
+              "auc": 0.9176204824972953,
+              "auc_ball_unseen": 0.9071356321627463
+            },
+            "delta_spell_f1_pp": 13.45268387253119,
+            "players": {
+              "mean_ball_seen": 19.995785175279398,
+              "mean_ball_unseen": 18.82352228891695,
+              "unseen_below_16": 0.14039336435503122,
+              "team_gap_unseen": 1.1859226072064903
+            }
+          }
+        }
+      }
+    },
+    {
+      "held_out": "J03WOH",
+      "seeds": {
+        "0": {
+          "standard": {
+            "control": {
+              "spell_f1": 0.4591928251121077,
+              "macro_f1": 0.8204802500394326,
+              "n_pred_spells": 180,
+              "n_gt_spells": 266
+            },
+            "weighted": {
+              "spell_f1": 0.5842794759825327,
+              "macro_f1": 0.8757261914339423,
+              "n_pred_spells": 192,
+              "n_gt_spells": 266
+            },
+            "team": {
+              "auc": 0.9559846668799151,
+              "auc_ball_unseen": 0.9571689705016566
+            },
+            "delta_spell_f1_pp": 12.508665087042504
+          },
+          "thinned": {
+            "control": {
+              "spell_f1": 0.4721603563474388,
+              "macro_f1": 0.8237212881083611,
+              "n_pred_spells": 183,
+              "n_gt_spells": 266
+            },
+            "weighted": {
+              "spell_f1": 0.5838074398249453,
+              "macro_f1": 0.8763775234292005,
+              "n_pred_spells": 191,
+              "n_gt_spells": 266
+            },
+            "team": {
+              "auc": 0.955381458931801,
+              "auc_ball_unseen": 0.9557923917606963
+            },
+            "delta_spell_f1_pp": 11.16470834775065,
+            "players": {
+              "mean_ball_seen": 20.457328637225682,
+              "mean_ball_unseen": 19.114314789687924,
+              "unseen_below_16": 0.14314789687924015,
+              "team_gap_unseen": 0.8149503677783332
+            }
+          },
+          "persistent": {
+            "control": {
+              "spell_f1": 0.46532438478747207,
+              "macro_f1": 0.8205687097520004,
+              "n_pred_spells": 181,
+              "n_gt_spells": 266
+            },
+            "weighted": {
+              "spell_f1": 0.6026086956521739,
+              "macro_f1": 0.8780886767833399,
+              "n_pred_spells": 194,
+              "n_gt_spells": 266
+            },
+            "team": {
+              "auc": 0.9550570309383121,
+              "auc_ball_unseen": 0.955423186407503
+            },
+            "delta_spell_f1_pp": 13.728431086470183,
+            "players": {
+              "mean_ball_seen": 20.457328637225682,
+              "mean_ball_unseen": 19.114314789687924,
+              "unseen_below_16": 0.14314789687924015,
+              "team_gap_unseen": 0.8334821109762194
+            }
+          }
+        },
+        "1": {
+          "standard": {
+            "control": {
+              "spell_f1": 0.4152380952380953,
+              "macro_f1": 0.8091859401811549,
+              "n_pred_spells": 154,
+              "n_gt_spells": 266
+            },
+            "weighted": {
+              "spell_f1": 0.5825327510917031,
+              "macro_f1": 0.8699276721254942,
+              "n_pred_spells": 192,
+              "n_gt_spells": 266
+            },
+            "team": {
+              "auc": 0.9560793521635171,
+              "auc_ball_unseen": 0.9615677714421081
+            },
+            "delta_spell_f1_pp": 16.72946558536078
+          },
+          "thinned": {
+            "control": {
+              "spell_f1": 0.4114285714285715,
+              "macro_f1": 0.8131984011951375,
+              "n_pred_spells": 154,
+              "n_gt_spells": 266
+            },
+            "weighted": {
+              "spell_f1": 0.5796095444685465,
+              "macro_f1": 0.8687016035270899,
+              "n_pred_spells": 195,
+              "n_gt_spells": 266
+            },
+            "team": {
+              "auc": 0.9557693483971599,
+              "auc_ball_unseen": 0.9608663784016009
+            },
+            "delta_spell_f1_pp": 16.818097303997504,
+            "players": {
+              "mean_ball_seen": 20.463190593488733,
+              "mean_ball_unseen": 19.130138861011257,
+              "unseen_below_16": 0.1425286936846523,
+              "team_gap_unseen": 0.8126014999178877
+            }
+          },
+          "persistent": {
+            "control": {
+              "spell_f1": 0.4125000000000001,
+              "macro_f1": 0.8083900247973412,
+              "n_pred_spells": 150,
+              "n_gt_spells": 266
+            },
+            "weighted": {
+              "spell_f1": 0.5817391304347825,
+              "macro_f1": 0.86847096178863,
+              "n_pred_spells": 194,
+              "n_gt_spells": 266
+            },
+            "team": {
+              "auc": 0.955095611948813,
+              "auc_ball_unseen": 0.959523332109858
+            },
+            "delta_spell_f1_pp": 16.923913043478244,
+            "players": {
+              "mean_ball_seen": 20.463190593488733,
+              "mean_ball_unseen": 19.130138861011257,
+              "unseen_below_16": 0.1425286936846523,
+              "team_gap_unseen": 0.8293159133624072
+            }
+          }
+        },
+        "2": {
+          "standard": {
+            "control": {
+              "spell_f1": 0.4521739130434782,
+              "macro_f1": 0.8208943406926935,
+              "n_pred_spells": 171,
+              "n_gt_spells": 266
+            },
+            "weighted": {
+              "spell_f1": 0.6043668122270742,
+              "macro_f1": 0.8765357105764773,
+              "n_pred_spells": 192,
+              "n_gt_spells": 266
+            },
+            "team": {
+              "auc": 0.956265288853366,
+              "auc_ball_unseen": 0.9491844576210897
+            },
+            "delta_spell_f1_pp": 15.219289918359602
+          },
+          "thinned": {
+            "control": {
+              "spell_f1": 0.45388127853881277,
+              "macro_f1": 0.8211024423708914,
+              "n_pred_spells": 172,
+              "n_gt_spells": 266
+            },
+            "weighted": {
+              "spell_f1": 0.6,
+              "macro_f1": 0.876608026996221,
+              "n_pred_spells": 194,
+              "n_gt_spells": 266
+            },
+            "team": {
+              "auc": 0.9554044767866178,
+              "auc_ball_unseen": 0.947128279264071
+            },
+            "delta_spell_f1_pp": 14.61187214611872,
+            "players": {
+              "mean_ball_seen": 20.461585199513927,
+              "mean_ball_unseen": 19.146849809079338,
+              "unseen_below_16": 0.14039739782209024,
+              "team_gap_unseen": 0.8137639654928581
+            }
+          },
+          "persistent": {
+            "control": {
+              "spell_f1": 0.45412844036697253,
+              "macro_f1": 0.822767956166636,
+              "n_pred_spells": 170,
+              "n_gt_spells": 266
+            },
+            "weighted": {
+              "spell_f1": 0.6133909287257019,
+              "macro_f1": 0.878109253341545,
+              "n_pred_spells": 197,
+              "n_gt_spells": 266
+            },
+            "team": {
+              "auc": 0.9555196138397638,
+              "auc_ball_unseen": 0.9477635207904456
+            },
+            "delta_spell_f1_pp": 15.926248835872936,
+            "players": {
+              "mean_ball_seen": 20.461585199513927,
+              "mean_ball_unseen": 19.146849809079338,
+              "unseen_below_16": 0.14039739782209024,
+              "team_gap_unseen": 0.8379472493282422
+            }
+          }
+        }
+      }
+    },
+    {
+      "held_out": "J03WOY",
+      "seeds": {
+        "0": {
+          "standard": {
+            "control": {
+              "spell_f1": 0.3776824034334764,
+              "macro_f1": 0.7759597895172572,
+              "n_pred_spells": 178,
+              "n_gt_spells": 288
+            },
+            "weighted": {
+              "spell_f1": 0.5769980506822613,
+              "macro_f1": 0.8358542531527254,
+              "n_pred_spells": 225,
+              "n_gt_spells": 288
+            },
+            "team": {
+              "auc": 0.9471279958063802,
+              "auc_ball_unseen": 0.9641735797867844
+            },
+            "delta_spell_f1_pp": 19.931564724878488
+          },
+          "thinned": {
+            "control": {
+              "spell_f1": 0.3871794871794872,
+              "macro_f1": 0.7786261219759778,
+              "n_pred_spells": 180,
+              "n_gt_spells": 288
+            },
+            "weighted": {
+              "spell_f1": 0.58203125,
+              "macro_f1": 0.8369635426751555,
+              "n_pred_spells": 224,
+              "n_gt_spells": 288
+            },
+            "team": {
+              "auc": 0.9470523324493274,
+              "auc_ball_unseen": 0.9643756651301869
+            },
+            "delta_spell_f1_pp": 19.48517628205128,
+            "players": {
+              "mean_ball_seen": 20.459644064191345,
+              "mean_ball_unseen": 19.110284214524984,
+              "unseen_below_16": 0.14328141727388888,
+              "team_gap_unseen": 0.816607383361536
+            }
+          },
+          "persistent": {
+            "control": {
+              "spell_f1": 0.385438972162741,
+              "macro_f1": 0.7716893998901622,
+              "n_pred_spells": 179,
+              "n_gt_spells": 288
+            },
+            "weighted": {
+              "spell_f1": 0.580544747081712,
+              "macro_f1": 0.8364129594403975,
+              "n_pred_spells": 226,
+              "n_gt_spells": 288
+            },
+            "team": {
+              "auc": 0.9475991214957818,
+              "auc_ball_unseen": 0.9657393847179305
+            },
+            "delta_spell_f1_pp": 19.510577491897102,
+            "players": {
+              "mean_ball_seen": 20.459644064191345,
+              "mean_ball_unseen": 19.110284214524984,
+              "unseen_below_16": 0.14328141727388888,
+              "team_gap_unseen": 0.8241012535828988
+            }
+          }
+        },
+        "1": {
+          "standard": {
+            "control": {
+              "spell_f1": 0.39213973799126634,
+              "macro_f1": 0.7931354522640777,
+              "n_pred_spells": 170,
+              "n_gt_spells": 288
+            },
+            "weighted": {
+              "spell_f1": 0.5930232558139534,
+              "macro_f1": 0.8388189629376477,
+              "n_pred_spells": 228,
+              "n_gt_spells": 288
+            },
+            "team": {
+              "auc": 0.9474954535846951,
+              "auc_ball_unseen": 0.9541635308697715
+            },
+            "delta_spell_f1_pp": 20.08835178226871
+          },
+          "thinned": {
+            "control": {
+              "spell_f1": 0.3947826086956522,
+              "macro_f1": 0.790827720140754,
+              "n_pred_spells": 172,
+              "n_gt_spells": 288
+            },
+            "weighted": {
+              "spell_f1": 0.5926499032882011,
+              "macro_f1": 0.8399261861695605,
+              "n_pred_spells": 229,
+              "n_gt_spells": 288
+            },
+            "team": {
+              "auc": 0.947299744921889,
+              "auc_ball_unseen": 0.9532995504595845
+            },
+            "delta_spell_f1_pp": 19.786729459254893,
+            "players": {
+              "mean_ball_seen": 20.46897701560081,
+              "mean_ball_unseen": 19.131834169996242,
+              "unseen_below_16": 0.14259126455622717,
+              "team_gap_unseen": 0.8175904108185637
+            }
+          },
+          "persistent": {
+            "control": {
+              "spell_f1": 0.3956803455723542,
+              "macro_f1": 0.7906797154348796,
+              "n_pred_spells": 175,
+              "n_gt_spells": 288
+            },
+            "weighted": {
+              "spell_f1": 0.5941747572815534,
+              "macro_f1": 0.8407909889458706,
+              "n_pred_spells": 227,
+              "n_gt_spells": 288
+            },
+            "team": {
+              "auc": 0.9466061827166004,
+              "auc_ball_unseen": 0.951692502676257
+            },
+            "delta_spell_f1_pp": 19.849441170919924,
+            "players": {
+              "mean_ball_seen": 20.46897701560081,
+              "mean_ball_unseen": 19.131834169996242,
+              "unseen_below_16": 0.14259126455622717,
+              "team_gap_unseen": 0.8268107775842639
+            }
+          }
+        },
+        "2": {
+          "standard": {
+            "control": {
+              "spell_f1": 0.40774193548387094,
+              "macro_f1": 0.7852877715535228,
+              "n_pred_spells": 177,
+              "n_gt_spells": 288
+            },
+            "weighted": {
+              "spell_f1": 0.5880952380952381,
+              "macro_f1": 0.8375667250723438,
+              "n_pred_spells": 216,
+              "n_gt_spells": 288
+            },
+            "team": {
+              "auc": 0.9470660495059187,
+              "auc_ball_unseen": 0.9507687482101141
+            },
+            "delta_spell_f1_pp": 18.035330261136718
+          },
+          "thinned": {
+            "control": {
+              "spell_f1": 0.4060215053763441,
+              "macro_f1": 0.7842208179527425,
+              "n_pred_spells": 177,
+              "n_gt_spells": 288
+            },
+            "weighted": {
+              "spell_f1": 0.5932405566600398,
+              "macro_f1": 0.8409723476507703,
+              "n_pred_spells": 215,
+              "n_gt_spells": 288
+            },
+            "team": {
+              "auc": 0.9468247454611601,
+              "auc_ball_unseen": 0.9502590715409369
+            },
+            "delta_spell_f1_pp": 18.72190512836957,
+            "players": {
+              "mean_ball_seen": 20.458471211118464,
+              "mean_ball_unseen": 19.14580455801105,
+              "unseen_below_16": 0.14041781767955802,
+              "team_gap_unseen": 0.8100656077348066
+            }
+          },
+          "persistent": {
+            "control": {
+              "spell_f1": 0.4120950323974082,
+              "macro_f1": 0.7864709822358642,
+              "n_pred_spells": 175,
+              "n_gt_spells": 288
+            },
+            "weighted": {
+              "spell_f1": 0.5936507936507937,
+              "macro_f1": 0.8409993651667579,
+              "n_pred_spells": 216,
+              "n_gt_spells": 288
+            },
+            "team": {
+              "auc": 0.946180969779197,
+              "auc_ball_unseen": 0.9481723137117127
+            },
+            "delta_spell_f1_pp": 18.155576125338545,
+            "players": {
+              "mean_ball_seen": 20.458471211118464,
+              "mean_ball_unseen": 19.14580455801105,
+              "unseen_below_16": 0.14041781767955802,
+              "team_gap_unseen": 0.7998100828729282
+            }
+          }
+        }
+      }
+    },
+    {
+      "held_out": "J03WPY",
+      "seeds": {
+        "0": {
+          "standard": {
+            "control": {
+              "spell_f1": 0.40884955752212393,
+              "macro_f1": 0.8044408462809157,
+              "n_pred_spells": 175,
+              "n_gt_spells": 277
+            },
+            "weighted": {
+              "spell_f1": 0.6101694915254238,
+              "macro_f1": 0.8744862956217299,
+              "n_pred_spells": 195,
+              "n_gt_spells": 277
+            },
+            "team": {
+              "auc": 0.9494380165530281,
+              "auc_ball_unseen": 0.9515515552390591
+            },
+            "delta_spell_f1_pp": 20.131993400329982
+          },
+          "thinned": {
+            "control": {
+              "spell_f1": 0.4053097345132744,
+              "macro_f1": 0.8042046145601747,
+              "n_pred_spells": 175,
+              "n_gt_spells": 277
+            },
+            "weighted": {
+              "spell_f1": 0.609725158562368,
+              "macro_f1": 0.8746256802889535,
+              "n_pred_spells": 196,
+              "n_gt_spells": 277
+            },
+            "team": {
+              "auc": 0.9491989520666152,
+              "auc_ball_unseen": 0.9506262742229683
+            },
+            "delta_spell_f1_pp": 20.441542404909356,
+            "players": {
+              "mean_ball_seen": 20.44803243006691,
+              "mean_ball_unseen": 19.11196065882987,
+              "unseen_below_16": 0.14330223315032503,
+              "team_gap_unseen": 0.8205395937889454
+            }
+          },
+          "persistent": {
+            "control": {
+              "spell_f1": 0.4008849557522124,
+              "macro_f1": 0.7987237349393551,
+              "n_pred_spells": 175,
+              "n_gt_spells": 277
+            },
+            "weighted": {
+              "spell_f1": 0.5999999999999999,
+              "macro_f1": 0.8729262256667333,
+              "n_pred_spells": 193,
+              "n_gt_spells": 277
+            },
+            "team": {
+              "auc": 0.9493250877987511,
+              "auc_ball_unseen": 0.9513175219663133
+            },
+            "delta_spell_f1_pp": 19.911504424778748,
+            "players": {
+              "mean_ball_seen": 20.44803243006691,
+              "mean_ball_unseen": 19.11196065882987,
+              "unseen_below_16": 0.14330223315032503,
+              "team_gap_unseen": 0.8251877799858534
+            }
+          }
+        },
+        "1": {
+          "standard": {
+            "control": {
+              "spell_f1": 0.4097345132743363,
+              "macro_f1": 0.7807415049176999,
+              "n_pred_spells": 175,
+              "n_gt_spells": 277
+            },
+            "weighted": {
+              "spell_f1": 0.5978678038379531,
+              "macro_f1": 0.8714064620252219,
+              "n_pred_spells": 192,
+              "n_gt_spells": 277
+            },
+            "team": {
+              "auc": 0.9501168467018374,
+              "auc_ball_unseen": 0.9590267652169825
+            },
+            "delta_spell_f1_pp": 18.81332905636168
+          },
+          "thinned": {
+            "control": {
+              "spell_f1": 0.4053097345132743,
+              "macro_f1": 0.7759973139560209,
+              "n_pred_spells": 175,
+              "n_gt_spells": 277
+            },
+            "weighted": {
+              "spell_f1": 0.60552016985138,
+              "macro_f1": 0.8714714770286727,
+              "n_pred_spells": 194,
+              "n_gt_spells": 277
+            },
+            "team": {
+              "auc": 0.9495997633357035,
+              "auc_ball_unseen": 0.9580259721675919
+            },
+            "delta_spell_f1_pp": 20.021043533810573,
+            "players": {
+              "mean_ball_seen": 20.471109024063406,
+              "mean_ball_unseen": 19.13146010186757,
+              "unseen_below_16": 0.14259762308998303,
+              "team_gap_unseen": 0.8119015280135824
+            }
+          },
+          "persistent": {
+            "control": {
+              "spell_f1": 0.39911504424778765,
+              "macro_f1": 0.7757807432207796,
+              "n_pred_spells": 175,
+              "n_gt_spells": 277
+            },
+            "weighted": {
+              "spell_f1": 0.5931330472103005,
+              "macro_f1": 0.8723086805375333,
+              "n_pred_spells": 189,
+              "n_gt_spells": 277
+            },
+            "team": {
+              "auc": 0.948660724508221,
+              "auc_ball_unseen": 0.9559782324530021
+            },
+            "delta_spell_f1_pp": 19.40180029625128,
+            "players": {
+              "mean_ball_seen": 20.471109024063406,
+              "mean_ball_unseen": 19.13146010186757,
+              "unseen_below_16": 0.14259762308998303,
+              "team_gap_unseen": 0.822427843803056
+            }
+          }
+        },
+        "2": {
+          "standard": {
+            "control": {
+              "spell_f1": 0.4328888888888889,
+              "macro_f1": 0.8025092869731094,
+              "n_pred_spells": 173,
+              "n_gt_spells": 277
+            },
+            "weighted": {
+              "spell_f1": 0.622127659574468,
+              "macro_f1": 0.8757835658699435,
+              "n_pred_spells": 193,
+              "n_gt_spells": 277
+            },
+            "team": {
+              "auc": 0.9497767476739207,
+              "auc_ball_unseen": 0.931823555502715
+            },
+            "delta_spell_f1_pp": 18.923877068557914
+          },
+          "thinned": {
+            "control": {
+              "spell_f1": 0.4283185840707964,
+              "macro_f1": 0.8033354191064825,
+              "n_pred_spells": 175,
+              "n_gt_spells": 277
+            },
+            "weighted": {
+              "spell_f1": 0.6136170212765959,
+              "macro_f1": 0.8719269192243565,
+              "n_pred_spells": 193,
+              "n_gt_spells": 277
+            },
+            "team": {
+              "auc": 0.9502846184667941,
+              "auc_ball_unseen": 0.9328272286374116
+            },
+            "delta_spell_f1_pp": 18.529843720579947,
+            "players": {
+              "mean_ball_seen": 20.468764476975817,
+              "mean_ball_unseen": 19.145739723052767,
+              "unseen_below_16": 0.14066180032405165,
+              "team_gap_unseen": 0.8163428934137338
+            }
+          },
+          "persistent": {
+            "control": {
+              "spell_f1": 0.42666666666666664,
+              "macro_f1": 0.801307034602759,
+              "n_pred_spells": 173,
+              "n_gt_spells": 277
+            },
+            "weighted": {
+              "spell_f1": 0.623454157782516,
+              "macro_f1": 0.8755312012947112,
+              "n_pred_spells": 192,
+              "n_gt_spells": 277
+            },
+            "team": {
+              "auc": 0.9494275902121961,
+              "auc_ball_unseen": 0.9306950383144948
+            },
+            "delta_spell_f1_pp": 19.678749111584935,
+            "players": {
+              "mean_ball_seen": 20.468764476975817,
+              "mean_ball_unseen": 19.145739723052767,
+              "unseen_below_16": 0.14066180032405165,
+              "team_gap_unseen": 0.8164097081864801
+            }
+          }
+        }
+      }
+    },
+    {
+      "held_out": "J03WQQ",
+      "seeds": {
+        "0": {
+          "standard": {
+            "control": {
+              "spell_f1": 0.4778523489932886,
+              "macro_f1": 0.7981981975235976,
+              "n_pred_spells": 194,
+              "n_gt_spells": 253
+            },
+            "weighted": {
+              "spell_f1": 0.6070686070686071,
+              "macro_f1": 0.8624248443910406,
+              "n_pred_spells": 228,
+              "n_gt_spells": 253
+            },
+            "team": {
+              "auc": 0.9627066685768769,
+              "auc_ball_unseen": 0.95269978160341
+            },
+            "delta_spell_f1_pp": 12.92162580753185
+          },
+          "thinned": {
+            "control": {
+              "spell_f1": 0.4778523489932886,
+              "macro_f1": 0.799540939055514,
+              "n_pred_spells": 194,
+              "n_gt_spells": 253
+            },
+            "weighted": {
+              "spell_f1": 0.6103950103950103,
+              "macro_f1": 0.862870786428476,
+              "n_pred_spells": 228,
+              "n_gt_spells": 253
+            },
+            "team": {
+              "auc": 0.9627880990228039,
+              "auc_ball_unseen": 0.9527963813562588
+            },
+            "delta_spell_f1_pp": 13.254266140172172,
+            "players": {
+              "mean_ball_seen": 20.290092675354,
+              "mean_ball_unseen": 19.053108152904024,
+              "unseen_below_16": 0.14315124657605946,
+              "team_gap_unseen": 0.8795470802728684
+            }
+          },
+          "persistent": {
+            "control": {
+              "spell_f1": 0.4785553047404064,
+              "macro_f1": 0.8051812069274226,
+              "n_pred_spells": 190,
+              "n_gt_spells": 253
+            },
+            "weighted": {
+              "spell_f1": 0.617954070981211,
+              "macro_f1": 0.8632142026888941,
+              "n_pred_spells": 226,
+              "n_gt_spells": 253
+            },
+            "team": {
+              "auc": 0.9634010984753533,
+              "auc_ball_unseen": 0.9542812031831277
+            },
+            "delta_spell_f1_pp": 13.93987662408046,
+            "players": {
+              "mean_ball_seen": 20.290092675354,
+              "mean_ball_unseen": 19.053108152904024,
+              "unseen_below_16": 0.14315124657605946,
+              "team_gap_unseen": 0.8650313170612558
+            }
+          }
+        },
+        "1": {
+          "standard": {
+            "control": {
+              "spell_f1": 0.4926503340757239,
+              "macro_f1": 0.805333868480192,
+              "n_pred_spells": 196,
+              "n_gt_spells": 253
+            },
+            "weighted": {
+              "spell_f1": 0.6215644820295984,
+              "macro_f1": 0.862700063390096,
+              "n_pred_spells": 220,
+              "n_gt_spells": 253
+            },
+            "team": {
+              "auc": 0.9629379933050752,
+              "auc_ball_unseen": 0.9663656476419501
+            },
+            "delta_spell_f1_pp": 12.891414795387446
+          },
+          "thinned": {
+            "control": {
+              "spell_f1": 0.488,
+              "macro_f1": 0.8041069145156515,
+              "n_pred_spells": 197,
+              "n_gt_spells": 253
+            },
+            "weighted": {
+              "spell_f1": 0.6193277310924369,
+              "macro_f1": 0.8633353787055672,
+              "n_pred_spells": 223,
+              "n_gt_spells": 253
+            },
+            "team": {
+              "auc": 0.9628207327856829,
+              "auc_ball_unseen": 0.9659181115545777
+            },
+            "delta_spell_f1_pp": 13.13277310924369,
+            "players": {
+              "mean_ball_seen": 20.2643286692468,
+              "mean_ball_unseen": 19.118691108446118,
+              "unseen_below_16": 0.14272742847353093,
+              "team_gap_unseen": 0.8239849237622067
+            }
+          },
+          "persistent": {
+            "control": {
+              "spell_f1": 0.4908685968819599,
+              "macro_f1": 0.8049169003728168,
+              "n_pred_spells": 196,
+              "n_gt_spells": 253
+            },
+            "weighted": {
+              "spell_f1": 0.6197894736842106,
+              "macro_f1": 0.8640371302759463,
+              "n_pred_spells": 222,
+              "n_gt_spells": 253
+            },
+            "team": {
+              "auc": 0.9624235847384278,
+              "auc_ball_unseen": 0.9652215584852342
+            },
+            "delta_spell_f1_pp": 12.892087680225067,
+            "players": {
+              "mean_ball_seen": 20.2643286692468,
+              "mean_ball_unseen": 19.118691108446118,
+              "unseen_below_16": 0.14272742847353093,
+              "team_gap_unseen": 0.8237793387013878
+            }
+          }
+        },
+        "2": {
+          "standard": {
+            "control": {
+              "spell_f1": 0.4868008948545861,
+              "macro_f1": 0.804192609392396,
+              "n_pred_spells": 194,
+              "n_gt_spells": 253
+            },
+            "weighted": {
+              "spell_f1": 0.6413223140495867,
+              "macro_f1": 0.8667274587819597,
+              "n_pred_spells": 231,
+              "n_gt_spells": 253
+            },
+            "team": {
+              "auc": 0.9632285496458906,
+              "auc_ball_unseen": 0.9596604776974768
+            },
+            "delta_spell_f1_pp": 15.452141919500061
+          },
+          "thinned": {
+            "control": {
+              "spell_f1": 0.4928571428571429,
+              "macro_f1": 0.807808694703238,
+              "n_pred_spells": 195,
+              "n_gt_spells": 253
+            },
+            "weighted": {
+              "spell_f1": 0.6342268041237114,
+              "macro_f1": 0.8667599246762819,
+              "n_pred_spells": 232,
+              "n_gt_spells": 253
+            },
+            "team": {
+              "auc": 0.9632738492701485,
+              "auc_ball_unseen": 0.9598261583873096
+            },
+            "delta_spell_f1_pp": 14.136966126656848,
+            "players": {
+              "mean_ball_seen": 20.262545828176446,
+              "mean_ball_unseen": 19.13748037884266,
+              "unseen_below_16": 0.14039048307730295,
+              "team_gap_unseen": 0.81969699641969
+            }
+          },
+          "persistent": {
+            "control": {
+              "spell_f1": 0.5073825503355704,
+              "macro_f1": 0.8217820146604172,
+              "n_pred_spells": 194,
+              "n_gt_spells": 253
+            },
+            "weighted": {
+              "spell_f1": 0.6525879917184266,
+              "macro_f1": 0.8692959157841599,
+              "n_pred_spells": 230,
+              "n_gt_spells": 253
+            },
+            "team": {
+              "auc": 0.9633253136586383,
+              "auc_ball_unseen": 0.9600630422829806
+            },
+            "delta_spell_f1_pp": 14.520544138285619,
+            "players": {
+              "mean_ball_seen": 20.262545828176446,
+              "mean_ball_unseen": 19.13748037884266,
+              "unseen_below_16": 0.14039048307730295,
+              "team_gap_unseen": 0.826187410712711
+            }
+          }
+        }
+      }
+    },
+    {
+      "held_out": "J03WR9",
+      "seeds": {
+        "0": {
+          "standard": {
+            "control": {
+              "spell_f1": 0.3887058823529412,
+              "macro_f1": 0.797579923372087,
+              "n_pred_spells": 163,
+              "n_gt_spells": 262
+            },
+            "weighted": {
+              "spell_f1": 0.5452173913043479,
+              "macro_f1": 0.8504487002881671,
+              "n_pred_spells": 198,
+              "n_gt_spells": 262
+            },
+            "team": {
+              "auc": 0.961667254805639,
+              "auc_ball_unseen": 0.9607924121868145
+            },
+            "delta_spell_f1_pp": 15.65115089514067
+          },
+          "thinned": {
+            "control": {
+              "spell_f1": 0.38779342723004695,
+              "macro_f1": 0.7962729358495517,
+              "n_pred_spells": 164,
+              "n_gt_spells": 262
+            },
+            "weighted": {
+              "spell_f1": 0.5359477124183007,
+              "macro_f1": 0.8501080757604628,
+              "n_pred_spells": 197,
+              "n_gt_spells": 262
+            },
+            "team": {
+              "auc": 0.9612544151722122,
+              "auc_ball_unseen": 0.9601403851820639
+            },
+            "delta_spell_f1_pp": 14.81542851882538,
+            "players": {
+              "mean_ball_seen": 20.45467791947404,
+              "mean_ball_unseen": 19.113987939171473,
+              "unseen_below_16": 0.143238725747247,
+              "team_gap_unseen": 0.818268222338752
+            }
+          },
+          "persistent": {
+            "control": {
+              "spell_f1": 0.3839243498817967,
+              "macro_f1": 0.7936965727635643,
+              "n_pred_spells": 161,
+              "n_gt_spells": 262
+            },
+            "weighted": {
+              "spell_f1": 0.5504347826086956,
+              "macro_f1": 0.8502578577683141,
+              "n_pred_spells": 198,
+              "n_gt_spells": 262
+            },
+            "team": {
+              "auc": 0.962082516439613,
+              "auc_ball_unseen": 0.9612864712108481
+            },
+            "delta_spell_f1_pp": 16.65104327268989,
+            "players": {
+              "mean_ball_seen": 20.45467791947404,
+              "mean_ball_unseen": 19.113987939171473,
+              "unseen_below_16": 0.143238725747247,
+              "team_gap_unseen": 0.8161706869428421
+            }
+          }
+        },
+        "1": {
+          "standard": {
+            "control": {
+              "spell_f1": 0.366903073286052,
+              "macro_f1": 0.7775624868188152,
+              "n_pred_spells": 161,
+              "n_gt_spells": 262
+            },
+            "weighted": {
+              "spell_f1": 0.5598233995584989,
+              "macro_f1": 0.8431451050067249,
+              "n_pred_spells": 191,
+              "n_gt_spells": 262
+            },
+            "team": {
+              "auc": 0.9617438222650904,
+              "auc_ball_unseen": 0.9596335752428212
+            },
+            "delta_spell_f1_pp": 19.292032627244694
+          },
+          "thinned": {
+            "control": {
+              "spell_f1": 0.366903073286052,
+              "macro_f1": 0.7784486613675679,
+              "n_pred_spells": 161,
+              "n_gt_spells": 262
+            },
+            "weighted": {
+              "spell_f1": 0.5665198237885463,
+              "macro_f1": 0.8422236947291863,
+              "n_pred_spells": 192,
+              "n_gt_spells": 262
+            },
+            "team": {
+              "auc": 0.9618521916576067,
+              "auc_ball_unseen": 0.9595886392812858
+            },
+            "delta_spell_f1_pp": 19.96167505024943,
+            "players": {
+              "mean_ball_seen": 20.472398542588053,
+              "mean_ball_unseen": 19.129056641806088,
+              "unseen_below_16": 0.14269636498017874,
+              "team_gap_unseen": 0.8096317946650541
+            }
+          },
+          "persistent": {
+            "control": {
+              "spell_f1": 0.3745283018867925,
+              "macro_f1": 0.7843079086971673,
+              "n_pred_spells": 162,
+              "n_gt_spells": 262
+            },
+            "weighted": {
+              "spell_f1": 0.5652747252747252,
+              "macro_f1": 0.8416775446992099,
+              "n_pred_spells": 193,
+              "n_gt_spells": 262
+            },
+            "team": {
+              "auc": 0.9612648117933588,
+              "auc_ball_unseen": 0.9584526420378834
+            },
+            "delta_spell_f1_pp": 19.074642338793275,
+            "players": {
+              "mean_ball_seen": 20.472398542588053,
+              "mean_ball_unseen": 19.129056641806088,
+              "unseen_below_16": 0.14269636498017874,
+              "team_gap_unseen": 0.8184001881341127
+            }
+          }
+        },
+        "2": {
+          "standard": {
+            "control": {
+              "spell_f1": 0.4169265033407572,
+              "macro_f1": 0.7895726855467057,
+              "n_pred_spells": 187,
+              "n_gt_spells": 262
+            },
+            "weighted": {
+              "spell_f1": 0.5257641921397379,
+              "macro_f1": 0.8464988554169931,
+              "n_pred_spells": 196,
+              "n_gt_spells": 262
+            },
+            "team": {
+              "auc": 0.961582299955045,
+              "auc_ball_unseen": 0.9648987220587716
+            },
+            "delta_spell_f1_pp": 10.88376887989807
+          },
+          "thinned": {
+            "control": {
+              "spell_f1": 0.41959910913140314,
+              "macro_f1": 0.7898931448881958,
+              "n_pred_spells": 187,
+              "n_gt_spells": 262
+            },
+            "weighted": {
+              "spell_f1": 0.5269565217391304,
+              "macro_f1": 0.8479009730501832,
+              "n_pred_spells": 198,
+              "n_gt_spells": 262
+            },
+            "team": {
+              "auc": 0.9616651942007606,
+              "auc_ball_unseen": 0.9652308528778653
+            },
+            "delta_spell_f1_pp": 10.73574126077273,
+            "players": {
+              "mean_ball_seen": 20.463558795276036,
+              "mean_ball_unseen": 19.145083583369054,
+              "unseen_below_16": 0.1405572224603515,
+              "team_gap_unseen": 0.8117788255465066
+            }
+          },
+          "persistent": {
+            "control": {
+              "spell_f1": 0.4241610738255034,
+              "macro_f1": 0.7937434606082657,
+              "n_pred_spells": 185,
+              "n_gt_spells": 262
+            },
+            "weighted": {
+              "spell_f1": 0.5495652173913043,
+              "macro_f1": 0.847963520667879,
+              "n_pred_spells": 198,
+              "n_gt_spells": 262
+            },
+            "team": {
+              "auc": 0.9608894583980719,
+              "auc_ball_unseen": 0.9631800708842299
+            },
+            "delta_spell_f1_pp": 12.540414356580087,
+            "players": {
+              "mean_ball_seen": 20.463558795276036,
+              "mean_ball_unseen": 19.145083583369054,
+              "unseen_below_16": 0.1405572224603515,
+              "team_gap_unseen": 0.8265923703386198
+            }
+          }
+        }
+      }
+    }
+  ],
+  "summary": {
+    "standard": {
+      "mean_pp": 16.10817989496922,
+      "better": 21,
+      "runs": 21,
+      "verdict": "mantener",
+      "per_seed_mean_pp": {
+        "0": 16.0134492753891,
+        "1": 17.126748858633295,
+        "2": 15.184341550885275
+      },
+      "min_pp": 10.88376887989807,
+      "max_pp": 20.131993400329982
+    },
+    "thinned": {
+      "mean_pp": 15.835356266360364,
+      "better": 21,
+      "runs": 21,
+      "verdict": "mantener",
+      "per_seed_mean_pp": {
+        "0": 15.504503968089738,
+        "1": 17.246759871123235,
+        "2": 14.754804959868116
+      },
+      "min_pp": 10.73574126077273,
+      "max_pp": 20.441542404909356
+    },
+    "persistent": {
+      "mean_pp": 16.27897708205905,
+      "better": 21,
+      "runs": 21,
+      "verdict": "mantener",
+      "per_seed_mean_pp": {
+        "0": 16.364906474240822,
+        "1": 17.03687124948428,
+        "2": 15.435153522452044
+      },
+      "min_pp": 12.540414356580087,
+      "max_pp": 19.911504424778748
+    }
+  },
+  "verdict": "mantener",
+  "reproduces_lomo": true,
+  "lomo_problems": [],
+  "spec": {
+    "rachas_sin_balon": 150,
+    "media_sin_balon_fr": 430.9533333333333,
+    "max_sin_balon_fr": 5537,
+    "fraccion_sin_balon": 0.40692572565263097,
+    "tramos_de_slot": 1218,
+    "media_tramo_fr": 2672.0607553366176,
+    "objetos_media": 20.487419503075092,
+    "objetos_media_sin_balon": 19.165849357238987,
+    "step_sigma_m": 0.0006709917215630412
+  },
+  "atd_players": {
+    "mean_ball_seen": 21.394187700341774,
+    "mean_ball_unseen": 19.16584935723899,
+    "unseen_below_16": 0.1428306235787324,
+    "team_gap_unseen": 1.34198598456136
+  },
+  "simulated_players": {
+    "thinned": {
+      "mean_ball_seen": 20.369641007793927,
+      "mean_ball_unseen": 19.079508845686256,
+      "unseen_below_16": 0.14213436376045016,
+      "team_gap_unseen": 0.8644465952445213
+    },
+    "persistent": {
+      "mean_ball_seen": 20.369641007793927,
+      "mean_ball_unseen": 19.079508845686256,
+      "unseen_below_16": 0.14213436376045016,
+      "team_gap_unseen": 0.87128440000424
+    }
+  },
+  "settings": {
+    "weight": 2.0,
+    "decision_arm": "persistent",
+    "keep": [
+      5.0,
+      15
+    ],
+    "revert": [
+      1.0,
+      11
+    ]
+  }
+}

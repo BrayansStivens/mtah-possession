@@ -43,16 +43,22 @@ class Spec:
     una familia parametrica ni acertar con ella."""
 
     __slots__ = ("ball_absent_runs", "ball_present_runs", "slot_runs",
-                 "n_tracked_values", "n_tracked_probs", "step_sigma_m")
+                 "n_tracked_values", "n_tracked_probs", "step_sigma_m",
+                 "n_tracked_unseen_values", "n_tracked_unseen_probs")
 
     def __init__(self, ball_absent_runs, ball_present_runs, slot_runs,
-                 n_tracked_values, n_tracked_probs, step_sigma_m):
+                 n_tracked_values, n_tracked_probs, step_sigma_m,
+                 n_tracked_unseen_values=None, n_tracked_unseen_probs=None):
         self.ball_absent_runs = ball_absent_runs
         self.ball_present_runs = ball_present_runs
         self.slot_runs = slot_runs
         self.n_tracked_values = n_tracked_values
         self.n_tracked_probs = n_tracked_probs
         self.step_sigma_m = step_sigma_m
+        # Histograma de objetos solo en los frames sin balon. Lo usa `thin_where_ball_unseen`;
+        # `apply` no lo mira, asi que la degradacion de siempre no cambia.
+        self.n_tracked_unseen_values = n_tracked_unseen_values
+        self.n_tracked_unseen_probs = n_tracked_unseen_probs
 
     def summary(self):
         a, p = self.ball_absent_runs, self.ball_present_runs
@@ -64,6 +70,9 @@ class Spec:
             "tramos_de_slot": len(self.slot_runs),
             "media_tramo_fr": float(self.slot_runs.mean()) if len(self.slot_runs) else 0.0,
             "objetos_media": float((self.n_tracked_values * self.n_tracked_probs).sum()),
+            "objetos_media_sin_balon": (
+                float((self.n_tracked_unseen_values * self.n_tracked_unseen_probs).sum())
+                if self.n_tracked_unseen_values is not None else None),
             "step_sigma_m": float(self.step_sigma_m),
         }
 
@@ -97,6 +106,13 @@ def estimate(tracking, blocks):
 
     n_tracked = visible[graded].sum(axis=1)
     values, counts = np.unique(n_tracked, return_counts=True)
+    # El mismo histograma solo donde falta el balon: en el ATD faltan jugadores justo ahi
+    # (19,2 de media sin balon frente a 21,4 con el, ESTADO.md §6).
+    unseen_values = unseen_probs = None
+    if (~seen).any():
+        unseen_values, unseen_counts = np.unique(n_tracked[~seen], return_counts=True)
+        unseen_values = unseen_values.astype(np.int32)
+        unseen_probs = (unseen_counts / unseen_counts.sum()).astype(np.float64)
 
     # Ruido de posicion: desviacion tipica del paso entre frames consecutivos, que en un
     # tracking limpio es movimiento real y en uno ruidoso es movimiento mas jitter. Se usa
@@ -112,6 +128,8 @@ def estimate(tracking, blocks):
         n_tracked_values=values.astype(np.int32),
         n_tracked_probs=(counts / counts.sum()).astype(np.float64),
         step_sigma_m=step_sigma,
+        n_tracked_unseen_values=unseen_values,
+        n_tracked_unseen_probs=unseen_probs,
     )
 
 
@@ -249,6 +267,55 @@ def _thin_to_histogram(players_xy, players_speed, spec, rng):
             players_xy[i, drop] = np.nan
             players_speed[i, drop] = np.nan
     return players_xy, players_speed
+
+
+def thin_where_ball_unseen(tracking, spec, rng, persistent=False):
+    """Tracking nuevo con menos jugadores **solo en los frames sin balon**, como en el ATD.
+
+    `apply` iguala el histograma de objetos del ATD en todo el partido, pero lo hace igual
+    con y sin balon; en el ATD faltan jugadores justo cuando falta el balon. Esto se aplica
+    despues de `apply` y no toca nada mas: mismo balon, mismos jugadores en los frames con
+    balon, y en los frames sin balon solo quita.
+
+    El numero objetivo de cada frame sin balon sale de emparejar cuantiles: el frame con
+    menos jugadores recibe el objetivo mas bajo del histograma sin balon, y asi en orden.
+    Asi la distribucion final es la del ATD (salvo donde ya habia menos, que se queda como
+    esta), en vez del minimo de dos tiradas independientes, que quitaria de mas. Los que se
+    quitan se eligen al azar, igual que en `_thin_to_histogram`.
+
+    `persistent=False` sortea los que se quitan en cada frame: parpadean, y las ventanas de
+    1 a 8 s de las senales de equipo promedian ese ruido. `persistent=True` sortea una vez
+    por racha sin balon: los mismos slots desaparecen durante toda la racha, que es como
+    pierde el ATD un track (tramos de ~2700 frames de media). Mismo histograma por frame.
+    """
+    if spec.n_tracked_unseen_values is None:
+        raise ValueError("el spec no tiene histograma sin balon; vuelve a medirlo con estimate()")
+    xy = tracking.players_xy.copy()
+    sp = tracking.players_speed.copy()
+    frames = np.flatnonzero(~tracking.ball_seen)
+    if len(frames):
+        live = np.isfinite(xy[frames, :, 0])
+        count = live.sum(axis=1)
+        target_sorted = np.sort(rng.choice(spec.n_tracked_unseen_values, size=len(frames),
+                                           p=spec.n_tracked_unseen_probs))
+        order = np.lexsort((rng.random(len(frames)), count))
+        target = np.empty(len(frames), dtype=np.int64)
+        target[order] = target_sorted
+        excess = np.maximum(count - target, 0)
+        if persistent:
+            run_id = np.cumsum(np.diff(frames, prepend=frames[0] - 2) > 1) - 1
+            keys = rng.random((int(run_id[-1]) + 1, live.shape[1]))[run_id]
+        else:
+            keys = rng.random(live.shape)
+        keys[~live] = np.inf
+        rank = np.argsort(np.argsort(keys, axis=1), axis=1)
+        drop = rank < excess[:, None]
+        rows, slots = np.nonzero(drop)
+        xy[frames[rows], slots] = np.nan
+        sp[frames[rows], slots] = np.nan
+    return Tracking(ball_xy=tracking.ball_xy, ball_speed=tracking.ball_speed, players_xy=xy,
+                    players_speed=sp, team_of_slot=tracking.team_of_slot,
+                    home_name=tracking.home_name, away_name=tracking.away_name)
 
 
 def apply(tracking, spec, rng=None, position_noise=True, rho=0.9, gap_weights=None):

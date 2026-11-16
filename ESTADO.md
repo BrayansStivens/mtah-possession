@@ -1,4 +1,4 @@
-# Estado del proyecto — 15 de noviembre de 2026
+# Estado del proyecto — 16 de noviembre de 2026
 
 Documento para el equipo. Este repositorio tiene dos partes:
 
@@ -21,9 +21,9 @@ no está medido, se dice.
 | Métrica de ranking | **spellF1** (posesiones acertadas por solape temporal). Desempate: macroF1 por frame |
 | Mínimo oficial a superar | **0,2433** (`baseline_smooth50`) |
 | **Dónde estamos, medido** | **0,4073** de media en 7 partidos de Bundesliga degradados para parecerse a nuestros datos, dejando cada partido fuera del entrenamiento del detector (0,3965 sin el detector de fronteras). El Smart Tagging (8-11) suma **+0,5 a +0,9 pp estimados** con un tagging simulado: el IDSSE no tiene uno real, así que esa parte no es medible del todo (§2) |
-| **Con el clasificador de equipo** | **0,5712** en esos mismos 7 partidos con el **clasificador de equipo sin balón** (del 12-11, en `main` desde el 15-11), frente a 0,4111 del mismo modelo sin él: **+16,0 pp**, con el clasificador y su peso elegidos sin ver el partido que se puntúa. En tres semillas de degradación, +16,1 pp de media y mejor en las 21 ejecuciones. **Es una cota optimista**: el IDSSE degradado conserva a los jugadores cuando falta el balón y nuestro partido no; con huecos colocados como en el partido real baja a +12,6 pp (§2) |
+| **Con el clasificador de equipo** | **0,5712** en esos mismos 7 partidos con el **clasificador de equipo sin balón** (del 12-11, en `main` desde el 15-11), frente a 0,4111 del mismo modelo sin él: **+16,0 pp**, con el clasificador y su peso elegidos sin ver el partido que se puntúa. En tres semillas de degradación, +16,1 pp de media y mejor en las 21 ejecuciones. **Es una cota optimista**: con huecos colocados como en el partido real baja a +12,6 pp (§2). Quitando jugadores donde falta el balón como los pierde nuestro partido (16-11), **aguanta: +16,3 pp, 21 de 21** (§2) |
 | En los 5 minutos públicos | 0,4148 (0,4444 sin el tagging, 0,4903 sin el detector); con el clasificador de equipo, 0,6286 — **lectura, no criterio**: 17 posesiones, una fallada mueve 6 puntos |
-| Lo que genera `main` | Desde el 15-11, `config.py` tal cual está genera el CSV con el clasificador de equipo (sha256 `a43c52fb…`; pasa el validador oficial; 120 tests en verde; **reproducido al byte en una segunda máquina el 15-11**, §6). **El CSV que se envíe tiene que ser el que genera `main`.** La entrega anterior, del 8-11 (`e7938350…`), sale con `team_classifier_weight = 0`. Con `smart_tagging_team_weight = 0` además sale la del 7-11 (`5d97eccc…`), y con `boundary_discount_weight = 0` además la del 31-10 (`73c361d5…`) |
+| Lo que genera `main` | Desde el 15-11, `config.py` tal cual está genera el CSV con el clasificador de equipo (sha256 `a43c52fb…`; pasa el validador oficial; 139 tests en verde desde el 16-11; **reproducido al byte el 16-11 desde un clon nuevo con un venv recién creado, en Windows y en Linux**, §2). **El CSV que se envíe tiene que ser el que genera `main`.** La entrega anterior, del 8-11 (`e7938350…`), sale con `team_classifier_weight = 0`. Con `smart_tagging_team_weight = 0` además sale la del 7-11 (`5d97eccc…`), y con `boundary_discount_weight = 0` además la del 31-10 (`73c361d5…`) |
 | Qué configuración lleva | la de `config.py`; cada valor tiene escrito al lado de dónde sale. **Ninguno viene ya de los 5 minutos públicos** (prohibido desde el 22-10) |
 
 Si todo se parase hoy, hay algo válido que entregar y está 15 puntos por encima del mínimo.
@@ -70,6 +70,9 @@ Es la pieza que convirtió "no podemos medir" en "podemos medir en siete partido
   descenso por coordenadas en 4 partidos de ajuste, comprobación en 3 de validación).
 - `team_classifier.py` (12-11): el leave-one-match-out anidado del clasificador de equipo y,
   con `export`, el modelo guardado. Misma estructura que `boundaries.py` para el detector.
+- `missing_players.py` (16-11): la prueba de estrés del clasificador con jugadores perdidos
+  donde falta el balón (`degrade.thin_where_ball_unseen`), con su regla de decisión en el
+  docstring. Mide el ATD, así que necesita `MTAH_DATA_DIR`.
 
 ### Las decisiones medidas (cronología)
 
@@ -92,6 +95,9 @@ Es la pieza que convirtió "no podemos medir" en "podemos medir en siete partido
 | 15 nov | La rama `equipo-sin-balon` se mergea en `main`: el clasificador de equipo entra en lo que genera `config.py` | `main` genera `a43c52fb…` (pasa el validador, 120 tests); con `team_classifier_weight = 0` sale `e7938350…` al byte. No se midió nada nuevo: valen los números y los límites del 12-11 | `config.py` |
 | 15 nov | Dashboard regenerado con la entrega de hoy: las tablas llevan ahora «con detector» y «hoy (con clasificador)», cada partido puntuado con modelos que no lo vieron | los 14 partidos-config reproducen exactamente `equipo_sin_balon_lomo.json`; por posesiones, el recall pasa de 0,33 a 0,50 y el techo de spellF1 de 0,50 a 0,67; las posesiones de menos de 5 s recuperadas, de una de cada doce a una de cada cinco | `regenera_equipo.py`, `datos/clasificador_equipo*.json`, `datos/lectura_publica.json` |
 | 15 nov | **Reproducción en una segunda máquina** (Simon, Windows 11): `main` en `f49dc9c`, Python 3.12.2 con las versiones exactas de `requirements.txt`, datos leídos del Drive de la organización y la caché del tracking apartada para parsear el `_atd.txt` desde cero | `build` da **`a43c52fb…` al byte** y pasa el validador; con `team_classifier_weight = 0`, `e7938350…` al byte; 120 tests en verde; los dos modelos cargan con su sha256. `scripts/reproduce.sh` **no arranca en Windows desde Git Bash** (ver §7) | `config.py`, `scripts/reproduce.sh` |
+| 16 nov | **`reproduce.sh` y `env.sh` arreglados para Windows** (Git Bash): con `cygpath` pasan `PYTHONPATH` en formato Windows y con `;`; en Linux y macOS no cambia nada. `reproduce.sh` se para si el Python es < 3.12 y acepta `PYTHON=...` | con Python 3.11 se para con el aviso; con el venv da `a43c52fb…` | `scripts/reproduce.sh`, `scripts/env.sh` |
+| 16 nov | **Reproducción limpia en dos sistemas**, como la harían los organizadores: `git clone` de GitHub (rama `medicion-jugadores-sin-balon`, `68fb042`), venv recién creado, `pip install -r requirements-dev.txt` (numpy 2.5.4, pandas 3.0.6, scikit-learn 1.8.0, pytest 9.0.1), `./scripts/reproduce.sh FC_Medallo` sin caché previa. (1) Windows 11, Python 3.12.2, Git Bash, datos leídos del Drive. (2) Linux, Ubuntu 24.04 en WSL2, Python 3.12.3, clon en el sistema de ficheros de Linux, los cuatro ficheros tácticos copiados del Drive (sin vídeo) | **los dos dan `a43c52fb…` al byte**, pasan el validador y **139 tests en verde**. 46 s en Windows y 17 s en Linux. En Ubuntu `python3.12-venv` no venía instalado; se hizo el venv con `--without-pip` y `get-pip.py` (sin sudo). Falta una máquina que no sea la de Simon | `scripts/reproduce.sh` |
+| 15-16 nov | **Prueba de estrés del clasificador de equipo con jugadores perdidos sin balón** (ver abajo). Mismos modelos que se entregaron y peso 2,0 fijo; regla de decisión escrita y commiteada antes de correr. **No cambia nada de la entrega** | **+16,28 pp** spellF1 con los mismos jugadores ausentes toda la racha sin balón, **21 de 21 mejoran** (de +12,5 a +19,9 pp); +15,84 pp si se sortean en cada frame; la degradación de siempre reproduce la tabla del 12-11 al decimal (+16,11 pp). Decisión: **se mantiene `a43c52fb…`** | `training/missing_players.py`, `degrade.thin_where_ball_unseen`, `datos/equipo_sin_balon_jugadores.json` |
 
 **Qué entró el 7-11 desde `DeteccionPosesionBalon`** (la otra línea, hecha sin acceso a este repo):
 
@@ -296,7 +302,8 @@ mergeó en `main`. Abajo, "la candidata" es la salida con el clasificador (`a43c
   1. *El arnés conserva a los jugadores y BAR-ATH no.* En BAR-ATH hay 19,2 jugadores seguidos de media cuando
      falta el balón y 21,4 cuando está, y el 14,3 % de los frames sin balón tienen menos de 16 (1,0 % con
      balón). En el IDSSE degradado son 20,4 y 6,4 % en los dos casos. El clasificador se midió con equipos casi
-     completos justo donde aquí faltan jugadores. **No se ha medido cuánto pierde con 16 a 19 jugadores.**
+     completos justo donde aquí faltan jugadores. **Medido el 16-11 (bloque siguiente): no pierde nada.** Queda
+     abierto que en BAR-ATH faltan más de un equipo que de otro que en la prueba.
   2. *Los huecos del arnés caen al azar.* BAR-ATH pierde el balón sobre todo con los jugadores parados (93,9 % de
      frames sin balón en el tramo de menos actividad, 9,8 % en el de más). Recolocando los huecos según la
      actividad la ganancia baja a **+12,55 pp** (7 de 7), solo en la semilla 0 y con una curva más suave que la
@@ -314,6 +321,53 @@ mergeó en `main`. Abajo, "la candidata" es la salida con el clasificador (`a43c
   0,358 / 0,207 / 0,436, frente a 0,357 / 0,194 / 0,449. En la ventana pública lee 0,6286 de spellF1 (0,4148 la
   entrega), macroF1 0,8643 (0,8003) y 11 posesiones predichas de 17 (10). **Lectura, no criterio**: en el mismo
   experimento dos clasificadores más débiles subían en el IDSSE y bajaban a 0,3333 en esa ventana.
+
+**La prueba de jugadores perdidos sin balón, 15-16 nov** (`python -m mtah.training.missing_players`, 7 min con
+las cachés hechas; tabla completa en `datos/equipo_sin_balon_jugadores.json`; rama `medicion-jugadores-sin-balon`).
+Cierra el punto 1 de "Qué no dice" de arriba. **La entrega no cambia.**
+
+- **Qué se hizo.** `degrade.thin_where_ball_unseen` quita jugadores solo en los frames sin balón hasta el
+  histograma de objetos que tiene BAR-ATH sin balón, emparejando cuantiles. No toca el balón ni los frames con
+  balón, y la degradación de siempre no cambia (hay test). Dos brazos con el mismo histograma por frame:
+  `thinned`, que sortea en cada frame qué jugadores faltan (parpadean y las ventanas de 1 a 8 s de las señales
+  promedian el ruido: la versión fácil), y `persistent`, que sortea una vez por racha sin balón y los deja fuera
+  toda la racha, como un track perdido del ATD (tramos de ~2.700 frames de media). **Decide `persistent`.**
+- **Qué no se tocó.** Los modelos son los de la medición del 12-11 tal cual: para cada partido de fuera,
+  clasificador y detector entrenados con los otros 6 con la degradación de siempre (semilla 0). Peso 2,0 de
+  `config.py`, fijo. No se eligió nada.
+- **Regla de decisión, escrita y commiteada antes de correr** (`bc6e2c5`, `7a33004`). Sobre las 21 ejecuciones
+  de `persistent`: media ≥ +5 pp y ≥ 15 de 21 mejoran → se mantiene `a43c52fb…`; media ≤ +1 pp o < 11 de 21 →
+  se vuelve a `e7938350…`; en medio, se mantiene y se documenta. Si `thinned` ya dijera volver, bastaba.
+- **El arnés es el mismo.** La degradación de siempre, puntuada en la misma ejecución, reproduce
+  `datos/equipo_sin_balon_lomo.json` sin ninguna discrepancia (21 ejecuciones, control y peso 2,0).
+- **Los jugadores salen como en BAR-ATH** (frames puntuados del ATD contra los 7 partidos × 3 semillas):
+
+  | | objetos con balón | objetos sin balón | sin balón, < 16 | \|local − visitante\| sin balón |
+  |---|---|---|---|---|
+  | BAR-ATH (ATD, sin etiquetas) | 21,39 | 19,17 | 14,3 % | 1,34 |
+  | IDSSE degradado de siempre | ~20,4 | ~20,4 | ~6,4 % | |
+  | Prueba, `thinned` y `persistent` | 20,37 | 19,08 | 14,2 % | 0,86 y 0,87 |
+
+- **Resultado.** Diferencia de spellF1 con el clasificador (peso 2,0) contra sin él, partido de fuera:
+
+  | degradación | semilla 0 | semilla 1 | semilla 2 | media | mejoran | peor / mejor ejecución | macroF1 | spellF1 sin → con |
+  |---|---|---|---|---|---|---|---|---|
+  | de siempre (12-11) | +16,01 | +17,13 | +15,18 | +16,11 pp | 21 de 21 | +10,9 / +20,1 | +6,46 pp | 0,415 → 0,576 |
+  | `thinned` | +15,50 | +17,25 | +14,75 | +15,84 pp | 21 de 21 | +10,7 / +20,4 | +6,37 pp | 0,417 → 0,575 |
+  | **`persistent`** | **+16,36** | **+17,04** | **+15,44** | **+16,28 pp** | **21 de 21** | **+12,5 / +19,9** | +6,42 pp | 0,416 → 0,579 |
+
+  Por partido (`persistent`, semillas 0 / 1 / 2): J03WMX +18,0 / +16,1 / +13,8; J03WN1 +12,8 / +15,0 / +13,5;
+  J03WOH +13,7 / +16,9 / +15,9; J03WOY +19,5 / +19,9 / +18,2; J03WPY +19,9 / +19,4 / +19,7; J03WQQ +13,9 / +12,9 /
+  +14,5; J03WR9 +16,7 / +19,1 / +12,5. El AUC de equipo en los frames sin balón apenas se mueve: 0,907 a 0,966
+  frente a 0,911 a 0,966. Predice 207 posesiones por partido (206 antes; 278 reales).
+- **Decisión: se mantiene `a43c52fb…`.** Perder 1 o 2 de ~20 jugadores casi no cambia la anchura, las líneas ni
+  las velocidades medias de un equipo en 1 a 8 s, que es lo que lee el clasificador.
+- **Qué sigue sin ver.** (1) En BAR-ATH las ausencias están más desequilibradas entre equipos: 1,34 jugadores de
+  diferencia media sin balón frente a 0,87 en la prueba, que quita sin mirar el equipo. Con el AUC tan estable no
+  parece que vaya a cambiar la decisión, pero no está medido. (2) Quién falta: aquí al azar; en el ATD
+  seguramente los lejanos a la cámara o los amontonados. (3) Los huecos sin balón siguen al azar; esta prueba no
+  se ha combinado con la de huecos colocados por actividad (+12,6 pp, solo semilla 0). (4) En los frames con
+  balón la prueba se queda en 20,4 objetos frente a 21,4 de BAR-ATH: solo se puede quitar, no inventar.
 
 ### Los documentos (`trabajo/`)
 
@@ -384,10 +438,11 @@ Quedan seis días. Lo que se hace, quién, y en qué orden:
 | cuándo | qué | quién | cómo se sabe que está |
 |---|---|---|---|
 | hasta el 14 | **Los saques del Smart Tagging como equipo que saca** (córners y saques de puerta; los de banda van con `N/A`). Es lo que falta en los huecos largos: sin balón la emisión da P(H) = P(A) y el modelo vive de la inercia, dure 5 s o 266 s el hueco. A diferencia de las fases, esto **sí se mide de verdad**: el IDSSE trae los eventos de saque con equipo, no hay que simular nada | Simon | mismo LOMO anidado de §2; entra solo si gana en validación y se cuenta con su intervalo |
-| hasta el 14 | **Reproducción en máquina limpia**: clonar, `pip install -r requirements.txt`, `source scripts/env.sh`, `build`, y que salga el sha256 `a43c52fb…` en `main` (desde el merge del 15-11; antes `e7938350…`). La entrega depende ahora de dos pickles con versión exacta de scikit-learn y de Python ≥ 3.12; si falla, falla en manos de los organizadores. Ojo: `python -m mtah` necesita `PYTHONPATH=src` (lo pone `env.sh`) o instalar el paquete. **Hecho el 15-11 en la máquina de Simon: sale `a43c52fb…` al byte** (§2, cronología). No fue del todo limpia (venv ya existente, sin clonar de nuevo) | Brayan / Simon | el sha coincide en una máquina que no sea la nuestra ✅ |
+| hasta el 14 | **Reproducción en máquina limpia**: clonar, `pip install -r requirements.txt`, `source scripts/env.sh`, `build`, y que salga el sha256 `a43c52fb…` en `main` (desde el merge del 15-11; antes `e7938350…`). La entrega depende ahora de dos pickles con versión exacta de scikit-learn y de Python ≥ 3.12; si falla, falla en manos de los organizadores. Ojo: `python -m mtah` necesita `PYTHONPATH=src` (lo pone `env.sh`) o instalar el paquete. **Hecho el 15-11 en la máquina de Simon: sale `a43c52fb…` al byte** (§2, cronología), y **el 16-11 en limpio**: clon nuevo de GitHub y venv recién creado, en Windows 11 y en Linux (Ubuntu 24.04, WSL2); los dos dan `a43c52fb…` al byte y 139 tests en verde | Brayan / Simon | el sha coincide en una máquina que no sea la nuestra ✅ |
 | **viernes 14** | **Decidir y congelar la entrega.** Cuatro candidatas, reproducibles con tres valores de `config.py`: la del 31-10 (`73c361d5…`, 0,3965 medido), con detector (`5d97eccc…`, 0,4073 medido fuera de muestra), con detector + tagging (`e7938350…`, +0,6 pp *estimados* encima, intervalo que incluye el cero) y, desde el 12-11, con el clasificador de equipo sin balón encima de todo (`a43c52fb…`, rama `equipo-sin-balon`, +16,1 pp medidos fuera de muestra en el IDSSE, +12,6 pp con huecos como los reales; cota optimista, §2). **El 15-11 la rama se mergeó en `main`**: `config.py` tal cual genera `a43c52fb…`. Volver a la del 8-11 es poner `team_classifier_weight = 0`. Después del 14 no se toca ningún hiperparámetro: el 31-10 se vio que la mitad de cada ganancia de rejilla era sobreajuste | todos | `config.py` congelado y el sha de la entrega escrito en §1 |
 | 14-16 | **El documento técnico corto** (2-3 páginas): qué hace el modelo, cómo se midió, qué no sabemos. Sale de este fichero | Brayan | PDF en `trabajo/` |
 | 16 | **Repo público: ya lo es desde el 30-10** (comprobado el 14-11). Queda: auditoría de `data/` (se hace en cada push), atribución a la DFL (ya está), `vendor/NOTICE.md`, decidir si `trabajo/` se queda | Brayan | el repo es público y el validador pasa sobre el CSV entregado |
+| 15-16 | **Prueba de jugadores perdidos sin balón** sobre la entrega, con la regla de decisión escrita antes de correr. **Hecha: se mantiene `a43c52fb…`** (+16,28 pp, 21 de 21; §2) | Simon | `datos/equipo_sin_balon_jugadores.json`; ESTADO al día ✅ |
 | — | **`detector-balon` se aparca** sin mergear. Lo único que se rescata es su sección de documentación (qué se probó y por qué no da más), para no repetir el experimento. Si se retoma, su siguiente paso está escrito: simular el relleno *con sus errores* en el IDSSE antes de tocar el pipeline | — | — |
 
 Convenciones del equipo, para que el historial sea uniforme: commits en español y sin líneas
@@ -402,8 +457,8 @@ Nada de esto está empezado salvo que se diga.
 2. **Dejar el repositorio listo para hacerlo público.** Antes de publicar: comprobar otra vez
    que no entra nada de `data/` (hoy: 0 ficheros, auditado en cada push), citar el paper del
    IDSSE y acreditar a la DFL (**condición de la licencia CC-BY, no cortesía**), revisar
-   `vendor/NOTICE.md`, y probar la reproducción en una máquina limpia (**hecho en parte el
-   15-11**: una segunda máquina da el mismo sha256, pero con un venv ya existente; ver §6).
+   `vendor/NOTICE.md`, y probar la reproducción en una máquina limpia (**hecho el 16-11**:
+   clon nuevo y venv recién creado en Windows y en Linux, mismo sha256; ver §2).
 3. **Un detector de balón propio sobre el vídeo** (la línea de visión). La curva de visibilidad
    (§2, 7-11) dice que merece la pena *si llega*: subir al 70 % de balón visible vale unos
    +2 pp, y al 80 % unos +3,5 pp. Pero el plan lo estima en 7,5 días, quedan 10 hasta la
@@ -469,11 +524,11 @@ usan, por los motivos del `README.md` (no separan jugada de parada; otra línea 
 - **No se ha medido la dispersión de los centros de clase** (solo la mediana), así que no se
   puede juzgar cuán separables son H y A por esas señales.
 - **No hay intervalos por partido**: una evaluación por partido y configuración.
-- **La reproducción en una segunda máquina está hecha, pero no del todo limpia.** El 15-11, en
-  la máquina de Simon (Windows 11, Python 3.12.2, versiones exactas), `main` genera
-  `a43c52fb…` al byte con los datos del Drive y el tracking parseado desde cero. Falta un clon
-  nuevo con un venv recién creado, y en Linux, que es donde más probablemente lo corran los
-  organizadores. En Windows `./scripts/reproduce.sh` no arranca desde Git Bash (§7).
+- **La reproducción limpia está hecha, pero en un solo ordenador.** El 16-11, desde un clon
+  nuevo de GitHub y un venv recién creado, `./scripts/reproduce.sh` da `a43c52fb…` al byte en
+  Windows 11 (Python 3.12.2) y en Linux (Ubuntu 24.04 en WSL2, Python 3.12.3), con 139 tests
+  en verde (§2). Los dos sistemas corren en la máquina de Simon; no se ha probado en macOS ni
+  en otra máquina física. En Linux faltaba `python3.12-venv` y se resolvió sin sudo (§7).
 - **No se ha ejecutado SAST, linting en CI ni pruebas de carga**; los tests son unitarios y de
   contrato.
 - **No consta que se haya probado el lector con los datos de muestra de Metrica** (fase E de
@@ -481,11 +536,13 @@ usan, por los motivos del `README.md` (no separan jugada de parada; otra línea 
 - **La vía supervisada solo está medida en el arnés**: el detector de fronteras gana +1,1 pp
   en Bundesliga degradada y +0,4 a +1,1 pp con los huecos colocados de forma adversa; si
   transfiere a BAR-ATH no se puede comprobar (el Smart Tagging sale neutro).
-- **El clasificador de equipo (en `main` desde el 15-11) solo está medido con equipos casi completos.**
-  El IDSSE degradado conserva a los jugadores cuando falta el balón; BAR-ATH pierde de media dos y
-  en el 14 % de esos frames quedan menos de 16. No se ha corrido la degradación que los quita, ni
-  los huecos realistas en las semillas 1 y 2, ni se han reajustado los costes de cambio con el
-  clasificador puesto. Los +16,1 pp son una cota superior de lo que cabe esperar aquí.
+- **El clasificador de equipo (en `main` desde el 15-11) está medido en Bundesliga degradada, no aquí.**
+  La falta de jugadores sin balón ya está medida (16-11): con el histograma de BAR-ATH y los mismos
+  jugadores ausentes toda la racha gana +16,28 pp, igual que sin quitarlos (§2). Sigue sin medirse: el
+  desequilibrio entre equipos de esas ausencias (1,34 jugadores en BAR-ATH, 0,87 en la prueba), los
+  huecos colocados por actividad en las semillas 1 y 2 (y combinados con los jugadores perdidos), el
+  clasificador junto al Smart Tagging (el IDSSE no lo trae) y los costes de cambio reajustados con el
+  clasificador puesto. Los +16 pp siguen siendo una cota superior; con huecos realistas fueron +12,6.
 - **El peso del Smart Tagging sale de un tagging simulado**, no del real: cuánto acierta el de
   Metrica no se puede medir sin etiquetas, solo acotar por su acuerdo con nuestra emisión.
 
@@ -496,7 +553,7 @@ usan, por los motivos del `README.md` (no separan jugada de parada; otra línea 
 ```bash
 python3.12 -m venv .venv && source .venv/bin/activate   # numpy 2.5.4 pide Python >= 3.12
 pip install -r requirements-dev.txt
-python -m pytest -q                      # 120 tests
+python -m pytest -q                      # 139 tests
 ```
 
 Para regenerar la entrega hacen falta los datos del partido (no están en el repo, no pueden
@@ -508,23 +565,32 @@ python -m mtah status
 ./scripts/reproduce.sh FC_Medallo        # -> out/FC_Medallo.csv
 ```
 
-En Windows desde Git Bash, `reproduce.sh` falla con `No module named mtah`: exporta
-`PYTHONPATH` como ruta POSIX (`/d/...:`) y el Python de Windows no la entiende. Mientras no se
-arregle, se corren a mano sus tres pasos con la ruta en formato Windows:
+`reproduce.sh` funciona en Linux, macOS y Windows con Git Bash (desde el 16-11; antes fallaba
+en Windows con `No module named mtah`). Se para si el Python es < 3.12; `PYTHON=...` elige el
+intérprete. Lo que se corrió el 16-11 para la reproducción limpia:
 
 ```bash
-export PYTHONPATH="$(cygpath -w "$PWD/src")"
+# Windows, Git Bash (el 'python' del sistema puede no ser 3.12: se usa el del venv)
+git clone https://github.com/BrayansStivens/mtah-possession.git && cd mtah-possession
+py -3.12 -m venv .venv && .venv/Scripts/python.exe -m pip install -r requirements-dev.txt
 export MTAH_DATA_DIR='<carpeta del Drive que contiene tactical/>'
-.venv/Scripts/python.exe -m mtah status
-.venv/Scripts/python.exe -m mtah build --out out/FC_Medallo.csv   # ~40 s
-.venv/Scripts/python.exe -m mtah validate out/FC_Medallo.csv
-sha256sum out/FC_Medallo.csv                                      # a43c52fb…
+PYTHON=.venv/Scripts/python.exe ./scripts/reproduce.sh FC_Medallo   # ~45 s
+sha256sum out/FC_Medallo.csv                                         # a43c52fb…
+
+# Linux (Ubuntu 24.04). Si falta python3.12-venv y no hay sudo:
+#   python3.12 -m venv --without-pip .venv && curl -sS https://bootstrap.pypa.io/get-pip.py | .venv/bin/python
+python3.12 -m venv .venv && source .venv/bin/activate && pip install -r requirements-dev.txt
+export MTAH_DATA_DIR=<carpeta con tactical/>    # basta atd.xml, atd.txt y smart_tagging.xml
+./scripts/reproduce.sh FC_Medallo                                    # ~20 s
+sha256sum out/FC_Medallo.csv                                         # a43c52fb…
 ```
 
 Para rehacer las mediciones del arnés hace falta además `pip install -r requirements-train.txt`
 (kloppy, para descargar el IDSSE). La primera llamada a `idsse.load` descarga cada partido (~2 min
 cada uno) y lo deja en `out/cache/`; después `python -m mtah.training.boundaries`,
-`python -m mtah.training.visibility` y `python -m mtah.training.team_classifier` corren en minutos. Los
+`python -m mtah.training.visibility`, `python -m mtah.training.team_classifier` y
+`python -m mtah.training.missing_players` (este con `MTAH_DATA_DIR`; ~4 min de preparación y 3 de
+evaluación en la máquina de Simon) corren en minutos. Los
 scripts de `trabajo/handoff-plugin-data/` se escribieron para correr desde la carpeta de
 trabajo original (`~/Documents/Hackaton/`) con rutas absolutas; cada uno dice arriba qué hace
 y qué fichero produce.
