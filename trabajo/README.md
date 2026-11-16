@@ -40,7 +40,7 @@ completas por solape temporal, no frames sueltos. El minimo oficial a batir es
 | `handoff-plugin-data/datos/` | Tablas de resultados en JSON y CSV. |
 | `handoff-plugin-data/*.py` | Los scripts que producen esas tablas. |
 | `handoff-plugin-data/regenera_datos.py` | Rehace los ficheros que alimentan el dashboard del equipo con el `config.py` de hoy (comprueba antes que reproduce los del 28-10). Correr tras cada cambio de `config.py`. |
-| `sin-balon-1111/RESUMEN.md` | Diagnostico de los frames sin balon (11 y 12-11) y las ideas que salieron; sus scripts y tablas de agregados estan al lado. De aqui sale el clasificador de equipo de la rama `equipo-sin-balon`. |
+| `sin-balon-1111/RESUMEN.md` | Diagnostico de los frames sin balon (11 y 12-11) y las ideas que salieron; sus scripts y tablas de agregados estan al lado. De aqui sale el clasificador de equipo (rama `equipo-sin-balon`, en `main` desde el 15-11). |
 | `figuras/` | Graficas para los documentos. |
 
 ## Estado de las mediciones (31-10-2026)

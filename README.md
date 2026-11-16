@@ -125,7 +125,7 @@ local donde existen, el 40 % de los frames. El IDSSE no tiene tagging, así que 
 con uno simulado sobre sus etiquetas y calibrado por su acuerdo con nuestra emisión en este
 partido (`training/team_tags.py`, ver `ESTADO.md`): +0,5 a +0,9 pp estimados.
 
-Desde el 12-11, y como candidato hasta el congelado del 14, un **clasificador de equipo sin
+Desde el 12-11, y en `main` desde el 15-11, un **clasificador de equipo sin
 balón**: gradient boosting que lee de quién es la posesión en la forma y el movimiento de los
 dos equipos (anchura, líneas de defensa y de ataque, velocidad hacia la portería rival,
 sprints), cada uno medido en su propio sentido de ataque, y suma su logit ×2 al de local.
