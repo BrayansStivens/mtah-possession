@@ -11,7 +11,7 @@ goal, so "the block pushes up" means the same thing in both halves. The attackin
 comes from the tracking itself, with no labels or metadata (`attack_direction`).
 
 **Why only six.** The Nov 11-12 experiment measured nine
-(`trabajo/sin-balon-1111/SUMMARY.md`). The centroid, the block length and the fraction of
+(`analysis/no-ball-1111/SUMMARY.md`). The centroid, the block length and the fraction of
 players in the opponent's half are left out: they are the ones that best tell the challenge
 match apart from the IDSSE ones (a domain classifier separates them with AUC 0.93; with
 these six, 0.72) and dropping them costs almost nothing (team AUC 0.9518 -> 0.9506).

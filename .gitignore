@@ -1,6 +1,8 @@
 # The match data is NOT redistributable (see the competition's terms).
 # The submission repo is public: none of this may get in.
-data/
+# Anchored to the root (where MTAH_DATA_DIR points by default): analysis/handoff-plugin-data/data/
+# holds result tables that must be committed.
+/data/
 *.mp4
 *_atd.txt
 *_homography.csv
@@ -12,7 +14,7 @@ out/
 !vendor/evaluation/gt/*.csv
 # The results tables of the analysis material do get in (they are model outputs and
 # aggregates over public matches, never match data).
-!trabajo/**/*.csv
+!analysis/**/*.csv
 evaluation/results/
 reports/
 

@@ -7,19 +7,19 @@ match is decoded with models that did not see it, as in `mtah.training.team_clas
 (degradation seed 0):
 
     detector  = config.py with the boundary detector of the other 6 matches and without the
-                team classifier. It is the "control" of datos/equipo_sin_balon_lomo.json
+                team classifier. It is the "control" of data/equipo_sin_balon_lomo.json
     equipo    = the same plus the team classifier of the other 6, with weight 2.0. It is the
                 "chosen" of that file: the weight came out 2.0 in all 7 folds
 
 IDSSE has no Smart Tagging, so neither of the two carries it.
 
 Before writing anything it checks that each match reproduces exactly the spellF1, the
-macroF1 and the possessions of datos/equipo_sin_balon_lomo.json, that the diagnostic
+macroF1 and the possessions of data/equipo_sin_balon_lomo.json, that the diagnostic
 categories have the same size as those of regenera_datos.py (same degradation) and that
 out/submission.csv is the one main generates. If anything does not add up, it writes
 nothing.
 
-Usage:  source scripts/env.sh && python trabajo/handoff-plugin-data/regenera_equipo.py
+Usage:  source scripts/env.sh && python analysis/handoff-plugin-data/regenera_equipo.py
 """
 
 import hashlib
@@ -46,7 +46,7 @@ NUEVAS = (("detector", "Con detector (7-11)", 5, 0.0),
           ("equipo", "Hoy (con clasificador)", 6, 2.0))
 ETIQUETA_RECALIBRADO = "Recalibrado (31-10)"
 LOMO = json.load(open(os.path.join(R.DATOS, "equipo_sin_balon_lomo.json")))
-SIN_BALON = os.path.join(AQUI, "..", "sin-balon-1111")
+SIN_BALON = os.path.join(AQUI, "..", "no-ball-1111")
 # The submissions kept in out/, to re-read them on the 5 public minutes.
 ENTREGAS = (("31-10", "submission_31-10_73c361d5.csv", "73c361d5", "recalibrada"),
             ("8-11", "submission_0811_e7938350.csv", "e7938350", "con detector y Smart Tagging"),
@@ -275,7 +275,7 @@ def main():
         print("   gaps %-9s seed %-5s %.4f -> %.4f  %+.2f pp  %d of %d" % (
             r["huecos"], r["semilla"], r["sin_clasificador"], r["con_clasificador"],
             r["ganancia_pp"], r["mejoran"], r["ejecuciones"]))
-    print("\nwrote 8 files in datos/")
+    print("\nwrote 8 files in data/")
 
 
 if __name__ == "__main__":

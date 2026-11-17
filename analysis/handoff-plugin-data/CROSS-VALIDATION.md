@@ -11,7 +11,7 @@ degradation seeds 1 and 2, which none of them saw.
 > section; it qualifies the finding that "the grid falls short" without invalidating the rest.
 
 Scripts: `splits.py` (the 35 descents) and the consensus check. Data:
-`datos/splits_cruzados.json`, `datos/consenso_splits.json`. Only `out/cache` was read (degraded
+`data/splits_cruzados.json`, `data/consenso_splits.json`. Only `out/cache` was read (degraded
 external matches): neither the ATD nor the public window was touched.
 
 ---
@@ -86,7 +86,7 @@ make each evaluation more expensive. If someone repeats this with another grid, 
 of magnitude.
 
 Scripts: `splits.py ampliada` (the new arm) and `compara_rejillas.py` (the paired table
-above). Data: `datos/splits_cruzados_ampliada.json`.
+above). Data: `data/splits_cruzados_ampliada.json`.
 
 ---
 
@@ -117,7 +117,7 @@ The coincidence is just that: the current 50 is justified with the IDSSE matches
 and nothing else. Had the measurement given 25, it would be 25. It is written that way in `config.py`
 so that nobody reads the change as a return to the old value.
 
-Script: `activity_smooth.py`. Data: `datos/activity_smooth.json`.
+Script: `activity_smooth.py`. Data: `data/activity_smooth.json`.
 
 ### Checked against the real match
 

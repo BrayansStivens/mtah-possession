@@ -13,7 +13,8 @@ The `.pdf` files are the Oct 28 versions of the `.md` files of the same name, ke
 
 The competition terms forbid redistributing the match assets:
 video, ATD tracking, homography and Smart Tagging. **None of that is here** —
-`.gitignore` excludes `data/` and `staging-*/`, and they must not be un-ignored.
+`.gitignore` excludes the root `/data/` folder (where the match assets go) and `staging-*/`, and
+they must not be un-ignored.
 
 What is here, and is safe to share:
 
@@ -37,20 +38,24 @@ by temporal overlap, not individual frames. The official minimum to beat is
 | `../docs/external-data.md` | Research on external data for a supervised model. |
 | `handoff-plugin-data/VALIDATION.md` | Validation of the current model, finding by finding. |
 | `handoff-plugin-data/CROSS-VALIDATION.md` | The 35 splits. **Corrects `VALIDATION.md`** on everything related to overfitting. |
-| `handoff-plugin-data/datos/` | Results tables in JSON and CSV. |
+| `handoff-plugin-data/data/` | Results tables in JSON and CSV. |
 | `handoff-plugin-data/*.py` | The scripts that produce those tables. |
 | `handoff-plugin-data/regenera_datos.py` | Regenerates the files that feed the team dashboard with today's `config.py` (it first checks that it reproduces the Oct 28 ones). Run after every change to `config.py`. |
-| `handoff-plugin-data/regenera_equipo.py` | Adds to those files the two configurations that carry models trained on the IDSSE (boundary detector and team classifier), each match scored with models that did not see it. It first checks that it reproduces `datos/equipo_sin_balon_lomo.json`. Run after `regenera_datos.py`. |
-| `handoff-plugin-data/datos/equipo_sin_balon_jugadores.json` | Nov 16 stress test: the team classifier with missing players where the ball is missing, as in the ATD. It comes from `python -m mtah.training.missing_players` (a copy of `out/missing_players.json`). Summary in `STATUS.md` §2. |
-| `sin-balon-1111/SUMMARY.md` | Diagnosis of the frames without the ball (Nov 11 and 12) and the ideas that came out of it; its scripts and aggregate tables are alongside. The team classifier comes from here (branch `equipo-sin-balon`, in `main` since Nov 15). |
+| `handoff-plugin-data/regenera_equipo.py` | Adds to those files the two configurations that carry models trained on the IDSSE (boundary detector and team classifier), each match scored with models that did not see it. It first checks that it reproduces `data/equipo_sin_balon_lomo.json`. Run after `regenera_datos.py`. |
+| `handoff-plugin-data/data/equipo_sin_balon_jugadores.json` | Nov 16 stress test: the team classifier with missing players where the ball is missing, as in the ATD. It comes from `python -m mtah.training.missing_players` (a copy of `out/missing_players.json`). Summary in `STATUS.md` §2. |
+| `no-ball-1111/SUMMARY.md` | Diagnosis of the frames without the ball (Nov 11 and 12) and the ideas that came out of it; its scripts and aggregate tables are alongside. The team classifier comes from here (branch `equipo-sin-balon`, in `main` since Nov 15). |
 | `../docs/figures/` | Charts for the documents. |
+
+The file names of the tables and scripts, and the keys inside the JSON and CSV files, are kept
+in Spanish on purpose: the scripts and the team dashboard read them by name, so renaming them
+would break the dashboard feed.
 
 ## Measurement status (Oct 31, 2026)
 
 The team dashboard (private claude.ai artifact, "Posesion FC Medallo")
 was regenerated on Nov 2 with these same numbers and on Nov 15 with those of the
 boundary detector and the team classifier (`regenera_equipo.py`); its files are those in
-`handoff-plugin-data/datos/`.
+`handoff-plugin-data/data/`.
 
 On the 7 external matches, with `config.py` exactly as it is today (degradation
 seed 0):

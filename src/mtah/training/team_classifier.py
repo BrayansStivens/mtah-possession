@@ -28,7 +28,7 @@ keeps the players; the ATD loses it mostly with the players standing still, and 
 also missing players (19.2 tracked on average without the ball, 21.4 with it). A domain
 classifier separates the signals of the challenge match from those of the IDSSE with
 AUC 0.72 (0.53 between IDSSE matches), so the gain here is an optimistic bound on the
-challenge match's. Details in trabajo/sin-balon-1111/SUMMARY.md.
+challenge match's. Details in analysis/no-ball-1111/SUMMARY.md.
 
 Usage:  python -m mtah.training.team_classifier           measurement -> out/team_classifier.json
         python -m mtah.training.team_classifier export    the submission's artifact

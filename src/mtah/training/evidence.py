@@ -42,7 +42,7 @@ from . import boundaries, harness, idsse
 
 pm = ev.pm
 
-LOMO_RESULTS_PATH = os.path.join(REPO_ROOT, "trabajo", "handoff-plugin-data", "datos",
+LOMO_RESULTS_PATH = os.path.join(REPO_ROOT, "analysis", "handoff-plugin-data", "data",
                                  "fronteras_lomo_anidado.json")
 DATA_DIR = os.path.dirname(LOMO_RESULTS_PATH)
 

@@ -5,8 +5,8 @@ Document for the team. This repository has two parts:
 - **The submission** (`src/`, `tests/`, `vendor/`, `scripts/`): the code that generates the CSV that
   gets scored. The repo has been public on GitHub since Oct 30 (until Nov 14 this file said it
   was private, and it was not; see §5). Read `README.md`.
-- **The analysis** (`trabajo/`): analysis, documents, measurement scripts and result tables.
-  It is the material the decisions were made with. Read `trabajo/README.md`.
+- **The analysis** (`analysis/`): analysis, documents, measurement scripts and result tables.
+  It is the material the decisions were made with. Read `analysis/README.md`.
 
 Everything claimed here is measured, and the file that backs it is named next to it. If something
 is not measured, it says so.
@@ -79,25 +79,25 @@ It is the piece that turned "we can't measure" into "we can measure on seven ful
 | Date | What | Result | Where |
 |---|---|---|---|
 | Oct 22-23 | The rules change: the 5 public min are not a fit set; no manual labeling | 16 values of `config.py` became inadmissible | `docs/analysis-and-proposal.md` §1 |
-| Oct 28 | Full recalibration on IDSSE, without the public window | 7 values changed; +1.2 pp on the 3 validation matches | `trabajo/handoff-plugin-data/datos/recalibracion.json` |
-| Oct 29 | Audit of the analysis | "it did not overfit" **did not hold up**; validation is easier than the fit | `trabajo/handoff-plugin-data/VALIDATION.md` |
-| Oct 29-30 | Cross-validation: the whole procedure, over the **35 possible partitions** of 4 fit / 3 validation | **+1.71 pp** outside the fit set (95% CI [+1.37, +2.05], 32/35) and +3.27 pp inside → it transfers, and **half of the gain is overfitting** | `CROSS-VALIDATION.md`, `datos/splits_cruzados.json` |
-| Oct 31 | Expanded grid (64 → 82 values), same 35 partitions, paired comparison | +0.62 pp on fit, **−0.13 pp on validation** (14/35): discarded | `datos/splits_cruzados_ampliada.json`, `compara_rejillas.py` |
-| Oct 31 | `activity_smooth` 12 → 50 | +1.11 pp on validation, positive in all 3 seeds, neutral on fit; dead-ball rate 44.9% like IDSSE | `datos/activity_smooth.json` |
+| Oct 28 | Full recalibration on IDSSE, without the public window | 7 values changed; +1.2 pp on the 3 validation matches | `analysis/handoff-plugin-data/data/recalibracion.json` |
+| Oct 29 | Audit of the analysis | "it did not overfit" **did not hold up**; validation is easier than the fit | `analysis/handoff-plugin-data/VALIDATION.md` |
+| Oct 29-30 | Cross-validation: the whole procedure, over the **35 possible partitions** of 4 fit / 3 validation | **+1.71 pp** outside the fit set (95% CI [+1.37, +2.05], 32/35) and +3.27 pp inside → it transfers, and **half of the gain is overfitting** | `CROSS-VALIDATION.md`, `data/splits_cruzados.json` |
+| Oct 31 | Expanded grid (64 → 82 values), same 35 partitions, paired comparison | +0.62 pp on fit, **−0.13 pp on validation** (14/35): discarded | `data/splits_cruzados_ampliada.json`, `compara_rejillas.py` |
+| Oct 31 | `activity_smooth` 12 → 50 | +1.11 pp on validation, positive in all 3 seeds, neutral on fit; dead-ball rate 44.9% like IDSSE | `data/activity_smooth.json` |
 | Oct 31 | Three wrongly quoted numbers in `config.py` fixed; rounding convention for the centers | the file produces exactly what it says | `config.py` docstring, commits `0e1560e`, `d805776` |
 | Nov 2 | Dashboard data regenerated with today's `config.py` | they reproduce those of Oct 28 in everything that does not depend on the config | `regenera_datos.py` |
 | Nov 7 | Ported the useful parts of `DeteccionPosesionBalon` (see below). **The submission does not change**: CSV identical byte for byte before and after (sha256 `73c361d5…`) | 73 tests green (55 + 18) | `io/atd.py`, `features/tagging.py`, `decode/viterbi.py`, `training/weak_labels.py` |
-| Nov 7 | **Boundary detector** trained on IDSSE, measured with nested leave-one-match-out and three arms (see below) | **+1.17 pp** spellF1 and +1.12 pp macroF1 over the previous model (21 runs, 16 improve); **+1.07 pp over making changes more expensive without a detector, positive in all 7 matches** | `training/boundaries.py`, `datos/fronteras_lomo_anidado.json` |
+| Nov 7 | **Boundary detector** trained on IDSSE, measured with nested leave-one-match-out and three arms (see below) | **+1.17 pp** spellF1 and +1.12 pp macroF1 over the previous model (21 runs, 16 improve); **+1.07 pp over making changes more expensive without a detector, positive in all 7 matches** | `training/boundaries.py`, `data/fronteras_lomo_anidado.json` |
 | Nov 7 | **The detector goes into the submission.** Trained with the 7 matches; weight 0.95 and scale 2.0 chosen with the same procedure, out of sample | re-exporting gives the same model byte for byte; the submission changes in 3.8% of the scored frames (369 → 333 segments) | `models/boundary_detector.{joblib,json}`, `config.py` |
-| Nov 7 | Ball visibility curve (Step zero of `plan-detector-balon.md`) | **it is not flat**: from 59% to 70 / 80 / 90% visible ball it gives +2.2 / +3.5 / +6.3 pp, recovering the easy ones first, in all 7 matches | `training/visibility.py`, `datos/curva_visibilidad.json` |
-| Nov 11-12 | Diagnosis of the ball-absent frames, and nine team signals that do not look at the ball | per-frame accuracy 87.5% with the ball seen and 74.5% without it; of the possessions with 75-100% of ball-absent frames, 15.0% are recovered; without the ball the dominant failure is the swapped team (13.3% of those frames) | `trabajo/sin-balon-1111/SUMMARY.md`, `diag.json` |
-| Nov 12 | **Team classifier without the ball**, integrated as a candidate in the `equipo-sin-balon` branch (see below). **The submission does not change** | **+16.11 pp** spellF1 and +6.46 pp macroF1 over the model without it, nested LOMO, 7 matches × 3 seeds, **21 of 21 improve** (from +10.9 to +20.1 pp); +12.6 pp with gaps placed as in the real match (seed 0, 7 of 7) | `features/team_signals.py`, `models/team_classifier.{py,joblib,json}`, `training/team_classifier.py`, `datos/equipo_sin_balon_lomo.json` |
+| Nov 7 | Ball visibility curve (Step zero of `plan-detector-balon.md`) | **it is not flat**: from 59% to 70 / 80 / 90% visible ball it gives +2.2 / +3.5 / +6.3 pp, recovering the easy ones first, in all 7 matches | `training/visibility.py`, `data/curva_visibilidad.json` |
+| Nov 11-12 | Diagnosis of the ball-absent frames, and nine team signals that do not look at the ball | per-frame accuracy 87.5% with the ball seen and 74.5% without it; of the possessions with 75-100% of ball-absent frames, 15.0% are recovered; without the ball the dominant failure is the swapped team (13.3% of those frames) | `analysis/no-ball-1111/SUMMARY.md`, `diag.json` |
+| Nov 12 | **Team classifier without the ball**, integrated as a candidate in the `equipo-sin-balon` branch (see below). **The submission does not change** | **+16.11 pp** spellF1 and +6.46 pp macroF1 over the model without it, nested LOMO, 7 matches × 3 seeds, **21 of 21 improve** (from +10.9 to +20.1 pp); +12.6 pp with gaps placed as in the real match (seed 0, 7 of 7) | `features/team_signals.py`, `models/team_classifier.{py,joblib,json}`, `training/team_classifier.py`, `data/equipo_sin_balon_lomo.json` |
 | Nov 15 | The `equipo-sin-balon` branch is merged into `main`: the team classifier enters what `config.py` generates | `main` generates `a43c52fb…` (passes the validator, 120 tests); with `team_classifier_weight = 0` it comes out `e7938350…` byte for byte. Nothing new was measured: the numbers and limits of Nov 12 hold | `config.py` |
-| Nov 15 | Dashboard regenerated with today's submission: the tables now carry "with detector" and "today (with classifier)", each match scored with models that did not see it | the 14 match-configs reproduce `equipo_sin_balon_lomo.json` exactly; by possessions, recall goes from 0.33 to 0.50 and the spellF1 ceiling from 0.50 to 0.67; the possessions under 5 s that are recovered, from one in twelve to one in five | `regenera_equipo.py`, `datos/clasificador_equipo*.json`, `datos/lectura_publica.json` |
+| Nov 15 | Dashboard regenerated with today's submission: the tables now carry "with detector" and "today (with classifier)", each match scored with models that did not see it | the 14 match-configs reproduce `equipo_sin_balon_lomo.json` exactly; by possessions, recall goes from 0.33 to 0.50 and the spellF1 ceiling from 0.50 to 0.67; the possessions under 5 s that are recovered, from one in twelve to one in five | `regenera_equipo.py`, `data/clasificador_equipo*.json`, `data/lectura_publica.json` |
 | Nov 15 | **Reproduction on a second machine** (Simon, Windows 11): `main` at `f49dc9c`, Python 3.12.2 with the exact versions of `requirements.txt`, data read from the organization's Drive and the tracking cache set aside to parse the `_atd.txt` from scratch | `build` gives **`a43c52fb…` byte for byte** and passes the validator; with `team_classifier_weight = 0`, `e7938350…` byte for byte; 120 tests green; the two models load with their sha256. `scripts/reproduce.sh` **does not start on Windows from Git Bash** (see §7) | `config.py`, `scripts/reproduce.sh` |
 | Nov 16 | **`reproduce.sh` and `env.sh` fixed for Windows** (Git Bash): with `cygpath` they pass `PYTHONPATH` in Windows format and with `;`; on Linux and macOS nothing changes. `reproduce.sh` stops if Python is < 3.12 and accepts `PYTHON=...` | with Python 3.11 it stops with the warning; with the venv it gives `a43c52fb…` | `scripts/reproduce.sh`, `scripts/env.sh` |
 | Nov 16 | **Clean reproduction on two systems**, as the organizers would do it: `git clone` from GitHub (branch `medicion-jugadores-sin-balon`, `68fb042`), freshly created venv, `pip install -r requirements-dev.txt` (numpy 2.5.4, pandas 3.0.6, scikit-learn 1.8.0, pytest 9.0.1), `./scripts/reproduce.sh FC_Medallo` with no previous cache. (1) Windows 11, Python 3.12.2, Git Bash, data read from the Drive. (2) Linux, Ubuntu 24.04 on WSL2, Python 3.12.3, clone on the Linux file system, the four tactical files copied from the Drive (no video) | **both give `a43c52fb…` byte for byte**, pass the validator and **139 tests green**. 46 s on Windows and 17 s on Linux. On Ubuntu `python3.12-venv` was not installed; the venv was made with `--without-pip` and `get-pip.py` (no sudo). A machine other than Simon's is still missing | `scripts/reproduce.sh` |
-| Nov 15-16 | **Stress test of the team classifier with missing players without the ball** (see below). The same models that were submitted and fixed weight 2.0; decision rule written and committed before running. **Nothing in the submission changes** | **+16.28 pp** spellF1 with the same players absent for the whole ball-absent run, **21 of 21 improve** (from +12.5 to +19.9 pp); +15.84 pp if they are drawn at every frame; the usual degradation reproduces the Nov 12 table to the decimal (+16.11 pp). Decision: **`a43c52fb…` is kept** | `training/missing_players.py`, `degrade.thin_where_ball_unseen`, `datos/equipo_sin_balon_jugadores.json` |
+| Nov 15-16 | **Stress test of the team classifier with missing players without the ball** (see below). The same models that were submitted and fixed weight 2.0; decision rule written and committed before running. **Nothing in the submission changes** | **+16.28 pp** spellF1 with the same players absent for the whole ball-absent run, **21 of 21 improve** (from +12.5 to +19.9 pp); +15.84 pp if they are drawn at every frame; the usual degradation reproduces the Nov 12 table to the decimal (+16.11 pp). Decision: **`a43c52fb…` is kept** | `training/missing_players.py`, `degrade.thin_where_ball_unseen`, `data/equipo_sin_balon_jugadores.json` |
 
 **What came in on Nov 7 from `DeteccionPosesionBalon`** (the other line, done without access to this repo):
 
@@ -152,7 +152,7 @@ It is the piece that turned "we can't measure" into "we can measure on seven ful
 - **What it does not say.** It is degraded Bundesliga; on BAR-ATH there is no way to measure it (the public window is not a criterion).
   What could be checked, on Nov 7, is in the next point.
 - **The three tests showing it contributes** (`python -m mtah.training.evidence stress | tagging`; tables in
-  `trabajo/handoff-plugin-data/datos/evidencia_*.json`). With random gaps the run reproduces the LOMO above
+  `analysis/handoff-plugin-data/data/evidencia_*.json`). With random gaps the run reproduces the LOMO above
   bit for bit, and the script fails if it does not.
   1. **Stress: the ball is lost where it hurts.** The same detector, weight and scale of each fold (trained and
      chosen with random gaps, like the submission), but the left-out match is degraded with the gaps centered
@@ -217,7 +217,7 @@ It improves in all 7 matches at every level. The column that counts is the right
 visibility. The slope is the reliable part; the level is inflated because the degradation spreads the gaps at random.
 
 **Smart Tagging as team evidence, since Nov 8** (`python -m mtah.training.team_tags` and `... robust`;
-tables in `datos/smart_tagging_lomo.json` and `smart_tagging_robustez.json`).
+tables in `data/smart_tagging_lomo.json` and `smart_tagging_robustez.json`).
 
 - **Why.** In IDSSE, 60% of the missed frames are home mistaken for away (71% with the ball visible). The
   Metrica phases with a team (BUILD UP, PROGRESSION, CREATING CHANCES, LONG BALL and the DEFENDING IN * as mirror images)
@@ -252,8 +252,8 @@ tables in `datos/smart_tagging_lomo.json` and `smart_tagging_robustez.json`).
   same 10 predicted possessions and the same 6 hits at IoU 0.5, with worse overlap on one (counted on Nov 11).
 
 **The team classifier without the ball, from Nov 12, in `main` since Nov 15** (`python -m mtah.training.team_classifier` and
-`... export`; table in `datos/equipo_sin_balon_lomo.json`; the earlier exploration, with what was discarded, in
-`trabajo/sin-balon-1111/SUMMARY.md`). It was integrated as a candidate in the `equipo-sin-balon` branch and on Nov 15 it was
+`... export`; table in `data/equipo_sin_balon_lomo.json`; the earlier exploration, with what was discarded, in
+`analysis/no-ball-1111/SUMMARY.md`). It was integrated as a candidate in the `equipo-sin-balon` branch and on Nov 15 it was
 merged into `main`. Below, "the candidate" is the output with the classifier (`a43c52fb…`) and "the submission" is the
 Nov 8 one (`e7938350…`).
 
@@ -261,7 +261,7 @@ Nov 8 one (`e7938350…`).
   emission drags along the last thing it saw. On degraded IDSSE the per-frame accuracy is 87.5% with the ball seen and
   74.5% without it, and of the possessions that pass with 75% or more of their frames without the ball only 15.0% are
   recovered. Without the ball the dominant failure is the swapped team (13.3% of those frames), ahead of the invented
-  dead ball (8.2%) and the missed dead ball (4.1%) (`sin-balon-1111/diag.json`, seed 0).
+  dead ball (8.2%) and the missed dead ball (4.1%) (`no-ball-1111/diag.json`, seed 0).
 - **What it is.** Six signals per team, measured on each one's attack axis: width, defensive line, attacking line,
   mean speed toward the opposing goal, mean speed and fraction of players sprinting, smoothed
   over windows of 1, 3 and 8 s (`features/team_signals.py`, 57 columns). The attacking direction comes from the
@@ -307,10 +307,10 @@ Nov 8 one (`e7938350…`).
   2. *The harness gaps fall at random.* BAR-ATH loses the ball mostly while the players are standing still (93.9% of
      ball-absent frames in the lowest-activity bracket, 9.8% in the highest). Relocating the gaps according to
      activity the gain drops to **+12.55 pp** (7 of 7), on seed 0 only and with a smoother curve than the
-     real one (`sin-balon-1111/realista.json`).
+     real one (`no-ball-1111/realista.json`).
   3. *The residual drift is not zero*: 0.72 versus 0.53. And against the Smart Tagging phases on ball-absent frames
      the nine-signal classifier gives AUC 0.70 where the hand-made emission gives 0.85, and added together 0.83
-     (`sin-balon-1111/atd_check.json`; with the ball seen it is the other way around, 0.91 versus 0.80). It is a weak
+     (`no-ball-1111/atd_check.json`; with the ball seen it is the other way around, 0.91 versus 0.80). It is a weak
      diagnostic (phases of ~18 s, and Metrica labels with the same tracking), but it is not a confirmation.
 - **On BAR-ATH** (label-free, only described): the candidate changes 10.1% of the scored frames with respect
   to the submission and predicts 190 possessions where the submission 202. **It changes more where the ball is seen** (12.5% of
@@ -323,7 +323,7 @@ Nov 8 one (`e7938350…`).
   experiment two weaker classifiers went up on IDSSE and dropped to 0.3333 on that window.
 
 **The test of missing players without the ball, Nov 15-16** (`python -m mtah.training.missing_players`, 7 min with
-the caches built; full table in `datos/equipo_sin_balon_jugadores.json`; branch `medicion-jugadores-sin-balon`).
+the caches built; full table in `data/equipo_sin_balon_jugadores.json`; branch `medicion-jugadores-sin-balon`).
 It closes point 1 of "What it does not say" above. **The submission does not change.**
 
 - **What was done.** `degrade.thin_where_ball_unseen` removes players only in the ball-absent frames down to the
@@ -339,7 +339,7 @@ It closes point 1 of "What it does not say" above. **The submission does not cha
   of `persistent`: mean ≥ +5 pp and ≥ 15 of 21 improve → `a43c52fb…` is kept; mean ≤ +1 pp or < 11 of 21 →
   go back to `e7938350…`; in between, keep it and document it. If `thinned` already said to go back, that was enough.
 - **The harness is the same.** The usual degradation, scored in the same run, reproduces
-  `datos/equipo_sin_balon_lomo.json` without any discrepancy (21 runs, control and weight 2.0).
+  `data/equipo_sin_balon_lomo.json` without any discrepancy (21 runs, control and weight 2.0).
 - **The players come out as on BAR-ATH** (scored ATD frames against the 7 matches × 3 seeds):
 
   | | objects with ball | objects without ball | without ball, < 16 | \|home − away\| without ball |
@@ -369,16 +369,16 @@ It closes point 1 of "What it does not say" above. **The submission does not cha
   been combined with the one of gaps placed by activity (+12.6 pp, seed 0 only). (4) On the frames with the
   ball the test stays at 20.4 objects versus 21.4 on BAR-ATH: players can only be removed, not invented.
 
-### The documents (`trabajo/`)
+### The documents (`analysis/`)
 
 - `plain-summary.md` — the challenge without jargon. Start here.
 - `analysis-and-proposal.md` — analysis of the challenge, proposal, what was tried and what did not work.
 - `external-data.md` — which external datasets exist, which one to use (IDSSE) and how to degrade them.
 - `handoff-plugin-data/VALIDATION.md` and `CROSS-VALIDATION.md` — the audits. The second
   corrects the first on the overfitting point.
-- `handoff-plugin-data/datos/` — all the tables; `handoff-plugin-data/*.py` the scripts that
+- `handoff-plugin-data/data/` — all the tables; `handoff-plugin-data/*.py` the scripts that
   produce them.
-- `sin-balon-1111/SUMMARY.md` — the diagnosis of the ball-absent frames (Nov 11 and 12), what was
+- `no-ball-1111/SUMMARY.md` — the diagnosis of the ball-absent frames (Nov 11 and 12), what was
   tried, what was discarded and the ideas that remain; next to it, its scripts and aggregate tables.
 - There is also an interactive dashboard (private claude.ai artifact, "Posesión FC Medallo")
   fed with exactly those tables. Ask Brayan for the link.
@@ -387,7 +387,7 @@ It closes point 1 of "What it does not say" above. **The submission does not cha
 
 ## 3. The numbers, and how to read them
 
-Degradation seed 0, `config.py` of Oct 31 (`trabajo/handoff-plugin-data/datos/scores_por_partido.csv`):
+Degradation seed 0, `config.py` of Oct 31 (`analysis/handoff-plugin-data/data/scores_por_partido.csv`):
 
 | match | group | before Oct 28 | today |
 |---|---|---|---|
@@ -409,12 +409,12 @@ Four warnings so as not to misread them:
    (0.41 versus 0.39). The 0.41 is not a prediction of the score.
 3. **The "before Oct 28" column is a reconstruction.** That `config.py` was not kept (the
    repo had no commits until Oct 31). The reconstruction scores 0.3–0.7 pp below what was
-   measured that day (`datos/robustez_semillas.json`, `_procedencia`).
+   measured that day (`data/robustez_semillas.json`, `_procedencia`).
 4. **A single partition does not distinguish configurations.** With the other two seeds, differences of
    less than a point change sign. The only thing that distinguishes them is cross-validation over
    the 35 partitions (§2).
 
-Where the model fails today (`datos/diagnostico_errores.csv`, today's config):
+Where the model fails today (`data/diagnostico_errores.csv`, today's config):
 
 - **Dead ball is detected well**: 92% of the D frames correct.
 - **Which team has the ball, so-so**: real H → predicted H 74%, real A → A 69%. The H/A error is
@@ -440,9 +440,9 @@ Six days left. What gets done, by whom, and in what order:
 | until the 14th | **The Smart Tagging set pieces as the team taking the restart** (corners and goal kicks; throw-ins go with `N/A`). It is what is missing in the long gaps: without the ball the emission gives P(H) = P(A) and the model lives off inertia, whether the gap lasts 5 s or 266 s. Unlike the phases, this **is measured for real**: IDSSE brings the set-piece events with team, nothing has to be simulated | Simon | same nested LOMO as §2; it goes in only if it wins on validation and is reported with its interval |
 | until the 14th | **Reproduction on a clean machine**: clone, `pip install -r requirements.txt`, `source scripts/env.sh`, `build`, and the sha256 `a43c52fb…` has to come out on `main` (since the Nov 15 merge; before, `e7938350…`). The submission now depends on two pickles with an exact scikit-learn version and on Python ≥ 3.12; if it fails, it fails in the organizers' hands. Careful: `python -m mtah` needs `PYTHONPATH=src` (`env.sh` sets it) or installing the package. **Done on Nov 15 on Simon's machine: `a43c52fb…` comes out byte for byte** (§2, chronology), and **on Nov 16 clean**: fresh clone from GitHub and freshly created venv, on Windows 11 and on Linux (Ubuntu 24.04, WSL2); both give `a43c52fb…` byte for byte and 139 tests green | Brayan / Simon | the sha matches on a machine that is not ours ✅ |
 | **Friday 14** | **Decide and freeze the submission.** Four candidates, reproducible with three values of `config.py`: the Oct 31 one (`73c361d5…`, 0.3965 measured), with detector (`5d97eccc…`, 0.4073 measured out of sample), with detector + tagging (`e7938350…`, +0.6 pp *estimated* on top, interval that includes zero) and, since Nov 12, with the team classifier without the ball on top of everything (`a43c52fb…`, branch `equipo-sin-balon`, +16.1 pp measured out of sample on IDSSE, +12.6 pp with gaps like the real ones; optimistic bound, §2). **On Nov 15 the branch was merged into `main`**: `config.py` exactly as it stands generates `a43c52fb…`. Going back to the Nov 8 one means setting `team_classifier_weight = 0`. After the 14th no hyperparameter is touched: on Oct 31 it was seen that half of each grid gain was overfitting | everyone | `config.py` frozen and the submission's sha written in §1 |
-| 14-16 | **The short technical document** (2-3 pages): what the model does, how it was measured, what we do not know. It is drawn from this file | Brayan | PDF in `trabajo/` |
-| 16 | **Public repo: it has been public since Oct 30** (checked on Nov 14). What remains: audit of `data/` (done on every push), attribution to the DFL (already there), `vendor/NOTICE.md`, decide whether `trabajo/` stays | Brayan | the repo is public and the validator passes on the submitted CSV |
-| 15-16 | **Test of missing players without the ball** on the submission, with the decision rule written before running. **Done: `a43c52fb…` is kept** (+16.28 pp, 21 of 21; §2) | Simon | `datos/equipo_sin_balon_jugadores.json`; STATUS up to date ✅ |
+| 14-16 | **The short technical document** (2-3 pages): what the model does, how it was measured, what we do not know. It is drawn from this file | Brayan | PDF in `analysis/` |
+| 16 | **Public repo: it has been public since Oct 30** (checked on Nov 14). What remains: audit of `data/` (done on every push), attribution to the DFL (already there), `vendor/NOTICE.md`, decide whether `analysis/` stays | Brayan | the repo is public and the validator passes on the submitted CSV |
+| 15-16 | **Test of missing players without the ball** on the submission, with the decision rule written before running. **Done: `a43c52fb…` is kept** (+16.28 pp, 21 of 21; §2) | Simon | `data/equipo_sin_balon_jugadores.json`; STATUS up to date ✅ |
 | — | **`detector-balon` is shelved** without merging. The only thing rescued is its documentation section (what was tried and why it does not give more), so as not to repeat the experiment. If it is resumed, its next step is written down: simulate the filling-in *with its errors* on IDSSE before touching the pipeline | — | — |
 
 Team conventions, so that the history is uniform: commits in Spanish and without `Co-Authored-By`
@@ -452,7 +452,7 @@ lines or tool marks.
 
 None of this has been started unless it says so.
 
-1. **The final technical document.** It does not exist as such; the material is in `trabajo/`. The
+1. **The final technical document.** It does not exist as such; the material is in `analysis/`. The
    sentence about overfitting that goes into it is the one from §2 (Oct 29-30), not "it did not overfit".
 2. **Getting the repository ready to be made public.** Before publishing: check once more
    that nothing from `data/` gets in (today: 0 files, audited on every push), cite the
@@ -505,7 +505,7 @@ What went wrong, how it was detected and how it ended. It is here so that nobody
 | Aggregation bias in two categories of 512 and 854 frames (0.14% of the data) | `VALIDATION.md` finding 4 | they are shown with their `n` and flagged; nothing is concluded from them |
 | The recalibration improves spellF1 by emitting **fewer** and longer possessions (~1,540 → ~1,390 predicted versus 1,945 real) | `VALIDATION.md` finding 5 | it is known and said: it improves the metric by moving away from the real structure; the 0.50 ceiling comes from there |
 | I estimated 50 min for the expanded grid; it took 348 | large windows multiply the cache per match | documented for next time |
-| This file said the repo was private and that it would be made public on submission day. It has been public since Oct 30 | when pushing the `equipo-sin-balon` branch on Nov 14, the visibility on GitHub was checked: the page opens without credentials | corrected here. No match data is versioned (the index was reviewed: no video, no tracking, no homography, no Smart Tagging). The approach and `trabajo/` have been in plain view since then |
+| This file said the repo was private and that it would be made public on submission day. It has been public since Oct 30 | when pushing the `equipo-sin-balon` branch on Nov 14, the visibility on GitHub was checked: the page opens without credentials | corrected here. No match data is versioned (the index was reviewed: no video, no tracking, no homography, no Smart Tagging). The approach and `analysis/` have been in plain view since then |
 | An example command with a placeholder (`USUARIO`) was run as is and invited an unrelated GitHub user to the repo (believed to be private) | seen in the output | invitation revoked on the spot; verified 0 pending and a single collaborator. They never got access (invitations require acceptance) |
 
 Open question, partly answered on Nov 8: the pipeline uses the tactical tracking and the team
@@ -591,7 +591,7 @@ each) and leaves it in `out/cache/`; after that `python -m mtah.training.boundar
 `python -m mtah.training.visibility`, `python -m mtah.training.team_classifier` and
 `python -m mtah.training.missing_players` (this one with `MTAH_DATA_DIR`; ~4 min of preparation and 3 of
 evaluation on Simon's machine) run in minutes. The
-scripts in `trabajo/handoff-plugin-data/` were written to run from the original working
+scripts in `analysis/handoff-plugin-data/` were written to run from the original working
 folder (`~/Documents/Hackaton/`) with absolute paths; each one says at the top what it does
 and what file it produces.
 

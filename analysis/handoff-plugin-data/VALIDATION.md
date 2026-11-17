@@ -1,6 +1,6 @@
 # Validation of the spellF1 analysis — current vs recalibrated
 
-**Date:** Oct 28, 2026 · **Scope:** the 5 files in `handoff-plugin-data/datos/`.
+**Date:** Oct 28, 2026 · **Scope:** the 5 files in `handoff-plugin-data/data/`.
 **Method:** read-only; all numbers were recalculated independently from the CSV/JSON files
 (script: `verificar.py`, in the session scratchpad). Nothing in `data/` was touched.
 
@@ -86,7 +86,7 @@ the same mistake again, with the last clean set left. If you want to decide that
 the 7 matches have to be re-split and re-derived, not read off this column.
 
 Measured with `handoff-plugin-data/semillas.py` and `reeval.py`; numbers in
-`datos/robustez_semillas.json`. Only the harness was re-run over `out/cache` (degraded external
+`data/robustez_semillas.json`. Only the harness was re-run over `out/cache` (degraded external
 matches): neither the ATD nor the public window was touched.
 
 ---

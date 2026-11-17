@@ -4,7 +4,7 @@ sys.path.insert(0, "/Users/bultoesal/Documents/Hackaton/mtah-possession/src")
 from mtah.config import DEFAULT
 from mtah.training.recalibrate import GRID
 
-RUTA = "/Users/bultoesal/Documents/Hackaton/handoff-plugin-data/datos/splits_cruzados%s.json"
+RUTA = "/Users/bultoesal/Documents/Hackaton/handoff-plugin-data/data/splits_cruzados%s.json"
 brazo = sys.argv[1] if len(sys.argv) > 1 else "rejilla"
 d = json.load(open(RUTA % ("" if brazo == "rejilla" else "_" + brazo)))
 filas, INICIO, r = d["splits"], d["inicio"], d["resumen"]

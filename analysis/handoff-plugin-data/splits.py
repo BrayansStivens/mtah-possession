@@ -12,11 +12,11 @@ matches. It answers two things a single split cannot:
 
 Two arms, with the SAME descent code so they are comparable:
 
-  rejilla     the grid of training/recalibrate.py  -> datos/splits_cruzados.json          (~35 min)
+  rejilla     the grid of training/recalibrate.py  -> data/splits_cruzados.json          (~35 min)
   ampliada    the grid below, with the edges
-              extended                             -> datos/splits_cruzados_ampliada.json (~45 min)
+              extended                             -> data/splits_cruzados_ampliada.json (~45 min)
 
-Results in datos/splits_cruzados*.json; the readable summary is printed by resumen_splits.py
+Results in data/splits_cruzados*.json; the readable summary is printed by resumen_splits.py
 and the consensus checks by consenso.py.
 
 It only reads out/cache (degraded external matches). It touches neither the ATD nor the
@@ -38,8 +38,8 @@ from mtah.config import DEFAULT, merged                      # noqa: E402
 from mtah.training.recalibrate import GRID, RAW_KEYS, Match, mean_score  # noqa: E402
 from mtah.paths import cache_dir                             # noqa: E402
 
-SALIDA = "/Users/bultoesal/Documents/Hackaton/handoff-plugin-data/datos/splits_cruzados.json"
-REFERENCIA = "/Users/bultoesal/Documents/Hackaton/handoff-plugin-data/datos/recalibracion.json"
+SALIDA = "/Users/bultoesal/Documents/Hackaton/handoff-plugin-data/data/splits_cruzados.json"
+REFERENCIA = "/Users/bultoesal/Documents/Hackaton/handoff-plugin-data/data/recalibracion.json"
 PARTIDOS = ("J03WMX", "J03WN1", "J03WOH", "J03WOY", "J03WPY", "J03WQQ", "J03WR9")
 SPLIT_ORIGINAL = ("J03WMX", "J03WN1", "J03WOH", "J03WOY")
 

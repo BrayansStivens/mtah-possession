@@ -25,7 +25,7 @@ whether what was submitted holds up against this data, not which configuration w
 up better.
 
 **Check that the harness is the same.** The same run also scores the usual degradation
-(`standard`), which has to reproduce `datos/equipo_sin_balon_lomo.json` (the chosen weight
+(`standard`), which has to reproduce `data/equipo_sin_balon_lomo.json` (the chosen weight
 was 2.0 in all 7 folds). The arms' differences are paired against their own control with
 the same models, so a small mismatch (another machine retraining the boosting) does not
 invalidate them, but it is reported.
@@ -49,7 +49,7 @@ bunched-up ones that are missing, and more may be missing from one team than fro
 reported). In the frames with the ball the degraded IDSSE stays at ~20.4 objects against
 21.4 in the ATD (one can only remove, not invent). The ball-absent gaps are still random
 (the test with gaps placed by activity is another one,
-`trabajo/sin-balon-1111/realista.py`). It is not a worst-case bound.
+`analysis/no-ball-1111/realista.py`). It is not a worst-case bound.
 
 Usage:  python -m mtah.training.missing_players      -> out/missing_players.json
         (needs MTAH_DATA_DIR to measure the ATD, requirements-train.txt and scikit-learn)
@@ -86,7 +86,7 @@ REVERT_MAX_PP, REVERT_MIN_BETTER = 1.0, 11
 
 FEW_PLAYERS = 16
 
-LOMO_TABLE = os.path.join(REPO_ROOT, "trabajo", "handoff-plugin-data", "datos",
+LOMO_TABLE = os.path.join(REPO_ROOT, "analysis", "handoff-plugin-data", "data",
                           "equipo_sin_balon_lomo.json")
 
 

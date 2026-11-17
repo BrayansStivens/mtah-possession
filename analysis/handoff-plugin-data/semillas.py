@@ -9,7 +9,7 @@ from mtah.config import DEFAULT, merged
 from mtah.training.recalibrate import Match, RAW_KEYS, TUNE, HOLD, mean_score
 from mtah.paths import cache_dir
 
-REF = json.load(open("/Users/bultoesal/Documents/Hackaton/handoff-plugin-data/datos/recalibracion.json"))
+REF = json.load(open("/Users/bultoesal/Documents/Hackaton/handoff-plugin-data/data/recalibracion.json"))
 CENTROS = {k: REF["config"][k] for k in ("ball_speed_center_ms", "control_center", "shape_center")}
 
 ANTES = dict(DEFAULT)

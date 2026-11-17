@@ -22,7 +22,7 @@ def load(mid, seed=0):
 tune = [load(m) for m in TUNE]
 hold = [load(m) for m in HOLD]
 
-REF = json.load(open("/Users/bultoesal/Documents/Hackaton/handoff-plugin-data/datos/recalibracion.json"))
+REF = json.load(open("/Users/bultoesal/Documents/Hackaton/handoff-plugin-data/data/recalibracion.json"))
 CENTROS = {k: REF["config"][k] for k in
            ("ball_speed_center_ms", "control_center", "shape_center")}
 

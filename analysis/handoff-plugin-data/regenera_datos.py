@@ -1,4 +1,4 @@
-"""Regenerates the five files in datos/ that feed the dashboard, with today's config.py.
+"""Regenerates the five files in data/ that feed the dashboard, with today's config.py.
 
 The Oct 28 files were made by hand in another session and "recalibrado" there was that
 day's config.py (activity_smooth = 12). Since Oct 31 config.py is different, so the
@@ -19,7 +19,7 @@ dashboard quoted figures the file no longer produces. This script:
 Before writing anything it checks that, with the "actual" config, it reproduces the old
 file exactly (same cache, same config -> same numbers). If that fails, it writes nothing.
 
-Usage:  source scripts/env.sh && python trabajo/handoff-plugin-data/regenera_datos.py
+Usage:  source scripts/env.sh && python analysis/handoff-plugin-data/regenera_datos.py
 
 The later configurations (boundary detector, team classifier) carry models trained on
 these same matches and cannot be scored this way: they go separately, out of sample, in
@@ -35,7 +35,7 @@ from datetime import date
 import numpy as np
 
 AQUI = os.path.dirname(os.path.abspath(__file__))
-DATOS = os.path.join(AQUI, "datos")
+DATOS = os.path.join(AQUI, "data")
 REPO = os.path.join(AQUI, "..", "..")
 sys.path.insert(0, os.path.join(REPO, "src"))
 
@@ -249,7 +249,7 @@ def main():
     # the size of each diagnostic category (they depend on the ground truth and on the ball
     # seen, not on the config). What cannot come out exact: the scores of "actual", because
     # the config.py from before Oct 28 is not kept and ANTES is a reconstruction (documented
-    # in datos/robustez_semillas.json: -0.3 to -0.7 pp). The difference is printed so it is
+    # in data/robustez_semillas.json: -0.3 to -0.7 pp). The difference is printed so it is
     # in plain view, and only the exact part stops the run.
     print("checking against the Oct 28 files:")
     viejo_pp = leer_csv("scores_por_partido.csv")
@@ -315,7 +315,7 @@ def main():
     from collections import Counter
     print("   public window: model", dict(Counter(v[3] for v in ventana)),
           " 1 Hz:", dict(Counter(h[2] for h in hz)))
-    print("\nwrote the 5 files in datos/ (%s)" % hoy)
+    print("\nwrote the 5 files in data/ (%s)" % hoy)
 
 
 if __name__ == "__main__":

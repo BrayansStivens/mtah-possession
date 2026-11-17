@@ -12,7 +12,7 @@ from mtah.config import DEFAULT, merged
 from mtah.training.recalibrate import Match, RAW_KEYS, GRID, mean_score
 from mtah.paths import cache_dir
 
-d = json.load(open("handoff-plugin-data/datos/splits_cruzados.json"))
+d = json.load(open("handoff-plugin-data/data/splits_cruzados.json"))
 filas, INICIO = d["splits"], d["inicio"]
 PARTIDOS = ("J03WMX", "J03WN1", "J03WOH", "J03WOY", "J03WPY", "J03WQQ", "J03WR9")
 TUNE_CFGPY = {"J03WMX", "J03WN1", "J03WOH", "J03WOY"}
@@ -93,6 +93,6 @@ json.dump({"consenso": {k: consenso[k] for k, _ in GRID},
            "delta_elegido_menos_configpy_hold": {
                "media": float(deltas.mean()), "min": float(deltas.min()),
                "max": float(deltas.max()), "gana": int(ganan), "n": len(filas)}},
-          open("handoff-plugin-data/datos/consenso_splits.json", "w"), indent=2, default=float)
+          open("handoff-plugin-data/data/consenso_splits.json", "w"), indent=2, default=float)
 print()
-print("saved handoff-plugin-data/datos/consenso_splits.json")
+print("saved handoff-plugin-data/data/consenso_splits.json")

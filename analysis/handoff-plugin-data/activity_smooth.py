@@ -63,5 +63,5 @@ print("   improves in %d of %d matches" % (gana, len(PARTIDOS)))
 json.dump({"_que_es": "efecto de activity_smooth 12 -> 50, unico cambio sobre config.py",
            "ajuste": list(AJUSTE), "validacion": list(VALIDACION),
            "por_semilla_y_grupo": filas, "por_partido_semilla0": porpartido},
-          open("/Users/bultoesal/Documents/Hackaton/handoff-plugin-data/datos/"
+          open("/Users/bultoesal/Documents/Hackaton/handoff-plugin-data/data/"
                "activity_smooth.json", "w"), indent=2, default=float)

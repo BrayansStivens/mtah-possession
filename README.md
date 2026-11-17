@@ -12,7 +12,7 @@ Official floor to beat: **`spellF1` 0.2433** (`baseline_smooth50`).
 > **For the team:** the project status —what is done, what's left, the problems we ran into
 > and what we haven't been able to measure— is in [`STATUS.md`](docs/STATUS.md). The rest of the documents are in
 > [`docs/`](docs/), and the measurement scripts and results tables in
-> [`trabajo/`](trabajo/README.md). This README describes only the submission code.
+> [`analysis/`](analysis/README.md). This README describes only the submission code.
 
 ---
 
@@ -51,9 +51,9 @@ mtah-possession/
   docs/               project documents: STATUS.md (what is done, what's left, problems we ran into),
                       plain-summary.md, analysis-and-proposal.md, external-data.md, figures/ and
                       archive-es/ (stale Spanish PDFs of the Oct 28 versions)
-  trabajo/            measurement scripts and results tables (see trabajo/README.md)
-    handoff-plugin-data/   validation documents, the scripts and the results tables (in datos/)
-    sin-balon-1111/        diagnosis of the frames without the ball (Nov 11-12) and its scripts
+  analysis/           measurement scripts and results tables (see analysis/README.md)
+    handoff-plugin-data/   validation documents, the scripts and the results tables (in data/)
+    no-ball-1111/          diagnosis of the frames without the ball (Nov 11-12) and its scripts
   vendor/             official scorer (MIT) + public ground truth + baselines (see vendor/NOTICE.md)
   scripts/            env.sh (data location), reproduce.sh (regenerates the submitted file)
   requirements*.txt   pinned dependencies (production, dev, training)

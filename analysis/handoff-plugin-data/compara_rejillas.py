@@ -17,7 +17,7 @@ sys.path.insert(0, "/Users/bultoesal/Documents/Hackaton/mtah-possession/src")
 from mtah.config import DEFAULT                                 # noqa: E402
 from mtah.training.recalibrate import GRID                      # noqa: E402
 
-BASE = "/Users/bultoesal/Documents/Hackaton/handoff-plugin-data/datos/splits_cruzados%s.json"
+BASE = "/Users/bultoesal/Documents/Hackaton/handoff-plugin-data/data/splits_cruzados%s.json"
 R = json.load(open(BASE % ""))
 A = json.load(open(BASE % "_ampliada"))
 assert not A.get("_en_curso"), "the extended arm is still running"

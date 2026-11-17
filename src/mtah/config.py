@@ -254,7 +254,7 @@ DEFAULT = {
     # four quartiles) and only loses if the tagging fully copied our emission (-1.12), which
     # the measured agreement rules out (it would give 0.807 against 0.762). 1.0 wins more with
     # good tags and drops to +0.10 at the best fit. The automatic per-fold choice was noisier
-    # (+0.39). Tables in trabajo/handoff-plugin-data/datos/smart_tagging_robustez.json.
+    # (+0.39). Tables in analysis/handoff-plugin-data/data/smart_tagging_robustez.json.
     "smart_tagging_team_weight": 0.5,
 
     # ------------------------------------------------------------ team classifier

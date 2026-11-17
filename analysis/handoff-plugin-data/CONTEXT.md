@@ -16,7 +16,7 @@ What is here, and is safe:
 - **The public ground truth** of 5 minutes, which the organizers publish on GitHub.
 - **Aggregate statistics** measured on **other matches** (7 from the Bundesliga, public).
 
-## What's in `datos/`
+## What's in `data/`
 
 | file | what it is |
 |---|---|
@@ -34,7 +34,7 @@ carry two more configurations, `detector` and `equipo` (today's), measured with 
 not see the match being scored (`regenera_equipo.py`). The two time views are the
 submission that `main` generates (sha256 `a43c52fb…`).
 
-And in `figuras/` the three charts already made by hand with matplotlib, in case they are useful
+And in `figures/` the three charts already made by hand with matplotlib, in case they are useful
 as a reference.
 
 ## The numbers that matter

@@ -6,8 +6,8 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from matplotlib.lines import Line2D
 
-D = "/Users/bultoesal/Documents/Hackaton/handoff-plugin-data/datos/"
-OUT = "/Users/bultoesal/Documents/Hackaton/figuras/"
+D = "/Users/bultoesal/Documents/Hackaton/handoff-plugin-data/data/"
+OUT = "/Users/bultoesal/Documents/Hackaton/figures/"
 MINIMO = 0.2433
 
 AZUL, GRIS, ROJO, TENUE, TINTA = "#2f6db5", "#8b909a", "#c0564e", "#dcdfe4", "#2b2f36"
