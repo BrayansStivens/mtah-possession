@@ -98,6 +98,7 @@ It is the piece that turned "we can't measure" into "we can measure on seven ful
 | Nov 16 | **`reproduce.sh` and `env.sh` fixed for Windows** (Git Bash): with `cygpath` they pass `PYTHONPATH` in Windows format and with `;`; on Linux and macOS nothing changes. `reproduce.sh` stops if Python is < 3.12 and accepts `PYTHON=...` | with Python 3.11 it stops with the warning; with the venv it gives `a43c52fb…` | `scripts/reproduce.sh`, `scripts/env.sh` |
 | Nov 16 | **Clean reproduction on two systems**, as the organizers would do it: `git clone` from GitHub (branch `medicion-jugadores-sin-balon`, `68fb042`), freshly created venv, `pip install -r requirements-dev.txt` (numpy 2.5.4, pandas 3.0.6, scikit-learn 1.8.0, pytest 9.0.1), `./scripts/reproduce.sh FC_Medallo` with no previous cache. (1) Windows 11, Python 3.12.2, Git Bash, data read from the Drive. (2) Linux, Ubuntu 24.04 on WSL2, Python 3.12.3, clone on the Linux file system, the four tactical files copied from the Drive (no video) | **both give `a43c52fb…` byte for byte**, pass the validator and **139 tests green**. 46 s on Windows and 17 s on Linux. On Ubuntu `python3.12-venv` was not installed; the venv was made with `--without-pip` and `get-pip.py` (no sudo). A machine other than Simon's is still missing | `scripts/reproduce.sh` |
 | Nov 15-16 | **Stress test of the team classifier with missing players without the ball** (see below). The same models that were submitted and fixed weight 2.0; decision rule written and committed before running. **Nothing in the submission changes** | **+16.28 pp** spellF1 with the same players absent for the whole ball-absent run, **21 of 21 improve** (from +12.5 to +19.9 pp); +15.84 pp if they are drawn at every frame; the usual degradation reproduces the Nov 12 table to the decimal (+16.11 pp). Decision: **`a43c52fb…` is kept** | `training/missing_players.py`, `degrade.thin_where_ball_unseen`, `data/equipo_sin_balon_jugadores.json` |
+| Nov 16 | **The repo goes into English**: the Markdown documents, and the comments, docstrings and messages of the scripts, are translated; the documents move to `docs/`; the folders `trabajo/`, `sin-balon-1111/`, `datos/` and `figuras/` become `analysis/`, `no-ball-1111/`, `data/` and `figures/` (old and new names in "The documents" below). **The submission does not change** | the CSV is byte-identical (`a43c52fb…`), the AST of the 80 `.py` files is the same, 139 tests pass, and every number in the 10 translated documents matches the original; the `.gitignore` rule `data/` is anchored to `/data/` so that the renamed tables folder is not ignored | the commits of branch `translate-repo-to-english` |
 
 **What came in on Nov 7 from `DeteccionPosesionBalon`** (the other line, done without access to this repo):
 
@@ -369,17 +370,33 @@ It closes point 1 of "What it does not say" above. **The submission does not cha
   been combined with the one of gaps placed by activity (+12.6 pp, seed 0 only). (4) On the frames with the
   ball the test stays at 20.4 objects versus 21.4 on BAR-ATH: players can only be removed, not invented.
 
-### The documents (`analysis/`)
+### The documents (`docs/` and `analysis/`)
 
-- `plain-summary.md` — the challenge without jargon. Start here.
-- `analysis-and-proposal.md` — analysis of the challenge, proposal, what was tried and what did not work.
-- `external-data.md` — which external datasets exist, which one to use (IDSSE) and how to degrade them.
-- `handoff-plugin-data/VALIDATION.md` and `CROSS-VALIDATION.md` — the audits. The second
+- `docs/plain-summary.md` — the challenge without jargon. Start here.
+- `docs/analysis-and-proposal.md` — analysis of the challenge, proposal, what was tried and what did not work.
+- `docs/external-data.md` — which external datasets exist, which one to use (IDSSE) and how to degrade them.
+- `analysis/handoff-plugin-data/VALIDATION.md` and `CROSS-VALIDATION.md` — the audits. The second
   corrects the first on the overfitting point.
-- `handoff-plugin-data/data/` — all the tables; `handoff-plugin-data/*.py` the scripts that
+- `analysis/handoff-plugin-data/data/` — all the tables; `analysis/handoff-plugin-data/*.py` the scripts that
   produce them.
-- `no-ball-1111/SUMMARY.md` — the diagnosis of the ball-absent frames (Nov 11 and 12), what was
+- `analysis/no-ball-1111/SUMMARY.md` — the diagnosis of the ball-absent frames (Nov 11 and 12), what was
   tried, what was discarded and the ideas that remain; next to it, its scripts and aggregate tables.
+- **Names before the English rename (Nov 16)**, for anyone who still has the old ones in mind or in an
+  old branch:
+
+  | Before | Now |
+  |---|---|
+  | `ESTADO.md` | `docs/STATUS.md` |
+  | `trabajo/resumen-simple.md`, `analisis-y-propuesta.md`, `datos-externos.md` | `docs/plain-summary.md`, `docs/analysis-and-proposal.md`, `docs/external-data.md` |
+  | `trabajo/*.pdf` (Oct 28 versions) and `trabajo/figuras/` | `docs/archive-es/` and `docs/figures/` |
+  | `trabajo/` | `analysis/` |
+  | `trabajo/sin-balon-1111/` (`RESUMEN.md`) | `analysis/no-ball-1111/` (`SUMMARY.md`) |
+  | `handoff-plugin-data/datos/` and `handoff-plugin-data/figuras/` | `handoff-plugin-data/data/` and `handoff-plugin-data/figures/` |
+  | `VALIDACION.md`, `VALIDACION-CRUZADA.md`, `CONTEXTO.md` | `VALIDATION.md`, `CROSS-VALIDATION.md`, `CONTEXT.md` |
+
+  Still in Spanish on purpose: the file names of the tables and scripts and the keys inside them (the
+  scripts and the dashboard read them by name), the `sinbalon_*.npz` cache names, the text inside the
+  figures and the PDFs in `docs/archive-es/`.
 - There is also an interactive dashboard (private claude.ai artifact, "Posesión FC Medallo")
   fed with exactly those tables. Ask Brayan for the link.
 
