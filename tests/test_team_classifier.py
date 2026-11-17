@@ -1,6 +1,6 @@
-"""Clasificador de equipo sin balon: senales, antisimetria, artefacto y enganche al pipeline.
+"""Team classifier without the ball: signals, antisymmetry, artifact and hook into the pipeline.
 
-Nada de aqui necesita el IDSSE ni el partido del reto.
+Nothing here needs the IDSSE or the challenge match.
 """
 
 import json
@@ -16,7 +16,7 @@ from mtah.training import team_classifier as training
 
 
 def _match(n=600, seed=0, flip_at=None):
-    """Dos equipos de 11 que se mueven suave; el local defiende x=0 hasta `flip_at`."""
+    """Two teams of 11 that move smoothly; the home team defends x=0 until `flip_at`."""
     rng = np.random.default_rng(seed)
     team_of_slot = np.array([0] * 11 + [1] * 11, dtype=np.int8)
     base = np.concatenate([rng.uniform([0.05, 0.1], [0.55, 0.9], (11, 2)),
@@ -48,7 +48,7 @@ def _features(n=50):
             "control_diff_s": rng.normal(0, 1, n), "spread_ratio_s": rng.uniform(0.8, 1.2, n)}
 
 
-# --------------------------------------------------------------------------- senales
+# --------------------------------------------------------------------------- signals
 
 def test_los_nombres_de_columna_no_dependen_de_los_datos():
     names = team_signals.feature_names()
@@ -76,24 +76,24 @@ def test_con_las_partes_dadas_el_descanso_hereda_el_sentido_de_la_parte_que_vien
 
 
 def test_las_senales_estan_en_el_eje_de_ataque_de_cada_equipo():
-    """Tras el descanso el campo se da la vuelta y las senales de cada equipo no cambian."""
+    """After halftime the pitch is flipped and each team's signals do not change."""
     tracking = _match(600, flip_at=300)
     direction, _ = team_signals.attack_direction(tracking)
     raw = team_signals.raw(tracking, direction)
     for team in (0, 1):
-        # Segundo jugador mas atrasado: en campo propio (<0) en las dos partes.
+        # Second-deepest player: in its own half (<0) in both halves.
         assert np.nanmean(raw[team]["dfl"][:290]) < 0 and np.nanmean(raw[team]["dfl"][310:]) < 0
 
 
 def test_con_menos_de_tres_jugadores_la_senal_es_nan():
     tracking = _match(100)
-    tracking.players_xy[40:60, 2:11] = np.nan           # quedan 2 locales
+    tracking.players_xy[40:60, 2:11] = np.nan           # 2 home players left
     direction, _ = team_signals.attack_direction(tracking)
     raw = team_signals.raw(tracking, direction)
     assert np.isnan(raw[0]["wid"][40:60]).all() and not np.isnan(raw[1]["wid"][40:60]).any()
 
 
-# --------------------------------------------------------------------------- modelo
+# --------------------------------------------------------------------------- model
 
 def test_cambiar_los_equipos_cambia_el_signo_del_logit():
     tracking = _match(500, seed=3)
@@ -119,7 +119,7 @@ def test_cambiar_una_senal_sin_reentrenar_falla(monkeypatch):
         team_classifier.home_logit(_match(100))
 
 
-# --------------------------------------------------------------------------- emisiones
+# --------------------------------------------------------------------------- emissions
 
 def test_peso_cero_es_el_modelo_sin_clasificador():
     features = _features()
@@ -136,11 +136,11 @@ def test_el_logit_abarata_el_equipo_que_senala():
     logit[:10], logit[10:20] = 1.5, -1.5
     base, pushed = emissions.costs(features, config), emissions.costs(features, config,
                                                                       team_logit=logit)
-    # <= y no <: un frame que ya esta en el suelo de probabilidad no puede abaratarse mas.
+    # <= and not <: a frame that is already at the probability floor cannot get any cheaper.
     assert (pushed[:10, 0] <= base[:10, 0]).all() and (pushed[10:20, 1] <= base[10:20, 1]).all()
     assert (pushed[:10, 0] < base[:10, 0]).any() and (pushed[10:20, 1] < base[10:20, 1]).any()
     assert np.array_equal(pushed[20:], base[20:])
-    assert np.array_equal(pushed[:, 2], base[:, 2])     # el coste de muerto no lo toca
+    assert np.array_equal(pushed[:, 2], base[:, 2])     # it does not touch the dead-ball cost
 
 
 @pytest.mark.parametrize("bad", [np.array([0.0, np.nan, 0.0]), np.zeros((3, 1))])
@@ -154,7 +154,7 @@ def test_un_logit_de_otra_longitud_falla():
         emissions.costs(_features(50), merged(), team_logit=np.zeros(49))
 
 
-# --------------------------------------------------------------------------- enganche
+# --------------------------------------------------------------------------- hook
 
 def test_el_peso_no_invalida_el_detector_de_fronteras():
     assert "team_classifier_weight" in boundary_detector.DECODER_ONLY_KEYS
@@ -168,7 +168,7 @@ def test_con_peso_cero_el_pipeline_no_carga_el_clasificador(monkeypatch):
     from test_pipeline_synthetic import make_tracking
 
     def forbidden(*args, **kwargs):
-        raise AssertionError("no deberia cargarse")
+        raise AssertionError("should not be loaded")
     monkeypatch.setattr(team_classifier, "home_logit", forbidden)
     labels = pipeline.labels_from_tracking(make_tracking(N_FRAMES),
                                            merged(team_classifier_weight=0.0))
@@ -176,7 +176,7 @@ def test_con_peso_cero_el_pipeline_no_carga_el_clasificador(monkeypatch):
 
 
 def test_decode_score_con_peso_cero_es_la_medicion_del_detector():
-    """`decode_score` sin clasificador no recalcula costes: usa los del detector tal cual."""
+    """`decode_score` without a classifier does not recompute costs: it uses the detector's."""
     from mtah.training import boundaries
     rng = np.random.default_rng(0)
     n = 2000

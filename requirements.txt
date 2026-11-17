@@ -1,10 +1,10 @@
-# Dependencias pinneadas: el entregable exige que este repo regenere el CSV exacto.
-# El scorer oficial solo necesita numpy y pandas; mantenemos esa linea base.
+# Pinned dependencies: the submission requires this repo to regenerate the exact CSV.
+# The official scorer only needs numpy and pandas; we keep that baseline.
 numpy==2.5.4
 pandas==3.0.6
 
-# Necesario desde el 7-11: carga el detector de fronteras (models/boundary_detector.joblib)
-# y, desde el 12-11, el clasificador de equipo (models/team_classifier.joblib).
-# Version exacta: un pickle de scikit-learn solo es fiable con la version que lo escribio,
-# y los load() de los dos modelos fallan con cualquier otra.
+# Required since Nov 7: loads the boundary detector (models/boundary_detector.joblib)
+# and, since Nov 12, the team classifier (models/team_classifier.joblib).
+# Exact version: a scikit-learn pickle is only reliable with the version that wrote it,
+# and the load() of both models fails with any other.
 scikit-learn==1.8.0

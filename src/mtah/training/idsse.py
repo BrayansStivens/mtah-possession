@@ -1,37 +1,37 @@
-"""Dataset IDSSE: siete partidos de Bundesliga con posesion etiquetada por frame.
+"""IDSSE dataset: seven Bundesliga matches with possession labeled per frame.
 
 Bassek, M., Rein, R., Weber, H. et al. "An integrated dataset of spatiotemporal and event
 data in elite soccer". Sci Data 12, 195 (2025).  doi:10.1038/s41597-025-04505-y
-Datos en figshare doi:10.6084/m9.figshare.28196177, licencia **CC-BY 4.0** con
-autorizacion de la DFL. Si esto acaba en la entrega, hay que citar el paper y acreditar a
-la DFL -- es una condicion de la licencia, no una cortesia.
+Data on figshare doi:10.6084/m9.figshare.28196177, **CC-BY 4.0** license with
+authorization from the DFL. If this ends up in the submission, the paper has to be cited
+and the DFL credited -- it is a condition of the license, not a courtesy.
 
-**Por que este dataset y no otro.** Trae `BallPossession` (1 local, 2 visitante) y
-`BallStatus` (1 vivo, 0 parado) en cada frame del track del balon, a 25 Hz, que es
-exactamente la etiqueta H/A/D del reto y exactamente la frecuencia del video tactico. Son
-~1,0 M de frames etiquetados contra los 7.500 del ground truth publico.
+**Why this dataset and not another.** It has `BallPossession` (1 home, 2 away) and
+`BallStatus` (1 live, 0 stopped) in every frame of the ball track, at 25 Hz, which is
+exactly the challenge's H/A/D label and exactly the frequency of the tactical video. That
+is ~1.0 M labeled frames against the 7,500 of the public ground truth.
 
-Tres trampas, las tres verificadas midiendo y no leyendo documentacion:
+Three traps, all three verified by measuring and not by reading documentation:
 
-1. **La velocidad viene en km/h, no en m/s.** kloppy pasa el campo `S` del DFL sin
-   convertir. Medido sobre J03WPY: el p99 del fichero es 22.88 y el p99 de la velocidad
-   derivada de la posicion es 6.37, ratio **3.590** -- o sea 3.6 clavado. Sin dividir, la
-   actividad media sale 6.53 en vez de 1.81 y `activity_center_ms = 1.75` da todo por vivo.
-   Es el fallo silencioso mas caro que tiene este import.
+1. **Speed comes in km/h, not m/s.** kloppy passes the DFL `S` field through without
+   converting. Measured on J03WPY: the file's p99 is 22.88 and the p99 of the speed derived
+   from position is 6.37, ratio **3.590** -- that is, 3.6 on the nose. Without dividing, the
+   mean activity comes out 6.53 instead of 1.81 and `activity_center_ms = 1.75` calls
+   everything live. It is the costliest silent failure this import has.
 
-2. **Los slots no son los del reto.** Aqui hay un slot por jugador que pisa el campo
-   (~15-16 por equipo contando suplentes) y la identidad es correcta. El ATD tiene 46 slots
-   sin identidad que se fragmentan y se intercambian. Convertir esto en algo parecido al ATD
-   es trabajo del modulo de degradacion, no de aqui: este modulo entrega el dato limpio.
+2. **The slots are not the challenge's.** Here there is one slot per player who steps on the
+   pitch (~15-16 per team counting substitutes) and identity is correct. The ATD has 46
+   identity-less slots that fragment and swap. Turning this into something resembling the
+   ATD is the degradation module's job, not this one's: this module delivers the clean data.
 
-3. **El campo mide 105 x 68 y el del reto 105.3 x 68.** Las coordenadas salen normalizadas
-   0-1 en los dos casos, asi que pasarlas por `features.geometry` las escala con el
-   `PITCH` del reto y cada distancia en x queda un 0,3% larga. Por debajo del ruido, pero
-   conviene saberlo antes de comparar distancias absolutas entre los dos conjuntos.
+3. **The pitch measures 105 x 68 and the challenge's 105.3 x 68.** The coordinates come out
+   normalized 0-1 in both cases, so passing them through `features.geometry` scales them
+   with the challenge's `PITCH` and every x distance ends up 0.3% long. Below the noise, but
+   worth knowing before comparing absolute distances between the two sets.
 
-El balon tiene coordenadas en **todos** los frames, tambien en los que estan parados --
-verificado: 0 frames sin posicion de balon en J03WPY. Eso es lo que descarta a Metrica
-sample-data como fuente principal, donde el balon solo existe mientras el juego esta vivo.
+The ball has coordinates in **every** frame, including those where play is stopped --
+verified: 0 frames without a ball position in J03WPY. That is what rules out Metrica
+sample-data as the main source, where the ball only exists while play is live.
 """
 
 import os
@@ -41,7 +41,7 @@ import numpy as np
 from ..io.atd import HOME_CODE, AWAY_CODE, Tracking
 from ..paths import cache_dir
 
-# Los siete partidos publicados. Los ids son los que acepta kloppy.
+# The seven published matches. The ids are the ones kloppy accepts.
 MATCHES = {
     "J03WMX": "1. FC Koln vs FC Bayern Munchen",
     "J03WN1": "VfL Bochum 1848 vs Bayer 04 Leverkusen",
@@ -52,19 +52,19 @@ MATCHES = {
     "J03WR9": "Fortuna Dusseldorf vs 1. FC Kaiserslautern",
 }
 
-# Ver la trampa 1 del docstring. Medido, no supuesto.
+# See trap 1 in the docstring. Measured, not assumed.
 KMH_TO_MS = 1.0 / 3.6
 
-# Tolerancia del chequeo de unidades: un sprint de elite ronda los 10 m/s, asi que
-# cualquier maximo por encima de esto significa que el fichero no esta en m/s.
+# Tolerance of the units check: an elite sprint is around 10 m/s, so any maximum above this
+# means the file is not in m/s.
 MAX_PLAUSIBLE_SPEED_MS = 12.0
 
 
 def _allocate_slots(frames, home_team):
-    """(slot_de_jugador, team_of_slot). Un slot por jugador, los locales primero.
+    """(slot_of_player, team_of_slot). One slot per player, home players first.
 
-    Los locales van antes que los visitantes para que `team_of_slot` quede en bloques,
-    igual que en el XML del ATD, y `slots_of()` devuelva indices contiguos.
+    The home players go before the away players so that `team_of_slot` comes out in blocks,
+    as in the ATD XML, and `slots_of()` returns contiguous indices.
     """
     home_ids, away_ids = [], []
     seen = set()
@@ -83,7 +83,7 @@ def _allocate_slots(frames, home_team):
 
 
 def _to_arrays(frames, home_team, slot_of, n_slots):
-    """Recorre los frames una sola vez y rellena los arrays del Tracking + las etiquetas."""
+    """Walk the frames once and fill the Tracking arrays + the labels."""
     from kloppy.domain import BallState
 
     n = len(frames)
@@ -107,10 +107,10 @@ def _to_arrays(frames, home_team, slot_of, n_slots):
         if frame.ball_speed is not None:
             ball_speed[i] = frame.ball_speed * KMH_TO_MS
 
-        # BallStatus=0 es parada arbitral, y manda sobre la posesion: el DFL sigue
-        # diciendo quien tenia el balon cuando se paro el juego, pero para el reto ese
-        # frame es D. Ese "quien lo tenia" es senal extra que aqui se descarta a proposito,
-        # porque la etiqueta del reto no la contempla.
+        # BallStatus=0 is a referee stoppage, and it overrides possession: the DFL keeps
+        # saying who had the ball when play was stopped, but for the challenge that frame
+        # is D. That "who had it" is extra signal that is deliberately discarded here,
+        # because the challenge's label does not account for it.
         if frame.ball_state == BallState.DEAD:
             labels[i] = "D"
         elif frame.ball_owning_team is None:
@@ -122,31 +122,31 @@ def _to_arrays(frames, home_team, slot_of, n_slots):
 
 
 def _check_speed_units(players_speed):
-    """Falla si la velocidad no parece estar en m/s despues de convertir.
+    """Fail if the speed does not look like it is in m/s after converting.
 
-    Existe porque la conversion depende de que kloppy siga entregando km/h. El dia que lo
-    arreglen aguas arriba, esto salta en vez de envenenar silenciosamente la calibracion.
+    It exists because the conversion depends on kloppy still delivering km/h. The day they
+    fix it upstream, this trips instead of silently poisoning the calibration.
     """
     finite = players_speed[np.isfinite(players_speed)]
     if finite.size == 0:
-        raise ValueError("ninguna velocidad de jugador es finita")
+        raise ValueError("no player speed is finite")
     top = float(np.percentile(finite, 99.9))
     if top > MAX_PLAUSIBLE_SPEED_MS:
         raise ValueError(
-            "velocidad de jugador implausible tras convertir: p99.9 = {:.2f} m/s.\n"
-            "Probablemente kloppy ya devuelve m/s y la division por 3.6 sobra. "
-            "Comprueba KMH_TO_MS.".format(top))
+            "implausible player speed after converting: p99.9 = {:.2f} m/s.\n"
+            "kloppy probably already returns m/s and the division by 3.6 is redundant. "
+            "Check KMH_TO_MS.".format(top))
 
 
 def load(match_id="J03WPY", use_cache=True):
-    """(Tracking, labels) de un partido del IDSSE.
+    """(Tracking, labels) of an IDSSE match.
 
-    `labels` es un array de 'H'/'A'/'D' de la misma longitud que el tracking, con la misma
-    convencion que `decode.viterbi.STATES`. La primera llamada descarga ~370 MB de figshare
-    y tarda minuto y medio; despues sale de la cache en `out/cache`.
+    `labels` is an array of 'H'/'A'/'D' of the same length as the tracking, with the same
+    convention as `decode.viterbi.STATES`. The first call downloads ~370 MB from figshare
+    and takes a minute and a half; afterwards it comes from the cache in `out/cache`.
     """
     if match_id not in MATCHES:
-        raise KeyError("partido desconocido {!r}; hay {}".format(
+        raise KeyError("unknown match {!r}; available: {}".format(
             match_id, sorted(MATCHES)))
 
     cache = os.path.join(cache_dir(), "idsse_{}.npz".format(match_id))
@@ -160,8 +160,8 @@ def load(match_id="J03WPY", use_cache=True):
 
     from kloppy import sportec
 
-    # coordinates="metrica" devuelve 0-1 con origen arriba-izquierda sobre 105x68, que es
-    # la convencion del reto. Verificado contra MetricaCoordinateSystem de kloppy.
+    # coordinates="metrica" returns 0-1 with origin at top-left over 105x68, which is the
+    # challenge's convention. Verified against kloppy's MetricaCoordinateSystem.
     dataset = sportec.load_open_tracking_data(match_id=match_id, coordinates="metrica")
     home_team, away_team = dataset.metadata.teams
 

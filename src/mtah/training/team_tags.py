@@ -1,40 +1,42 @@
-"""Peso del Smart Tagging como evidencia de "que equipo tiene el balon", medido en el IDSSE.
+"""Weight of Smart Tagging as evidence of "which team has the ball", measured on the IDSSE.
 
-**Por que.** El 60 % de los frames que fallamos en el IDSSE (71 % con el balon visible) son
-local por visitante, no vivo por muerto. El Smart Tagging de BAR-ATH dice de quien es el
-balon en fases de ~18 s que cubren el 40 % de los frames puntuados, y el pipeline no lo
-usaba. Entra como un sumando del logit de local (`models/emissions.team_tag_logit`).
+**Why.** 60% of the frames we get wrong on the IDSSE (71% with the ball visible) are
+home versus away, not live versus dead. The BAR-ATH Smart Tagging says who owns the
+ball in phases of ~18 s that cover 40% of the scored frames, and the pipeline did not
+use it. It enters as a term added to the home logit (`models/emissions.team_tag_logit`).
 
-**El problema: el IDSSE no tiene Smart Tagging**, asi que su peso no se puede medir
-directamente. Se simula un tagging sobre las etiquetas del IDSSE que se parezca al real en
-lo que se puede medir del real **sin etiquetas**: tramos disjuntos con las longitudes de los
-tramos reales, la misma cobertura, centrados en frames vivos, separados entre si (en
-BAR-ATH nunca hay un cambio directo de equipo dentro del tagging), y con el equipo
-mayoritario del tramo (un tramo que cruza un cambio arrastra error, como una fase real).
+**The problem: the IDSSE has no Smart Tagging**, so its weight cannot be measured
+directly. We simulate a tagging on the IDSSE labels that resembles the real one in
+what can be measured about the real one **without labels**: disjoint windows with the
+lengths of the real windows, the same coverage, centered on live frames, separated from
+each other (in BAR-ATH there is never a direct change of team inside the tagging), and
+with the window's majority team (a window that crosses a change carries error, like a
+real phase).
 
-**Lo que no se sabe es cuanto acierta el tagging real.** Lo unico medible sin etiquetas es
-cuanto coincide con nuestra emision: 0,762 en BAR-ATH. Y un tagging simulado *perfecto*
-coincide con nuestra emision en el IDSSE solo 0,706. El real coincide mas que uno perfecto,
-asi que el "acierta X" no se puede calibrar con ruido independiente. Hay tres explicaciones,
-y cada una es un escenario con su parametro calibrado para dar 0,762:
+**What we do not know is how accurate the real tagging is.** The only thing measurable
+without labels is how much it agrees with our emission: 0.762 on BAR-ATH. And a *perfect*
+simulated tagging agrees with our emission on the IDSSE only 0.706. The real one agrees
+more than a perfect one, so "it is X% accurate" cannot be calibrated with independent
+noise. There are three explanations, and each is a scenario with its parameter calibrated
+to give 0.762:
 
-- `independent`: errores independientes de los nuestros (`flip`: probabilidad de invertir
-  un tramo). Si ni con flip 0 se llega, es la cota optimista: tags perfectos.
-- `echo`: Metrica etiqueta con el mismo tracking que nosotros, asi que sus errores
-  coinciden con los nuestros. Con probabilidad `echo` el tramo lleva el equipo que dice
-  *nuestra* emision en vez del verdadero. El escenario pesimista: lo que repite lo que ya
-  sabemos no aporta.
-- `easy`: las fases se detectan donde el juego es claro, que es donde nuestra emision ya
-  acierta. Los tramos se centran con peso |logit de local|^k.
+- `independent`: errors independent of ours (`flip`: probability of flipping a window).
+  If even flip 0 does not get there, it is the optimistic bound: perfect tags.
+- `echo`: Metrica labels with the same tracking we use, so its errors coincide with
+  ours. With probability `echo` the window carries the team that *our* emission says
+  instead of the true one. The pessimistic scenario: what repeats what we already know
+  adds nothing.
+- `easy`: phases are detected where play is clear, which is where our emission is already
+  right. Windows are centered with weight |home logit|^k.
 
-El peso se elige con el mismo LOMO anidado que el detector de fronteras, encima del
-pipeline entregado (detector incluido, con el peso y escala de cada pliegue), en cada
-escenario por separado. Se entrega el peso del escenario que menos gana, y solo si ahi
-sigue ganando.
+The weight is chosen with the same nested LOMO as the boundary detector, on top of the
+submitted pipeline (detector included, with each fold's weight and scale), in each
+scenario separately. We submit the weight of the scenario that gains least, and only if
+it still gains there.
 
-Uso:  python -m mtah.training.team_tags                    (los tres escenarios; ~20 min)
-      python -m mtah.training.team_tags robust             (ajuste por cuartiles + pesos fijos; ~15 min)
-      python -m mtah.training.team_tags export <escenario> (peso para config.py)
+Usage:  python -m mtah.training.team_tags                    (the three scenarios; ~20 min)
+        python -m mtah.training.team_tags robust             (fit by quartiles + fixed weights; ~15 min)
+        python -m mtah.training.team_tags export <scenario>  (weight for config.py)
 """
 
 import json
@@ -51,14 +53,14 @@ from ..features import tagging
 from ..models import emissions
 from . import boundaries, degrade, evidence, harness, idsse
 
-# Cada escenario: (parametro que se calibra, su rejilla). Los otros dos quedan neutros.
+# Each scenario: (parameter being calibrated, its grid). The other two stay neutral.
 SCENARIOS = {
-    "independent": ("flip", tuple(round(0.025 * k, 3) for k in range(13))),     # 0 .. 0,30
+    "independent": ("flip", tuple(round(0.025 * k, 3) for k in range(13))),     # 0 .. 0.30
     "echo": ("echo", tuple(round(0.05 * k, 2) for k in range(21))),             # 0 .. 1
     "easy": ("exponent", (0.0, 0.5, 1.0, 2.0, 4.0, 8.0)),
 }
 NEUTRAL = {"flip": 0.0, "echo": 0.0, "exponent": 0.0}
-# Con los pesos elegidos en `independent`, hasta que ruido independiente sigue ganando.
+# With the weights chosen in `independent`, up to how much independent noise it still wins.
 BREAK_EVEN_FLIPS = (0.10, 0.20, 0.30)
 TAG_WEIGHTS = (0.0, 0.5, 1.0, 1.5, 2.0, 3.0)
 TAG_SEED_OFFSET = 1000
@@ -74,10 +76,10 @@ def log(message):
 # --------------------------------------------------------------------------- BAR-ATH
 
 def agreement(home_logit, tags, mask):
-    """(acuerdo, acuerdo por cuartil de |logit|) entre la emision y el tagging en `mask`."""
+    """(agreement, agreement per |logit| quartile) between emission and tagging in `mask`."""
     mask = mask & (tags != 0)
     if not mask.any():
-        raise ValueError("ningun frame con tag en la mascara")
+        raise ValueError("no tagged frame in the mask")
     correct = (home_logit[mask] > 0) == (tags[mask] > 0)
     confidence = np.abs(home_logit[mask])
     edges = np.quantile(confidence, np.linspace(0, 1, N_CONFIDENCE_BANDS + 1))
@@ -88,7 +90,7 @@ def agreement(home_logit, tags, mask):
 
 
 def real_profile(config=None):
-    """Lo que se mide del tagging real de BAR-ATH sin ninguna etiqueta."""
+    """What is measured about the real BAR-ATH tagging without any labels."""
     from ..io import atd, smart_tagging
 
     config = config or DEFAULT
@@ -103,26 +105,26 @@ def real_profile(config=None):
             "agreement": overall, "agreement_by_quartile": by_quartile}
 
 
-# --------------------------------------------------------------------------- simulacion
+# --------------------------------------------------------------------------- simulation
 
 def _majority(values_are_home):
     return 1 if values_are_home.sum() * 2 >= len(values_are_home) else -1
 
 
 def simulate_windows(labels, home_logit, profile, rng, exponent=0.0):
-    """[(inicio, fin, equipo verdadero, equipo de nuestra emision)] con +-1 por equipo.
+    """[(start, end, true team, team of our emission)] with +-1 per team.
 
-    `exponent` > 0 centra los tramos con peso |home_logit|^exponent: donde nuestra emision
-    esta segura (escenario `easy`).
+    `exponent` > 0 centers the windows with weight |home_logit|^exponent: where our emission
+    is confident (`easy` scenario).
     """
     labels = np.asarray(labels)
     n = len(labels)
     live = np.flatnonzero(labels != "D")
-    # Suelo para que ningun frame vivo quede con peso exactamente cero.
+    # Floor so that no live frame ends up with exactly zero weight.
     weights = (np.abs(home_logit[live]) ** exponent if exponent
                else np.ones(len(live))) + WEIGHT_FLOOR
-    # Los centros se sortean solo entre frames libres: si no, con el peso concentrado los
-    # sorteos caen una y otra vez en tramos ya puestos y nunca se llega a la cobertura.
+    # Centers are drawn only among free frames: otherwise, with the weight concentrated, the
+    # draws fall again and again in windows already placed and the coverage is never reached.
     cumulative = np.cumsum(weights)
     taken = np.zeros(n, dtype=bool)
     target = int(round(profile["coverage"] * n))
@@ -135,7 +137,7 @@ def simulate_windows(labels, home_logit, profile, rng, exponent=0.0):
         center = int(live[min(np.searchsorted(cumulative, draw, side="right"), len(live) - 1)])
         start = max(0, min(center - length // 2, n - length))
         stop = start + length
-        if taken[max(0, start - 1):stop + 1].any():     # disjuntos y con hueco
+        if taken[max(0, start - 1):stop + 1].any():     # disjoint and with a gap
             continue
         inside = labels[start:stop]
         alive = inside != "D"
@@ -146,16 +148,16 @@ def simulate_windows(labels, home_logit, profile, rng, exponent=0.0):
         taken[start:stop] = True
         covered += length
         cumulative = np.cumsum(np.where(taken[live], 0.0, weights))
-    raise RuntimeError("no se llego a cubrir el %.0f %% de los frames en %d intentos"
+    raise RuntimeError("could not cover %.0f%% of the frames in %d attempts"
                        % (100 * profile["coverage"], MAX_PLACEMENT_ATTEMPTS))
 
 
 def tags_from_windows(windows, draws, n, flip=0.0, echo=0.0):
-    """(n,) int8. Por tramo: equipo de nuestra emision si su sorteo de eco < `echo`, si no
-    el verdadero; despues invertido si su sorteo de flip < `flip`.
+    """(n,) int8. Per window: the team of our emission if its echo draw < `echo`, otherwise
+    the true one; then flipped if its flip draw < `flip`.
 
-    Los sorteos son fijos por tramo, asi que subir `flip` o `echo` solo anade cambios: los
-    niveles son anidados y se comparan sobre los mismos tramos.
+    The draws are fixed per window, so raising `flip` or `echo` only adds changes: the
+    levels are nested and compared on the same windows.
     """
     tags = np.zeros(n, dtype=np.int8)
     for (start, stop, truth, ours), flip_draw, echo_draw in zip(windows, draws["flip"],
@@ -166,7 +168,7 @@ def tags_from_windows(windows, draws, n, flip=0.0, echo=0.0):
 
 
 class Simulation:
-    """Tramos y sorteos de un escenario para todos los (semilla, partido), reproducibles."""
+    """Windows and draws of a scenario for all (seed, match) pairs, reproducible."""
 
     def __init__(self, data, profile, exponent):
         self.data = data
@@ -185,25 +187,25 @@ class Simulation:
 
 
 def scenario_settings(name, value):
-    """{flip, echo, exponent} del escenario con su parametro a `value`."""
+    """{flip, echo, exponent} of the scenario with its parameter set to `value`."""
     parameter, _ = SCENARIOS[name]
     return dict(NEUTRAL, **{parameter: value})
 
 
-# --------------------------------------------------------------------------- decodificar
+# --------------------------------------------------------------------------- decoding
 
 def tagged_data(data, tags, weight, config):
-    """El partido preparado con la evidencia del tagging sumada a su coste."""
+    """The match prepared with the tagging evidence added to its cost."""
     tag_config = dict(config, smart_tagging_team_weight=weight)
     home = data["home_logit"] + emissions.team_tag_logit(tags, tag_config)
     return dict(data, cost=emissions.costs_from_logits(home, data["dead_logit"], config))
 
 
 def check_costs_rebuild(data, config):
-    """Reconstruir el coste desde los logits tiene que dar el de la cache, al bit."""
+    """Rebuilding the cost from the logits must give the cached one, bit for bit."""
     if not np.array_equal(emissions.costs_from_logits(data["home_logit"], data["dead_logit"],
                                                       config), data["cost"]):
-        raise RuntimeError("costs_from_logits no reproduce el coste cacheado")
+        raise RuntimeError("costs_from_logits does not reproduce the cached cost")
 
 
 def decode_with_tags(data, tags, weight, fold_choice, score, config):
@@ -212,10 +214,10 @@ def decode_with_tags(data, tags, weight, fold_choice, score, config):
                              discount_weight, switch_scale, score)
 
 
-# --------------------------------------------------------------------------- medicion
+# --------------------------------------------------------------------------- measurement
 
 def calibrate(name, data, profile):
-    """(valor calibrado, en_el_borde, tabla, simulacion) del parametro del escenario."""
+    """(calibrated value, at_edge, table, simulation) of the scenario's parameter."""
     parameter, grid = SCENARIOS[name]
     table, simulations = [], {}
     for value in grid:
@@ -239,7 +241,7 @@ def calibrate(name, data, profile):
 
 
 def choose_weight(data_by_match, tags_by_match, score_by_match, choice_by_match, config):
-    """Peso de TAG_WEIGHTS con mejor spellF1 medio en esos partidos; desempate macroF1."""
+    """Weight from TAG_WEIGHTS with the best mean spellF1 on those matches; macroF1 breaks ties."""
     rows = []
     for weight in TAG_WEIGHTS:
         scores = [boundaries.score_labels(decode_with_tags(
@@ -263,7 +265,7 @@ def prepared(config):
 
 
 class Detectors:
-    """Detectores de frontera por conjunto de entrenamiento, como en el LOMO."""
+    """Boundary detectors per training set, as in the LOMO."""
 
     def __init__(self, data):
         self.data = data
@@ -278,7 +280,7 @@ class Detectors:
 
 def nested_lomo(name, settings, simulation, data, matches, detectors, fold_choice, config,
                 extra_flips=()):
-    """Peso elegido en los 6 de dentro, evaluado en el de fuera con las 3 semillas."""
+    """Weight chosen on the 6 inside, evaluated on the held-out one with the 3 seeds."""
     folds = []
     for held_out in matches:
         inner = [m for m in matches if m != held_out]
@@ -300,7 +302,7 @@ def nested_lomo(name, settings, simulation, data, matches, detectors, fold_choic
                 row["flip_%.3f" % flip] = evidence.mechanism(decode_with_tags(
                     held, tags, weight, fold_choice[held_out], score, config), held["labels"])
             fold["seeds"][seed] = row
-        log("   [%s] %s peso %.1f  " % (name, held_out, weight) + "  ".join(
+        log("   [%s] %s weight %.1f  " % (name, held_out, weight) + "  ".join(
             "s%d %+.2f" % (s, 100 * (fold["seeds"][s]["flip_%.3f" % settings["flip"]]["spell_f1"]
                                     - fold["seeds"][s]["control"]["spell_f1"]))
             for s in boundaries.SEEDS))
@@ -326,8 +328,8 @@ def measure(config=None):
     config = config or DEFAULT
     started = time.time()
     profile = real_profile(config)
-    log("BAR-ATH: tagging en %.1f %% de los frames, tramo mediano %.0f fr, acuerdo con la "
-        "emision %.3f (por cuartil %s)" % (
+    log("BAR-ATH: tagging on %.1f%% of the frames, median window %.0f fr, agreement with the "
+        "emission %.3f (by quartile %s)" % (
             100 * profile["coverage"], np.median(profile["run_lengths"]),
             profile["agreement"], " ".join("%.3f" % q for q in profile["agreement_by_quartile"])))
     matches, data = prepared(config)
@@ -344,11 +346,11 @@ def measure(config=None):
     for name, (parameter, _) in SCENARIOS.items():
         value, at_edge, table, simulation = calibrate(name, data, profile)
         settings = scenario_settings(name, value)
-        log("== %s: %s calibrado %s%s" % (name, parameter, value,
-                                         "  (EN EL BORDE: no llega al acuerdo real)"
+        log("== %s: %s calibrated %s%s" % (name, parameter, value,
+                                         "  (AT THE EDGE: does not reach the real agreement)"
                                          if at_edge else ""))
         for row in table:
-            log("   %s %-5s acuerdo %.3f  cuartiles %s" % (
+            log("   %s %-5s agreement %.3f  quartiles %s" % (
                 parameter, row[parameter], row["agreement"],
                 " ".join("%.3f" % q for q in row["agreement_by_quartile"])))
         extra = BREAK_EVEN_FLIPS if name == "independent" else ()
@@ -358,22 +360,22 @@ def measure(config=None):
                    for f in (settings["flip"],) + tuple(extra)}
         for key, s in summary.items():
             st = s["spell_f1_mean_of_seeds"]
-            log("   %s %s: %+.2f pp spellF1 [%+.2f, %+.2f], %d/7 mejor, p=%.3f; macroF1 %+.2f pp"
+            log("   %s %s: %+.2f pp spellF1 [%+.2f, %+.2f], %d/7 better, p=%.3f; macroF1 %+.2f pp"
                 % (name, key, st["mean_pp"], st["ci95_pp"][0], st["ci95_pp"][1],
                    st["matches_better"], st["sign_test_p_one_sided"],
                    s["macro_f1_mean_of_seeds_pp"]))
         result["scenarios"][name] = {"parameter": parameter, "calibrated": value,
                                      "calibration_at_edge": at_edge, "calibration": table,
                                      "folds": folds, "summary": summary}
-        # Tras cada escenario, para que un fallo en el siguiente no se lleve este.
+        # After each scenario, so that a failure in the next one does not take this one with it.
         with open(path, "w") as handle:
             json.dump(result, handle, indent=1, default=float)
-    log("guardado %s (%.0f min)" % (path, (time.time() - started) / 60))
+    log("saved %s (%.0f min)" % (path, (time.time() - started) / 60))
     return result
 
 
 def export(name, config=None):
-    """El peso para config.py en un escenario: el mismo procedimiento sobre los 7."""
+    """The weight for config.py in one scenario: the same procedure over the 7."""
     config = config or DEFAULT
     profile = real_profile(config)
     matches, data = prepared(config)
@@ -386,29 +388,30 @@ def export(name, config=None):
     choice = (config["boundary_discount_weight"], config["boundary_switch_scale"])
     weight, grid = choose_weight({m: data[0][m] for m in matches}, tags, out_of_fold,
                                  {m: choice for m in matches}, config)
-    log("%s: %s calibrado %s%s; peso elegido sobre los 7: %.1f" % (
-        name, SCENARIOS[name][0], value, " (en el borde)" if at_edge else "", weight))
+    log("%s: %s calibrated %s%s; weight chosen over the 7: %.1f" % (
+        name, SCENARIOS[name][0], value, " (at the edge)" if at_edge else "", weight))
     for row in grid:
-        log("   peso %.1f  spellF1 %.4f  macroF1 %.4f" % (row[2], row[0], row[1]))
+        log("   weight %.1f  spellF1 %.4f  macroF1 %.4f" % (row[2], row[0], row[1]))
     return weight
 
 
-# --------------------------------------------------------------------------- robustez
+# --------------------------------------------------------------------------- robustness
 
-# Calibracion conjunta: el acuerdo por cuartil de confianza tiene cuatro numeros, no uno, y
-# distingue escenarios que el acuerdo medio confunde (eco 0,5 y facil 8 dan los dos 0,762).
+# Joint calibration: the agreement per confidence quartile has four numbers, not one, and
+# it tells apart scenarios that the mean agreement confuses (echo 0.5 and easy 8 both give
+# 0.762).
 MIX_ECHO = (0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6)
 MIX_EXPONENT = (0.0, 1.0, 2.0, 4.0, 8.0)
-# Pesos fijos, sin eleccion: si uno pierde poco en el peor escenario y gana en los demas,
-# se puede encender sin saber cual es el verdadero.
+# Fixed weights, no choice: if one loses little in the worst scenario and wins in the others,
+# it can be switched on without knowing which one is the true one.
 FIXED_WEIGHTS = (0.5, 1.0)
 
 
 def calibrate_mixed(data, profile):
-    """(tabla ordenada por ajuste, simulaciones por exponente) de la rejilla eco x exponente.
+    """(table ordered by fit, simulations per exponent) of the echo x exponent grid.
 
-    El ajuste es el error cuadratico medio entre el acuerdo por cuartil simulado (medio
-    sobre las 3 semillas y los 7 partidos) y el de BAR-ATH.
+    The fit is the mean squared error between the simulated agreement per quartile (mean
+    over the 3 seeds and the 7 matches) and the BAR-ATH one.
     """
     target = np.array(profile["agreement_by_quartile"])
     simulations = {k: Simulation(data, profile, k) for k in MIX_EXPONENT}
@@ -433,7 +436,7 @@ def calibrate_mixed(data, profile):
 
 
 def fixed_weight_rows(scenarios, simulations, data, matches, detectors, fold_choice, config):
-    """Cambio de spellF1 del partido de fuera con cada peso fijo, por escenario y semilla."""
+    """Change in spellF1 of the held-out match with each fixed weight, per scenario and seed."""
     rows = []
     for held_out in matches:
         model = detectors.model([m for m in matches if m != held_out])
@@ -452,7 +455,7 @@ def fixed_weight_rows(scenarios, simulations, data, matches, detectors, fold_cho
                                  "weight": weight,
                                  "delta_spell_f1": result["spell_f1"] - control["spell_f1"],
                                  "delta_macro_f1": result["macro_f1"] - control["macro_f1"]})
-        log("   pesos fijos: %s hecho" % held_out)
+        log("   fixed weights: %s done" % held_out)
     return rows
 
 
@@ -467,7 +470,7 @@ def summarise_fixed(rows, scenarios, matches):
             stats = evidence.paired_statistics(per_match, rng)
             stats["macro_f1_pp"] = 100 * float(np.mean([r["delta_macro_f1"] for r in subset]))
             out["%s|%.1f" % (name, weight)] = stats
-            log("   %-22s peso %.1f: %+.2f pp [%+.2f, %+.2f] %d/7, macroF1 %+.2f pp" % (
+            log("   %-22s weight %.1f: %+.2f pp [%+.2f, %+.2f] %d/7, macroF1 %+.2f pp" % (
                 name, weight, stats["mean_pp"], stats["ci95_pp"][0], stats["ci95_pp"][1],
                 stats["matches_better"], stats["macro_f1_pp"]))
     return out
@@ -483,22 +486,22 @@ def robustness(config=None):
     detectors = Detectors(data)
 
     table, simulations = calibrate_mixed(data, profile)
-    log("BAR-ATH por cuartil: %s" % " ".join(
+    log("BAR-ATH by quartile: %s" % " ".join(
         "%.3f" % q for q in profile["agreement_by_quartile"]))
-    log("mejores ajustes por cuartil (eco, exponente):")
+    log("best fits by quartile (echo, exponent):")
     for row in table[:8]:
-        log("   eco %.1f exp %.0f  acuerdo %.3f  cuartiles %s  rmse %.4f" % (
+        log("   echo %.1f exp %.0f  agreement %.3f  quartiles %s  rmse %.4f" % (
             row["echo"], row["exponent"], row["agreement"],
             " ".join("%.3f" % q for q in row["agreement_by_quartile"]), row["quartile_rmse"]))
     best = table[0]
     mixed = {"flip": 0.0, "echo": best["echo"], "exponent": best["exponent"]}
 
-    log("== LOMO anidado con el mejor ajuste conjunto")
+    log("== nested LOMO with the best joint fit")
     folds = nested_lomo("mixed", mixed, simulations[mixed["exponent"]], data, matches,
                         detectors, fold_choice, config)
     nested = summarise(folds, "flip_0.000")
     st = nested["spell_f1_mean_of_seeds"]
-    log("   mixed: %+.2f pp spellF1 [%+.2f, %+.2f], %d/7 mejor, p=%.3f; macroF1 %+.2f pp" % (
+    log("   mixed: %+.2f pp spellF1 [%+.2f, %+.2f], %d/7 better, p=%.3f; macroF1 %+.2f pp" % (
         st["mean_pp"], st["ci95_pp"][0], st["ci95_pp"][1], st["matches_better"],
         st["sign_test_p_one_sided"], nested["macro_f1_mean_of_seeds_pp"]))
 
@@ -507,7 +510,7 @@ def robustness(config=None):
         value = calibrate(name, data, profile)[0]
         calibrated[name] = scenario_settings(name, value)
         if calibrated[name]["exponent"] not in simulations:
-            raise RuntimeError("exponente calibrado fuera de MIX_EXPONENT")
+            raise RuntimeError("calibrated exponent outside MIX_EXPONENT")
     scenarios = {
         "perfect": dict(NEUTRAL),
         "independent_flip_0.1": dict(NEUTRAL, flip=0.1),
@@ -517,7 +520,7 @@ def robustness(config=None):
         "mixed_best_fit": mixed,
         "echo_total": dict(NEUTRAL, echo=1.0),
     }
-    log("== pesos fijos %s en cada escenario" % (FIXED_WEIGHTS,))
+    log("== fixed weights %s in each scenario" % (FIXED_WEIGHTS,))
     rows = fixed_weight_rows(scenarios, simulations, data, matches, detectors, fold_choice,
                              config)
     fixed = summarise_fixed(rows, scenarios, matches)
@@ -529,7 +532,7 @@ def robustness(config=None):
                    "mixed_nested_lomo": {"folds": folds, "summary": nested},
                    "scenarios": scenarios, "fixed_weights": fixed, "fixed_rows": rows},
                   handle, indent=1, default=float)
-    log("guardado %s (%.0f min)" % (path, (time.time() - started) / 60))
+    log("saved %s (%.0f min)" % (path, (time.time() - started) / 60))
 
 
 if __name__ == "__main__":

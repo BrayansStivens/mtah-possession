@@ -1,77 +1,125 @@
-# Posesión por frame — More than a Hack 2027, Fase 1
+# Per-frame possession — More than a Hack 2027, Phase 1
 
-Determinar, para cada uno de los **199.319 frames** del vídeo táctico de
-FC Barcelona – Athletic Club (LaLiga 2024-25, J2), qué equipo tiene el balón:
-`H` (Barcelona), `A` (Athletic), `D` (balón parado), `X` (sin respuesta).
+*Labeling every frame of a football match with who has the ball: `H`, `A`, `D` or `X`.*
 
-Se puntúa con `spellF1` sobre un ground truth privado de partido completo.
-Suelo oficial a batir: **`spellF1` 0.2433** (`baseline_smooth50`).
+Determine, for each of the **199,319 frames** of the tactical video of
+FC Barcelona – Athletic Club (LaLiga 2024-25, matchday 2), which team has the ball:
+`H` (Barcelona), `A` (Athletic), `D` (dead ball), `X` (no answer).
 
-> **Para el equipo:** el estado del proyecto —qué está hecho, qué falta, qué problemas
-> vimos y qué no hemos podido medir— está en [`ESTADO.md`](ESTADO.md). El análisis, los
-> documentos y las tablas de resultados están en [`trabajo/`](trabajo/README.md). Este
-> README describe solo el código de la entrega.
+It is scored with `spellF1` against a private full-match ground truth.
+Official floor to beat: **`spellF1` 0.2433** (`baseline_smooth50`).
+
+> **For the team:** the project status —what is done, what's left, the problems we ran into
+> and what we haven't been able to measure— is in [`STATUS.md`](docs/STATUS.md). The rest of the documents are in
+> [`docs/`](docs/), and the measurement scripts and results tables in
+> [`analysis/`](analysis/README.md). This README describes only the submission code.
 
 ---
 
-## Instalación
+## Contents
+
+- [Quickstart](#quickstart)
+- [Repository layout](#repository-layout)
+- [Installation](#installation)
+- [The data](#the-data)
+- [Reproducing the submission](#reproducing-the-submission)
+- [Tests](#tests)
+- [Architecture](#architecture)
+- [Three decisions and why](#three-decisions-and-why)
+- [What we do NOT use, and why](#what-we-do-not-use-and-why)
+- [Caveats about the public window](#caveats-about-the-public-window)
+- [License](#license)
+
+## Quickstart
+
+With the match assets already downloaded (see [The data](#the-data)):
 
 ```bash
 python -m venv .venv && source .venv/bin/activate
-pip install -r requirements.txt          # produccion: numpy, pandas, scikit-learn (pinneados)
+pip install -r requirements-dev.txt      # production deps + pytest, matplotlib
+source scripts/env.sh                    # sets MTAH_DATA_DIR (see "The data")
+python -m mtah status                    # tells you what is there and what is missing
+./scripts/reproduce.sh <team_name>       # -> out/<team_name>.csv
+```
+
+## Repository layout
+
+```
+mtah-possession/
+  src/mtah/           the package: IO, features, models, decoder, CSV (module map in "Architecture")
+  tests/              pytest suite
+  docs/               project documents: STATUS.md (what is done, what's left, problems we ran into),
+                      plain-summary.md, analysis-and-proposal.md, external-data.md, figures/ and
+                      archive-es/ (stale Spanish PDFs of the Oct 28 versions)
+  analysis/           measurement scripts and results tables (see analysis/README.md)
+    handoff-plugin-data/   validation documents, the scripts and the results tables (in data/)
+    no-ball-1111/          diagnosis of the frames without the ball (Nov 11-12) and its scripts
+  vendor/             official scorer (MIT) + public ground truth + baselines (see vendor/NOTICE.md)
+  scripts/            env.sh (data location), reproduce.sh (regenerates the submitted file)
+  requirements*.txt   pinned dependencies (production, dev, training)
+  pyproject.toml      package metadata
+  out/                generated CSVs and the tracking cache (git-ignored)
+```
+
+## Installation
+
+```bash
+python -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt          # production: numpy, pandas, scikit-learn (pinned)
 pip install -r requirements-dev.txt      # + pytest, matplotlib
 ```
 
-Python 3.12 o superior (lo pide `numpy==2.5.4`). La versión de scikit-learn tiene que ser
-exactamente la pinneada: el detector de fronteras y el clasificador de equipo son modelos
-guardados y se niegan a cargar con otra.
+Python 3.12 or higher (required by `numpy==2.5.4`). The scikit-learn version has to be
+exactly the pinned one: the boundary detector and the team classifier are saved models and
+refuse to load with any other.
 
-## Los datos
+## The data
 
-Los assets del partido **no están en este repositorio y no pueden estarlo**: pesan ~5 GB y
-no son redistribuibles según los términos de la competición. Descárgalos del Drive de la
-organización y descomprime manteniendo la estructura que traen:
+The match assets **are not in this repository and cannot be**: they weigh ~5 GB and are
+not redistributable under the competition's terms. Download them from the organizers' Drive
+and unzip them keeping the structure they come with:
 
 ```
-<raiz>/tactical/BAR-ATH_tactical.mp4
-<raiz>/tactical/BAR-ATH_tactical_atd.xml
-<raiz>/tactical/BAR-ATH_tactical_atd.txt
-<raiz>/tactical/BAR-ATH_tactical_homography.csv
-<raiz>/tactical/BAR-ATH_tactical_smart_tagging.xml
-<raiz>/broadcast/...
+<root>/tactical/BAR-ATH_tactical.mp4
+<root>/tactical/BAR-ATH_tactical_atd.xml
+<root>/tactical/BAR-ATH_tactical_atd.txt
+<root>/tactical/BAR-ATH_tactical_homography.csv
+<root>/tactical/BAR-ATH_tactical_smart_tagging.xml
+<root>/broadcast/...
 ```
 
-Apunta `MTAH_DATA_DIR` a `<raiz>`:
+Point `MTAH_DATA_DIR` at `<root>`:
 
 ```bash
-source scripts/env.sh                    # usa ~/Documents/Hackaton/data por defecto
-python -m mtah status                    # dice que hay y que falta
+source scripts/env.sh                    # uses ~/Documents/Hackaton/data by default
+python -m mtah status                    # tells you what is there and what is missing
 ```
 
-> **No descargues la carpeta entera de Drive como ZIP.** Drive la parte en trozos de ~2 GB
-> y es fácil acabar con una parte suelta. Descarga los ficheros uno a uno.
+> **Don't download the whole Drive folder as a ZIP.** Drive splits it into ~2 GB chunks
+> and it is easy to end up with a loose part. Download the files one by one.
 
-## Reproducir la entrega
+## Reproducing the submission
 
 ```bash
 source scripts/env.sh
-./scripts/reproduce.sh <nombre_equipo>   # -> out/<nombre_equipo>.csv
+./scripts/reproduce.sh <team_name>       # -> out/<team_name>.csv
 ```
 
-Funciona en Linux, macOS y Windows (Git Bash). Pide Python ≥ 3.12 y se para si no lo es;
-`PYTHON=ruta/al/python ./scripts/reproduce.sh ...` elige el intérprete (en Windows, el del venv:
-`.venv/Scripts/python.exe`). Comprobado el 16-11 desde un clon nuevo con un venv recién creado
-en Windows 11 y en Ubuntu 24.04: los dos dan el mismo fichero byte a byte (sha256 en `ESTADO.md`).
+It works on Linux, macOS and Windows (Git Bash). It requires Python ≥ 3.12 and stops if it
+is not; `PYTHON=path/to/python ./scripts/reproduce.sh ...` picks the interpreter (on Windows,
+the venv's: `.venv/Scripts/python.exe`). Checked on Nov 16 from a fresh clone with a newly
+created venv on Windows 11 and on Ubuntu 24.04: both give the same file byte for byte
+(sha256 in `STATUS.md`).
 
-Equivalente, paso a paso:
+Equivalent, step by step:
 
 ```bash
-python -m mtah build --out out/equipo.csv    # tracking -> features -> decodificacion -> csv
-python -m mtah validate out/equipo.csv       # el contrato, antes de subir
-python -m mtah evaluate out/equipo.csv       # scorer oficial, ventana publica de 5 min
+python -m mtah build --out out/team.csv      # tracking -> features -> decoding -> csv
+python -m mtah validate out/team.csv         # the contract, before uploading
+python -m mtah evaluate out/team.csv         # official scorer, 5-min public window
 ```
 
-El parseo del tracking se cachea en `out/cache/`. Bórralo si cambias el bundle, o usa
+The tracking parse is cached in `out/cache/`. Delete it if you change the bundle, or use
 `--no-cache`.
 
 ## Tests
@@ -80,130 +128,132 @@ El parseo del tracking se cachea en `out/cache/`. Bórralo si cambias el bundle,
 python -m pytest -q
 ```
 
-Cubren el contrato del fichero, el decodificador, el pipeline extremo a extremo sobre
-tracking sintético, y una regresión que comprueba que el scorer vendorizado reproduce los
-números publicados de los cuatro baselines oficiales.
+They cover the file contract, the decoder, the end-to-end pipeline on synthetic tracking,
+and a regression that checks that the vendored scorer reproduces the published numbers of
+the four official baselines.
 
 ---
 
-## Arquitectura
+## Architecture
 
 ```
 src/mtah/
-  constants.py          frames, bloques puntuados, campo, etiquetas
-  paths.py              resolucion de assets + MTAH_DATA_DIR
-  config.py             TODOS los hiperparametros, con su justificacion al lado
-  io/atd.py             tracking (46 slots + balon) -> numpy, cacheado
-  io/homography.py      matriz 3x3 por frame; campo <-> pixel
-  io/smart_tagging.py   fases tacticas y saques -> intervalos en frames
-  features/geometry.py  distancias, control, actividad, forma de equipo
-  features/boundaries.py que cambia entre justo antes y justo despues de cada frame
-  features/team_signals.py forma y movimiento de cada equipo en su eje de ataque, sin balon
-  models/emissions.py   features -> coste por frame y estado
-  models/boundary_detector.{py,joblib,json}  score de frontera, entrenado en el IDSSE
-  models/team_classifier.{py,joblib,json}    quien tiene la posesion sin mirar el balon, idem
-  decode/viterbi.py     coste -> segmentos. El nucleo del reto
-  pipeline.py           el encadenado completo
-  submission.py         construir, escribir y validar el CSV
-  evaluate.py           scorer oficial vendorizado
-vendor/                 scorer oficial (MIT) + ground truth publico + baselines
+  constants.py          frames, scored blocks, pitch, labels
+  paths.py              asset resolution + MTAH_DATA_DIR
+  config.py             ALL hyperparameters, with their justification alongside
+  io/atd.py             tracking (46 slots + ball) -> numpy, cached
+  io/homography.py      3x3 matrix per frame; pitch <-> pixel
+  io/smart_tagging.py   tactical phases and restarts -> frame intervals
+  features/geometry.py  distances, control, activity, team shape
+  features/boundaries.py what changes between just before and just after each frame
+  features/team_signals.py shape and movement of each team along its attacking axis, without the ball
+  models/emissions.py   features -> cost per frame and state
+  models/boundary_detector.{py,joblib,json}  boundary score, trained on the IDSSE
+  models/team_classifier.{py,joblib,json}    who has possession without looking at the ball, ditto
+  decode/viterbi.py     cost -> segments. The core of the challenge
+  pipeline.py           the full chain
+  submission.py         build, write and validate the CSV
+  evaluate.py           vendored official scorer
+vendor/                 official scorer (MIT) + public ground truth + baselines
 ```
 
-La descomposición es `P(H) = P(vivo) · P(local | vivo)` y `P(D) = P(muerto)`, porque las
-dos mitades se apoyan en señales distintas: **vivo/muerto** sale de la cinemática de los
-jugadores y no necesita el balón, mientras que **la propiedad** sale de la geometría
-balón-jugador y sí lo necesita. Con el balón ausente en el 41% de los frames puntuados,
-mezclarlas en un solo clasificador tira a la basura la mitad que sigue funcionando.
+The decomposition is `P(H) = P(live) · P(home | live)` and `P(D) = P(dead)`, because the
+two halves rely on different signals: **live/dead** comes from player kinematics and does
+not need the ball, while **ownership** comes from ball-player geometry and does need it.
+With the ball absent in 41% of the scored frames, mixing them into a single classifier
+throws away the half that keeps working.
 
-Encima, un **detector de fronteras**: gradient boosting que mira qué cambia entre una
-ventana corta antes y otra después de cada frame, y devuelve un score de "aquí cambia la
-posesión". El decodificador encarece todos los cambios (×2) y abarata los de cada frame en
-proporción al score (×(1 − 0,95·score)): corta sobre todo donde el detector ve frontera. Se
-entrenó en los 7 partidos del IDSSE degradados como el ATD; medido dejando cada partido
-fuera, con el peso elegido sin verlo, da **+1,17 pp de `spellF1`** sobre el modelo sin él
-(ver `ESTADO.md`). Se regenera con `python -m mtah.training.boundaries export`, que necesita
-`requirements-train.txt` y descarga el IDSSE; la entrega solo carga el modelo guardado.
+On top of that, a **boundary detector**: gradient boosting that looks at what changes
+between a short window before and another one after each frame, and returns a "possession
+changes here" score. The decoder makes every change more expensive (×2) and makes each
+frame's changes cheaper in proportion to the score (×(1 − 0.95·score)): it cuts mostly where
+the detector sees a boundary. It was trained on the 7 IDSSE matches degraded like the ATD;
+measured leaving each match out, with the weight chosen without seeing it, it gives
+**+1.17 pp of `spellF1`** over the model without it (see `STATUS.md`). It is regenerated
+with `python -m mtah.training.boundaries export`, which needs `requirements-train.txt` and
+downloads the IDSSE; the submission only loads the saved model.
 
-Y el **Smart Tagging** de Metrica como evidencia de equipo: las fases que dicen quién tiene el
-balón (BUILD UP, PROGRESSION, ...; los DEFENDING IN * nombran al rival) suman ±0,5 al logit de
-local donde existen, el 40 % de los frames. El IDSSE no tiene tagging, así que el peso se eligió
-con uno simulado sobre sus etiquetas y calibrado por su acuerdo con nuestra emisión en este
-partido (`training/team_tags.py`, ver `ESTADO.md`): +0,5 a +0,9 pp estimados.
+And Metrica's **Smart Tagging** as team evidence: the phases that say who has the ball
+(BUILD UP, PROGRESSION, ...; the DEFENDING IN * ones name the opponent) add ±0.5 to the home
+logit where they exist, 40% of the frames. The IDSSE has no tagging, so the weight was chosen
+with a simulated one over its labels, calibrated by its agreement with our emission in this
+match (`training/team_tags.py`, see `STATUS.md`): +0.5 to +0.9 pp estimated.
 
-Desde el 12-11, y en `main` desde el 15-11, un **clasificador de equipo sin
-balón**: gradient boosting que lee de quién es la posesión en la forma y el movimiento de los
-dos equipos (anchura, líneas de defensa y de ataque, velocidad hacia la portería rival,
-sprints), cada uno medido en su propio sentido de ataque, y suma su logit ×2 al de local.
-Existe por el 41 % de frames sin balón, donde la geometría balón-jugador no tiene qué leer.
-Entrenado en los 7 partidos del IDSSE degradados; medido dejando cada partido fuera, con el
-peso elegido sin verlo, da **+16,1 pp de `spellF1`** en tres semillas. Es una cota optimista:
-el IDSSE degradado conserva a los jugadores cuando falta el balón y este partido no (ver
-`ESTADO.md`). Con `team_classifier_weight = 0` no se carga y sale la entrega del 8-11 byte a
-byte. Se regenera con `python -m mtah.training.team_classifier export`.
+Since Nov 12, and in `main` since Nov 15, a **team classifier that works without the ball**:
+gradient boosting that reads who owns the possession from the shape and movement of the two
+teams (width, defensive and attacking lines, speed toward the opponent's goal, sprints), each
+measured along its own attacking direction, and adds its logit ×2 to the home logit. It
+exists because of the 41% of frames without the ball, where the ball-player geometry has
+nothing to read. Trained on the 7 degraded IDSSE matches; measured leaving each match out,
+with the weight chosen without seeing it, it gives **+16.1 pp of `spellF1`** over three
+seeds. It is an optimistic bound: the degraded IDSSE keeps the players when the ball is
+missing and this match does not (see `STATUS.md`). With `team_classifier_weight = 0` it is
+not loaded and the Nov 8 submission comes out byte for byte. It is regenerated with
+`python -m mtah.training.team_classifier export`.
 
-## Tres decisiones y por qué
+## Three decisions and why
 
-Medidas con el scorer oficial, degradando el ground truth público de forma controlada.
-Los números están en los docstrings de los módulos correspondientes.
+Measured with the official scorer, degrading the public ground truth in a controlled way.
+The numbers are in the docstrings of the corresponding modules.
 
-**1. La decodificación es offline y centrada.** +1 frame de retraso es gratis
-(`spellF1` 1.0000); +25 frames (1 s) baja a 0.7765 y +50 frames (2 s) a 0.5882. Cualquier
-filtro causal es inviable.
+**1. Decoding is offline and centered.** +1 frame of delay is free (`spellF1` 1.0000);
++25 frames (1 s) drops it to 0.7765 and +50 frames (2 s) to 0.5882. Any causal filter is
+not viable.
 
-**2. Viterbi en lugar de voto por mayoría.** Partiendo de la misma etiqueta cruda que el
-baseline oficial, sobre la ventana pública:
+**2. Viterbi instead of majority vote.** Starting from the same raw label as the official
+baseline, on the public window:
 
-| | spellF1 | macroF1 | posesiones |
+| | spellF1 | macroF1 | possessions |
 |---|---|---|---|
-| voto mayoría, `smooth50` | 0.3256 | 0.6207 | 26 |
-| voto mayoría, `smooth125` | 0.4242 | 0.5812 | 16 |
+| majority vote, `smooth50` | 0.3256 | 0.6207 | 26 |
+| majority vote, `smooth125` | 0.4242 | 0.5812 | 16 |
 | **Viterbi** `switch_cost=40` | **0.4000** | **0.6686** | 16 |
 
-Gana a `smooth50` en las dos métricas a la vez. El motivo es estructural: una ventana
-controla el número de segmentos indirectamente y para no fragmentar una posesión larga
-tiene que borrar las cortas; Viterbi penaliza las transiciones directamente y puede hacer
-las dos cosas. En la ventana pública, **6 de las 17 posesiones duran menos de 4 s** y la
-más corta 0,76 s, así que borrar las cortas es caro: perder las de menos de 2 s cuesta
-0.17 de `spellF1` y las de menos de 5 s, 0.44.
+It beats `smooth50` on both metrics at once. The reason is structural: a window controls
+the number of segments indirectly, and to avoid fragmenting a long possession it has to
+erase the short ones; Viterbi penalizes transitions directly and can do both. In the public
+window, **6 of the 17 possessions last less than 4 s** and the shortest 0.76 s, so erasing
+the short ones is expensive: losing those under 2 s costs 0.17 of `spellF1` and those under
+5 s, 0.44.
 
-**3. Nunca escribimos `X` en un frame puntuado.** El scorer rellena las abstenciones hacia
-delante con la última etiqueta del mismo tiempo *antes* de emparejar posesiones, así que en
-`spellF1` una `X` es literalmente "repite mi respuesta anterior" — pero `macroF1`, el
-desempate, la cobra como fallo:
+**3. We never write `X` on a scored frame.** The scorer forward-fills abstentions with the
+last label of the same half *before* matching possessions, so in `spellF1` an `X` is
+literally "repeat my previous answer" — but `macroF1`, the tiebreaker, counts it as a miss:
 
 ```
-con 20% de X                spellF1 0.3610   macroF1 0.5438
-mismo pero relleno a mano   spellF1 0.3610   macroF1 0.6192
+with 20% of X               spellF1 0.3610   macroF1 0.5438
+same but filled in by hand  spellF1 0.3610   macroF1 0.6192
 ```
 
-Idéntico en la métrica de ranking, 0.075 peor en el desempate. Está estrictamente dominada.
+Identical on the ranking metric, 0.075 worse on the tiebreaker. It is strictly dominated.
 
-## Lo que NO usamos, y por qué
+## What we do NOT use, and why
 
-- **`reprojection_error` de la homografía como detector de balón parado.** Medido en este
-  partido: mediana 0,231 en juego vs 0,395 en el descanso, p90 en juego 0,308. Separa
-  "cámara apuntando al campo" de "cámara en el público", pero no separa jugada de parada.
-- **El vídeo broadcast y su tracking.** Está en su propia línea de tiempo, con cortes y
-  repeticiones, sin tabla de correspondencia, y un tercio de sus frames no tienen
-  homografía usable. Mapearlo de vuelta cuesta más de lo que aporta.
+- **The homography's `reprojection_error` as a dead-ball detector.** Measured on this
+  match: median 0.231 in play vs 0.395 at halftime, p90 in play 0.308. It separates
+  "camera pointing at the pitch" from "camera on the crowd", but it does not separate live
+  play from a stoppage.
+- **The broadcast video and its tracking.** It is on its own timeline, with cuts and
+  replays, without a correspondence table, and a third of its frames have no usable
+  homography. Mapping it back costs more than it brings.
 
-## Avisos sobre la ventana pública
+## Caveats about the public window
 
-Son 5 minutos y 17 posesiones. Sirve para comprobar que el pipeline es **correcto**, nunca
-para elegir entre dos versiones de él: `baseline_smooth125` gana ahí y pierde en el
-partido completo. Una posesión fallada mueve `spellF1` unos 6 puntos en esa ventana.
-Diferencias por debajo de ~0.04 en `spellF1` y ~0.01 en `macroF1` son ruido.
+It is 5 minutes and 17 possessions. It is good for checking that the pipeline is
+**correct**, never for choosing between two versions of it: `baseline_smooth125` wins there
+and loses on the full match. One missed possession moves `spellF1` about 6 points in that
+window. Differences below ~0.04 in `spellF1` and ~0.01 in `macroF1` are noise.
 
-## Licencia
+## License
 
-Código propio bajo MIT. `vendor/` es copia literal del repositorio oficial de la
-competición (MIT, ver `vendor/NOTICE.md`). Los datos del partido no están cubiertos por
-ninguna de las dos y no se redistribuyen.
+Our own code is under MIT. `vendor/` is a verbatim copy of the competition's official
+repository (MIT, see `vendor/NOTICE.md`). The match data is not covered by either and is
+not redistributed.
 
-`src/mtah/models/boundary_detector.joblib` y `src/mtah/models/team_classifier.joblib` son
-obras derivadas del dataset IDSSE —
+`src/mtah/models/boundary_detector.joblib` and `src/mtah/models/team_classifier.joblib` are
+derivative works of the IDSSE dataset —
 Bassek, M., Rein, R., Weber, H. et al. "An integrated dataset of spatiotemporal and event
-data in elite soccer". *Sci Data* 12, 195 (2025), doi:10.1038/s41597-025-04505-y — publicado
-bajo **CC-BY 4.0** con autorización de la **Deutsche Fußball Liga (DFL)**. Datos:
-doi:10.6084/m9.figshare.28196177. El repositorio no contiene ningún dato del IDSSE, solo los
-dos modelos entrenados sobre él.
+data in elite soccer". *Sci Data* 12, 195 (2025), doi:10.1038/s41597-025-04505-y — published
+under **CC-BY 4.0** with the authorization of the **Deutsche Fußball Liga (DFL)**. Data:
+doi:10.6084/m9.figshare.28196177. The repository contains no IDSSE data, only the two
+models trained on it.

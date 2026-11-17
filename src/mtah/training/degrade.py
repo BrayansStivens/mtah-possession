@@ -1,46 +1,48 @@
-"""Degradar tracking limpio hasta que se parezca al ATD automatico del reto.
+"""Degrade clean tracking until it looks like the challenge's automatic ATD.
 
-**Para que existe.** Dos usos, y el segundo importa mas que el primero:
+**Why it exists.** Two uses, and the second matters more than the first:
 
-1. Entrenar. Un modelo ajustado sobre tracking corregido aprende a apoyarse en senales que
-   en inferencia no existen -- balon siempre visible, identidad estable, 22 objetos.
-2. **Medir.** El ground truth publico son 5 minutos y 17 posesiones, y EVALUATION.md dice
-   que no sirve para elegir entre dos versiones del modelo. Degradando un partido del
-   IDSSE, que si tiene etiqueta por frame de partido completo, se obtiene un spellF1 sobre
-   un partido entero. Siete veces. Eso convierte "no podemos medir" en "podemos medir en
-   siete partidos proxy", y ahora mismo ese es el riesgo mas grande que tiene el proyecto.
+1. Training. A model fitted on corrected tracking learns to lean on signals that do not
+   exist at inference time -- ball always visible, stable identity, 22 objects.
+2. **Measuring.** The public ground truth is 5 minutes and 17 possessions, and EVALUATION.md
+   says it is no use for choosing between two versions of the model. Degrading an IDSSE
+   match, which does have a per-frame label for the full match, gives a spellF1 over an
+   entire match. Seven times over. That turns "we cannot measure" into "we can measure on
+   seven proxy matches", and right now that is the biggest risk the project has.
 
-**El principio.** Ningun parametro de aqui es inventado: todos salen de `estimate()`, que
-los mide sobre el ATD real del partido **sin usar ninguna etiqueta**. Eso es legitimo --
-no toca el ground truth privado, solo la distribucion marginal de los datos de entrada,
-que estan publicados -- y es lo que separa esto de un domain randomization a ojo.
+**The principle.** No parameter here is made up: they all come out of `estimate()`, which
+measures them on the real ATD of the match **without using any label**. That is legitimate
+-- it does not touch the private ground truth, only the marginal distribution of the input
+data, which is published -- and it is what separates this from eyeballed domain
+randomization.
 
-**Se aplica en carga, con semilla distinta cada vez.** Un corpus degradado y congelado
-tiene un patron de oclusion fijo que un modelo aprende a memorizar.
+**It is applied at load time, with a different seed each time.** A degraded and frozen
+corpus has a fixed occlusion pattern that a model learns to memorize.
 
-Lo que esta version NO hace, y conviene tener presente al leer un numero que salga de aqui:
+What this version does NOT do, and worth keeping in mind when reading a number that comes
+out of here:
 
-- **Las rachas sin balon se colocan al azar.** En el ATD real se concentran en areas
-  abarrotadas y duelos aereos (DATA.md), o sea en los frames dificiles. Al repartirlas
-  uniformemente, el proxy queda **optimista**: pierde el balon en momentos mas faciles de
-  lo que lo pierde el tracker de verdad.
-- **No modela intercambios de identidad entre slots**, solo fragmentacion. Un slot que
-  cambia de persona a mitad de un tramo es un error que aqui no ocurre.
-- El ruido de posicion es AR(1) homogeneo, sin depender de la distancia a camara.
+- **Ball-absent runs are placed at random.** In the real ATD they concentrate in crowded
+  areas and aerial duels (DATA.md), that is, in the hard frames. By spreading them
+  uniformly, the proxy ends up **optimistic**: it loses the ball at easier moments than
+  the real tracker does.
+- **It does not model identity swaps between slots**, only fragmentation. A slot that
+  changes person in the middle of a segment is an error that does not happen here.
+- Position noise is homogeneous AR(1), with no dependence on distance to the camera.
 """
 
 import numpy as np
 
 from ..io.atd import HOME_CODE, AWAY_CODE, Tracking
 
-# Reparto de slots del ATD tactico, de DATA.md: 46 = 24 local + 22 visitante.
+# Slot split of the tactical ATD, from DATA.md: 46 = 24 home + 22 away.
 N_SLOTS_HOME, N_SLOTS_AWAY = 24, 22
 
 
 class Spec:
-    """Parametros de degradacion medidos sobre un tracking real. Todo son muestras
-    empiricas, no distribuciones ajustadas: remuestrear de la realidad no exige elegir
-    una familia parametrica ni acertar con ella."""
+    """Degradation parameters measured on a real tracking. They are all empirical samples,
+    not fitted distributions: resampling from reality does not require choosing a
+    parametric family or getting it right."""
 
     __slots__ = ("ball_absent_runs", "ball_present_runs", "slot_runs",
                  "n_tracked_values", "n_tracked_probs", "step_sigma_m",
@@ -55,8 +57,8 @@ class Spec:
         self.n_tracked_values = n_tracked_values
         self.n_tracked_probs = n_tracked_probs
         self.step_sigma_m = step_sigma_m
-        # Histograma de objetos solo en los frames sin balon. Lo usa `thin_where_ball_unseen`;
-        # `apply` no lo mira, asi que la degradacion de siempre no cambia.
+        # Histogram of objects only in the ball-absent frames. `thin_where_ball_unseen` uses
+        # it; `apply` does not look at it, so the usual degradation does not change.
         self.n_tracked_unseen_values = n_tracked_unseen_values
         self.n_tracked_unseen_probs = n_tracked_unseen_probs
 
@@ -78,7 +80,7 @@ class Spec:
 
 
 def _runs(mask):
-    """Longitudes de las rachas de True en un array booleano."""
+    """Lengths of the runs of True in a boolean array."""
     out, cur = [], 0
     for v in mask:
         if v:
@@ -92,7 +94,7 @@ def _runs(mask):
 
 
 def estimate(tracking, blocks):
-    """Mide los parametros sobre un tracking real. No usa etiquetas en ningun sitio."""
+    """Measure the parameters on a real tracking. It uses no labels anywhere."""
     n = tracking.n_frames
     graded = np.zeros(n, dtype=bool)
     for a, b in blocks:
@@ -101,22 +103,22 @@ def estimate(tracking, blocks):
     seen = tracking.ball_seen[graded]
     visible = ~np.isnan(tracking.players_xy[:, :, 0])
 
-    # Tramos continuos de cada slot: cuanto dura un track antes de romperse.
+    # Continuous segments of each slot: how long a track lasts before breaking.
     slot_runs = [r for s in range(visible.shape[1]) for r in _runs(visible[graded, s])]
 
     n_tracked = visible[graded].sum(axis=1)
     values, counts = np.unique(n_tracked, return_counts=True)
-    # El mismo histograma solo donde falta el balon: en el ATD faltan jugadores justo ahi
-    # (19,2 de media sin balon frente a 21,4 con el, ESTADO.md §6).
+    # The same histogram only where the ball is missing: in the ATD players are missing
+    # right there (19.2 on average without the ball against 21.4 with it, STATUS.md §6).
     unseen_values = unseen_probs = None
     if (~seen).any():
         unseen_values, unseen_counts = np.unique(n_tracked[~seen], return_counts=True)
         unseen_values = unseen_values.astype(np.int32)
         unseen_probs = (unseen_counts / unseen_counts.sum()).astype(np.float64)
 
-    # Ruido de posicion: desviacion tipica del paso entre frames consecutivos, que en un
-    # tracking limpio es movimiento real y en uno ruidoso es movimiento mas jitter. Se usa
-    # como cota superior del ruido a inyectar, no como su valor exacto.
+    # Position noise: standard deviation of the step between consecutive frames, which in a
+    # clean tracking is real movement and in a noisy one is movement plus jitter. It is used
+    # as an upper bound on the noise to inject, not as its exact value.
     step = np.diff(tracking.players_xy[:, :, 0], axis=0)
     step = step[np.isfinite(step)]
     step_sigma = float(np.std(step)) if step.size else 0.0
@@ -134,11 +136,11 @@ def estimate(tracking, blocks):
 
 
 def _alternating_mask(n, present_runs, absent_runs, rng, start_present=True):
-    """Mascara de n frames alternando rachas remuestreadas de las dos distribuciones.
+    """Mask of n frames alternating runs resampled from the two distributions.
 
-    Remuestrear longitudes enteras es la diferencia entre un hueco de 2 frames y uno de
-    300. Una Bernoulli i.i.d. con la misma tasa marginal da rachas de media 1.7 frames; el
-    ATD real tiene mediana 268 (10.7 s) y maximo 5537 (3.7 min).
+    Resampling whole lengths is the difference between a 2-frame gap and a 300-frame one.
+    An i.i.d. Bernoulli with the same marginal rate gives runs averaging 1.7 frames; the
+    real ATD has median 268 (10.7 s) and maximum 5537 (3.7 min).
     """
     target_absent = absent_runs.sum() / float(absent_runs.sum() + present_runs.sum())
 
@@ -153,10 +155,10 @@ def _alternating_mask(n, present_runs, absent_runs, rng, start_present=True):
             present = not present
         return mask
 
-    # Las rachas son de cola muy larga (max 5537 frames) y solo caben ~140 en un partido,
-    # asi que una sola tirada se desvia facil 5-7 puntos de la tasa objetivo. Se redibuja
-    # hasta acercarse, en lugar de recortar las rachas -- que es justo lo que no se puede
-    # tocar, porque la longitud de racha es el parametro que importa.
+    # The runs have a very long tail (max 5537 frames) and only ~140 fit in a match, so a
+    # single draw easily strays 5-7 points from the target rate. It is redrawn until it gets
+    # close, instead of trimming the runs -- which is exactly what cannot be touched, because
+    # run length is the parameter that matters.
     best, best_err = None, float("inf")
     for _ in range(40):
         mask = draw(start_present)
@@ -170,18 +172,19 @@ def _alternating_mask(n, present_runs, absent_runs, rng, start_present=True):
 
 
 def _weighted_mask(n, present_runs, absent_runs, weights, rng):
-    """Mascara de presencia con las rachas sin balon centradas donde pesa `weights`.
+    """Presence mask with the ball-absent runs centered where `weights` is heavy.
 
-    Mismas longitudes de racha y misma fraccion sin balon que `_alternating_mask`; solo
-    cambia donde caen. Es para pruebas de estres: poner los huecos donde el tracker real
-    los pone (o peor) y ver si lo medido con huecos al azar aguanta. Dos rachas que caen
-    encima se funden en una mas larga, asi que el numero de rachas baja: se informa, no se
-    corrige, porque corregirlo exigiria mover huecos fuera de donde pide el peso.
+    Same run lengths and same ball-absent fraction as `_alternating_mask`; only where they
+    fall changes. It is for stress tests: put the gaps where the real tracker puts them (or
+    worse) and see whether what was measured with random gaps holds up. Two runs that land
+    on top of each other merge into a longer one, so the number of runs goes down: this is
+    reported, not corrected, because correcting it would require moving gaps away from where
+    the weight asks for them.
     """
     weights = np.asarray(weights, dtype=np.float64)
     if weights.shape != (n,) or not np.isfinite(weights).all() or (weights < 0).any() \
             or weights.sum() <= 0:
-        raise ValueError("gap_weights tiene que ser ({},) finito, >= 0 y no todo cero".format(n))
+        raise ValueError("gap_weights must be ({},) finite, >= 0 and not all zero".format(n))
     target = int(round(n * absent_runs.sum() / float(absent_runs.sum() + present_runs.sum())))
     probability = weights / weights.sum()
     absent = np.zeros(n, dtype=bool)
@@ -196,16 +199,16 @@ def _weighted_mask(n, present_runs, absent_runs, weights, rng):
 
 
 def _reassign_slots(players_xy, players_speed, team_of_slot, spec, rng):
-    """Trocea cada jugador y reparte los tramos entre los 46 slots sin identidad.
+    """Chop up each player and distribute the segments among the 46 identity-less slots.
 
-    Un slot no es una persona: es un objeto con vida. Al terminar un tramo el slot queda
-    libre y mas tarde puede recibir a otro jugador, que es exactamente lo que hace el
-    tracker cuando pierde a alguien y readquiere a otro.
+    A slot is not a person: it is an object with a lifetime. When a segment ends the slot
+    becomes free and can later receive another player, which is exactly what the tracker
+    does when it loses someone and reacquires another.
 
-    El reparto se hace **en orden temporal global**, no jugador a jugador. Hacerlo por
-    jugador parece equivalente y no lo es: el primero en procesarse ocupa slots hasta el
-    final del partido y los siguientes se quedan sin sitio desde el frame 0. La primera
-    version de esto tenia ese fallo y daba 6 objetos por frame en lugar de 20,5.
+    The distribution is done **in global temporal order**, not player by player. Doing it
+    per player looks equivalent and is not: the first one processed occupies slots until the
+    end of the match and the following ones are left without room from frame 0. The first
+    version of this had that flaw and gave 6 objects per frame instead of 20.5.
     """
     n = players_xy.shape[0]
     n_out = N_SLOTS_HOME + N_SLOTS_AWAY
@@ -218,7 +221,7 @@ def _reassign_slots(players_xy, players_speed, team_of_slot, spec, rng):
         src = np.flatnonzero(team_of_slot == team)
         dst = np.flatnonzero(target_team == team)
 
-        # 1) Todos los tramos de todos los jugadores del equipo, troceados.
+        # 1) All segments of all the team's players, chopped up.
         pieces = []
         for s in src:
             present = np.isfinite(players_xy[:, s, 0])
@@ -235,14 +238,14 @@ def _reassign_slots(players_xy, players_speed, team_of_slot, spec, rng):
                     stop = min(i + max(length, 1), end)
                     pieces.append((i, stop, s))
                     i = stop
-        # 2) En orden de inicio, que es lo que hace correcto el reparto.
+        # 2) In start order, which is what makes the distribution correct.
         pieces.sort()
 
         busy = np.zeros(len(dst), dtype=np.int64)
         for begin, stop, s in pieces:
             free = np.flatnonzero(busy <= begin)
             if not len(free):
-                continue            # sin slot libre el tramo se pierde, como en el ATD
+                continue            # with no free slot the segment is lost, as in the ATD
             k = int(free[rng.integers(len(free))])
             slot = dst[k]
             out_xy[begin:stop, slot] = players_xy[begin:stop, s]
@@ -252,10 +255,10 @@ def _reassign_slots(players_xy, players_speed, team_of_slot, spec, rng):
 
 
 def _thin_to_histogram(players_xy, players_speed, spec, rng):
-    """Deja caer objetos por frame hasta igualar el histograma de objetos del ATD real.
+    """Drop objects per frame until matching the real ATD's histogram of objects.
 
-    No se puede inventar un objeto donde no lo hay, asi que esto solo quita. Por eso se
-    aplica despues de la fragmentacion, que ya ha quitado por su cuenta.
+    An object cannot be invented where there is none, so this only removes. That is why it
+    is applied after fragmentation, which has already removed some on its own.
     """
     n = players_xy.shape[0]
     target = rng.choice(spec.n_tracked_values, size=n, p=spec.n_tracked_probs)
@@ -270,26 +273,26 @@ def _thin_to_histogram(players_xy, players_speed, spec, rng):
 
 
 def thin_where_ball_unseen(tracking, spec, rng, persistent=False):
-    """Tracking nuevo con menos jugadores **solo en los frames sin balon**, como en el ATD.
+    """New tracking with fewer players **only in the ball-absent frames**, as in the ATD.
 
-    `apply` iguala el histograma de objetos del ATD en todo el partido, pero lo hace igual
-    con y sin balon; en el ATD faltan jugadores justo cuando falta el balon. Esto se aplica
-    despues de `apply` y no toca nada mas: mismo balon, mismos jugadores en los frames con
-    balon, y en los frames sin balon solo quita.
+    `apply` matches the ATD's histogram of objects over the whole match, but does so the same
+    with and without the ball; in the ATD players are missing right when the ball is missing.
+    This is applied after `apply` and touches nothing else: same ball, same players in the
+    frames with the ball, and in the ball-absent frames it only removes.
 
-    El numero objetivo de cada frame sin balon sale de emparejar cuantiles: el frame con
-    menos jugadores recibe el objetivo mas bajo del histograma sin balon, y asi en orden.
-    Asi la distribucion final es la del ATD (salvo donde ya habia menos, que se queda como
-    esta), en vez del minimo de dos tiradas independientes, que quitaria de mas. Los que se
-    quitan se eligen al azar, igual que en `_thin_to_histogram`.
+    The target number for each ball-absent frame comes from matching quantiles: the frame
+    with the fewest players gets the lowest target of the ball-absent histogram, and so on in
+    order. That way the final distribution is the ATD's (except where there were already
+    fewer, which stays as it is), instead of the minimum of two independent draws, which
+    would remove too many. The ones removed are chosen at random, as in `_thin_to_histogram`.
 
-    `persistent=False` sortea los que se quitan en cada frame: parpadean, y las ventanas de
-    1 a 8 s de las senales de equipo promedian ese ruido. `persistent=True` sortea una vez
-    por racha sin balon: los mismos slots desaparecen durante toda la racha, que es como
-    pierde el ATD un track (tramos de ~2700 frames de media). Mismo histograma por frame.
+    `persistent=False` draws the ones removed in each frame: they flicker, and the 1 to 8 s
+    windows of the team signals average out that noise. `persistent=True` draws once per
+    ball-absent run: the same slots disappear for the whole run, which is how the ATD loses
+    a track (segments of ~2700 frames on average). Same histogram per frame.
     """
     if spec.n_tracked_unseen_values is None:
-        raise ValueError("el spec no tiene histograma sin balon; vuelve a medirlo con estimate()")
+        raise ValueError("the spec has no ball-absent histogram; measure it again with estimate()")
     xy = tracking.players_xy.copy()
     sp = tracking.players_speed.copy()
     frames = np.flatnonzero(~tracking.ball_seen)
@@ -319,10 +322,10 @@ def thin_where_ball_unseen(tracking, spec, rng, persistent=False):
 
 
 def apply(tracking, spec, rng=None, position_noise=True, rho=0.9, gap_weights=None):
-    """Devuelve un Tracking nuevo, degradado. No modifica el original.
+    """Return a new, degraded Tracking. It does not modify the original.
 
-    `gap_weights=None` coloca las rachas sin balon al azar (el proxy de siempre); un array
-    por frame las centra con esa probabilidad relativa (ver `_weighted_mask`).
+    `gap_weights=None` places the ball-absent runs at random (the usual proxy); a per-frame
+    array centers them with that relative probability (see `_weighted_mask`).
     """
     rng = rng or np.random.default_rng()
     n = tracking.n_frames
@@ -332,8 +335,8 @@ def apply(tracking, spec, rng=None, position_noise=True, rho=0.9, gap_weights=No
     xy, sp = _thin_to_histogram(xy, sp, spec, rng)
 
     if position_noise and spec.step_sigma_m > 0:
-        # AR(1) y no ruido blanco: el blanco se filtra con una media movil y el modelo
-        # aprende a suavizar en vez de a desconfiar.
+        # AR(1) and not white noise: white noise is filtered out with a moving average and
+        # the model learns to smooth instead of to distrust.
         sigma = 0.25 * spec.step_sigma_m
         noise = np.zeros((n, xy.shape[1], 2), dtype=np.float32)
         step = rng.normal(0.0, sigma, size=noise.shape).astype(np.float32)

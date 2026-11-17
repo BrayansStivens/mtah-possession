@@ -1,27 +1,29 @@
-"""Pruebas de que el detector de fronteras aporta, de donde sale y si sobrevive a la realidad.
+"""Evidence that the boundary detector helps, where its gain comes from, and whether it
+survives reality.
 
-El LOMO anidado de `boundaries.py` dio +1,17 pp de spellF1. Este modulo contesta las tres
-preguntas que ese numero deja abiertas, sin tocar ninguna etiqueta del partido del reto:
+The nested LOMO in `boundaries.py` gave +1.17 pp of spellF1. This module answers the three
+questions that number leaves open, without touching any label of the challenge match:
 
-1. **Estres** (`stress`). La degradacion coloca los huecos sin balon al azar; el ATD real
-   los pierde en areas abarrotadas y duelos. Se repite la evaluacion del partido de fuera
-   con los huecos centrados donde hay gente cerca del balon (`crowded`, sin etiquetas) y,
-   como peor caso, junto a los cambios de posesion reales (`transitions`). Detector, peso
-   y escala NO cambian: son los de cada pliegue del LOMO, entrenados y elegidos con
-   huecos al azar -- exactamente como se hizo la entrega. Si la ganancia desaparece aqui,
-   la entrega vuelve a `boundary_discount_weight = 0`.
-2. **Mecanismo** (mismo recorrido). Ademas de spellF1: precision y recall de los cambios
-   a +-0,5 s y +-1 s, recall de posesiones cortas por duracion, y tasa de error en los
-   frames junto a un cambio frente al resto. Es lo que el diagnostico senalo como el
-   punto debil; si el detector lo arregla, tiene que verse ahi.
-3. **BAR-ATH sin etiquetas** (`tagging`). El Smart Tagging marca reinicios (`SET
-   PIECES`) y transiciones (`ATTACKING / DEFENSIVE TRANSITION`) de forma automatica e
-   independiente: el pipeline no lo usa. Se mide si los cortes de la entrega caen dentro
-   de esas ventanas mas a menudo que al azar, antes y despues del detector. No hay ground
-   truth en ningun paso, asi que es lectura, nunca criterio: no se elige nada con esto.
+1. **Stress** (`stress`). The degradation places the ball-absent gaps at random; the real
+   ATD loses them in crowded areas and duels. The held-out match evaluation is repeated
+   with the gaps centered where there are people near the ball (`crowded`, no labels) and,
+   as the worst case, next to the real possession changes (`transitions`). Detector,
+   weight and scale do NOT change: they are those of each LOMO fold, trained and chosen
+   with random gaps -- exactly as the submission was made. If the gain disappears here,
+   the submission goes back to `boundary_discount_weight = 0`.
+2. **Mechanism** (same pass). Besides spellF1: precision and recall of the changes at
+   +-0.5 s and +-1 s, recall of short possessions by duration, and error rate on the
+   frames next to a change versus the rest. It is what the diagnosis flagged as the weak
+   point; if the detector fixes it, it has to show up there.
+3. **BAR-ATH without labels** (`tagging`). The Smart Tagging marks restarts (`SET
+   PIECES`) and transitions (`ATTACKING / DEFENSIVE TRANSITION`) automatically and
+   independently: the pipeline does not use it. We measure whether the submission's cuts
+   fall inside those windows more often than by chance, before and after the detector.
+   There is no ground truth at any step, so it is a reading, never a criterion: nothing
+   is chosen with this.
 
-Uso:  python -m mtah.training.evidence stress     (~10 min, necesita el IDSSE en cache)
-      python -m mtah.training.evidence tagging    (necesita MTAH_DATA_DIR)
+Usage:  python -m mtah.training.evidence stress     (~10 min, needs the IDSSE in cache)
+        python -m mtah.training.evidence tagging    (needs MTAH_DATA_DIR)
 """
 
 import json
@@ -40,19 +42,19 @@ from . import boundaries, harness, idsse
 
 pm = ev.pm
 
-LOMO_RESULTS_PATH = os.path.join(REPO_ROOT, "trabajo", "handoff-plugin-data", "datos",
+LOMO_RESULTS_PATH = os.path.join(REPO_ROOT, "analysis", "handoff-plugin-data", "data",
                                  "fronteras_lomo_anidado.json")
 DATA_DIR = os.path.dirname(LOMO_RESULTS_PATH)
 
 EVALUATED_ARMS = ("scale_only", "both")
 COMPARISONS = (("both", "control"), ("both", "scale_only"))
-TRANSITION_TOLERANCES_FRAMES = (12, 25)             # +-0,5 s y +-1 s
+TRANSITION_TOLERANCES_FRAMES = (12, 25)             # +-0.5 s and +-1 s
 SPELL_DURATION_BINS_S = ((0, 2), (2, 5), (5, 10), (10, None))
 SPELL_IOU = pm.SPELL_IOU_HEADLINE
 BOOTSTRAP_RESAMPLES = 10_000
 
-# Smart Tagging: margen alrededor de cada ventana para contar un corte como "dentro". Las
-# ventanas de saque ya cubren ~5 s alrededor del reinicio (features/tagging.py).
+# Smart Tagging: margin around each window to count a cut as "inside". The restart windows
+# already cover ~5 s around the restart (features/tagging.py).
 TAG_MARGIN_FRAMES = 25
 TAG_TURNOVER_CODES = ("attacking transition", "defensive transition")
 
@@ -61,10 +63,10 @@ def log(message):
     print(message, flush=True)
 
 
-# --------------------------------------------------------------------------- metricas
+# --------------------------------------------------------------------------- metrics
 
 def mechanism(predicted, truth):
-    """spellF1 y las metricas del punto debil, de un par de arrays de etiquetas 'H'/'A'/'D'."""
+    """spellF1 and the weak-point metrics, for a pair of 'H'/'A'/'D' label arrays."""
     pred_codes, gt_codes = pm.label_codes(predicted), pm.label_codes(truth)
     result = ev.score(predicted, gt_codes=gt_codes)
     out = {"spell_f1": result["spell_f1_mean"], "macro_f1": result["macro_f1"],
@@ -100,7 +102,7 @@ def _bin_name(low, high):
 
 
 def paired_statistics(deltas, rng):
-    """Media, IC 95 % bootstrap y test de signos (una cola) de diferencias por partido."""
+    """Mean, bootstrap 95% CI and sign test (one-sided) of per-match differences."""
     deltas = np.asarray(deltas, dtype=np.float64)
     resampled = rng.choice(deltas, size=(BOOTSTRAP_RESAMPLES, len(deltas))).mean(axis=1)
     better = int((deltas > 0).sum())
@@ -115,10 +117,10 @@ def paired_statistics(deltas, rng):
             "per_match_pp": [round(100 * float(d), 2) for d in deltas]}
 
 
-# --------------------------------------------------------------------------- 1 y 2
+# --------------------------------------------------------------------------- 1 and 2
 
 def lomo_choices():
-    """{partido de fuera: {brazo: (peso, escala)}} tal como se eligieron en el LOMO."""
+    """{held-out match: {arm: (weight, scale)}} as they were chosen in the LOMO."""
     with open(LOMO_RESULTS_PATH) as handle:
         folds = json.load(handle)["folds"]
     return {fold["held_out"]: {arm: (fold["choices"][arm]["discount_weight"],
@@ -128,7 +130,7 @@ def lomo_choices():
 
 
 def check_reproduces_lomo(rows, folds):
-    """Con huecos al azar, este recorrido tiene que dar al bit lo que dio el LOMO."""
+    """With random gaps, this pass must give bit for bit what the LOMO gave."""
     published = {(f["held_out"], int(seed)): f["seeds"][seed] for f in folds
                  for seed in f["seeds"]}
     for row in rows:
@@ -138,14 +140,14 @@ def check_reproduces_lomo(rows, folds):
         for arm in ("control",) + EVALUATED_ARMS:
             if abs(row[arm]["spell_f1"] - reference[arm]["spell_f1"]) > 1e-12:
                 raise RuntimeError(
-                    "%s semilla %d %s: %.6f != %.6f publicado. Cambio el codigo o la cache "
-                    "desde el LOMO; esta prueba no vale hasta explicarlo."
+                    "%s seed %d %s: %.6f != %.6f published. The code or the cache changed "
+                    "since the LOMO; this check is not valid until that is explained."
                     % (row["match"], row["seed"], arm, row[arm]["spell_f1"],
                        reference[arm]["spell_f1"]))
 
 
 def stress_rows(config):
-    """Una fila por (partido de fuera, colocacion, semilla) con control y los dos brazos."""
+    """One row per (held-out match, placement, seed) with the control and the two arms."""
     spec = harness.real_spec()
     matches = sorted(idsse.MATCHES)
     choices, folds = lomo_choices()
@@ -169,7 +171,7 @@ def stress_rows(config):
                     row[arm] = mechanism(boundaries.decode(data, config, weight, scale, score),
                                          labels)
                 rows.append(row)
-                log("%s %-11s s%d  visible %.2f  cambios sin balon %.2f  AUC %.3f   "
+                log("%s %-11s s%d  visible %.2f  changes without ball %.2f  AUC %.3f   "
                     "control %.4f  both %+.2f pp  vs scale %+.2f pp" % (
                         held_out, placement, seed, row["ball_visible"],
                         row["changes_without_ball"], row["detector"]["auc"],
@@ -181,7 +183,7 @@ def stress_rows(config):
 
 
 def summarise_stress(rows):
-    """Por colocacion: estadistica pareada por partido y media de cada metrica por brazo."""
+    """Per placement: paired per-match statistic and the mean of each metric per arm."""
     rng = np.random.default_rng(0)
     out = {}
     for placement in boundaries.GAP_PLACEMENTS:
@@ -212,9 +214,9 @@ def summarise_stress(rows):
 
 def print_stress(summary):
     log("=" * 96)
-    log("%-12s %8s %8s %6s   %-30s %-30s" % ("colocacion", "visible", "cambios", "AUC",
-                                            "both vs control (semilla 0)",
-                                            "both vs scale_only (semilla 0)"))
+    log("%-12s %8s %8s %6s   %-30s %-30s" % ("placement", "visible", "changes", "AUC",
+                                            "both vs control (seed 0)",
+                                            "both vs scale_only (seed 0)"))
     for placement, s in summary.items():
         cells = []
         for key in ("both_vs_control", "both_vs_scale_only"):
@@ -227,7 +229,7 @@ def print_stress(summary):
             cells[0], cells[1]))
     log("-" * 96)
     for placement, s in summary.items():
-        log("[%s] media de 7 partidos x 3 semillas" % placement)
+        log("[%s] mean of 7 matches x 3 seeds" % placement)
         metrics = s["metrics_mean_all_seeds"]
         for key in metrics["control"]:
             log("   %-26s control %.4f   scale_only %.4f   both %.4f" % (
@@ -251,17 +253,17 @@ def stress(config=None):
     path = os.path.join(DATA_DIR, "evidencia_estres_mecanismo.json")
     with open(path, "w") as handle:
         json.dump(result, handle, indent=1, default=float)
-    log("guardado %s (%.0f min)" % (path, (time.time() - started) / 60))
+    log("saved %s (%.0f min)" % (path, (time.time() - started) / 60))
     return result
 
 
 # --------------------------------------------------------------------------- 3
 
 def tag_windows(phases):
-    """{'restart': [(a, b)], 'turnover': [(a, b)]} del Smart Tagging, sin duplicados.
+    """{'restart': [(a, b)], 'turnover': [(a, b)]} from the Smart Tagging, without duplicates.
 
-    Los ATTACKING / DEFENSIVE TRANSITION vienen en espejo (mismo intervalo, un tag por
-    equipo), de ahi el set.
+    The ATTACKING / DEFENSIVE TRANSITION tags come mirrored (same interval, one tag per
+    team), hence the set.
     """
     restart = sorted({(p.start_frame, p.end_frame) for p in phases if p.is_set_piece})
     turnover = sorted({(p.start_frame, p.end_frame) for p in phases
@@ -284,7 +286,7 @@ def graded_mask(n_frames):
 
 
 def tagging_alignment(labels, windows, graded):
-    """Cuantos cortes caen en ventanas del tagging y cuantas ventanas tienen algun corte."""
+    """How many cuts fall in tagging windows and how many windows have some cut."""
     codes = pm.label_codes(labels)
     cuts = pm.transitions(codes, list(GRADED_BLOCKS))
     n = len(labels)
@@ -310,7 +312,7 @@ def tagging_alignment(labels, windows, graded):
 
 
 def changed_cuts(before, after, windows, graded, tolerance=TAG_MARGIN_FRAMES):
-    """Cortes que el detector anadio y quito, y que fraccion de cada uno cae en una ventana."""
+    """Cuts the detector added and removed, and what fraction of each falls in a window."""
     def frames(labels):
         return np.array([f for f, _, _ in pm.transitions(pm.label_codes(labels),
                                                           list(GRADED_BLOCKS))])
@@ -344,12 +346,12 @@ def tagging(config=None):
     path = os.path.join(DATA_DIR, "evidencia_smart_tagging.json")
     with open(path, "w") as handle:
         json.dump(result, handle, indent=1)
-    log("guardado %s" % path)
+    log("saved %s" % path)
     return result
 
 
 if __name__ == "__main__":
     commands = {"stress": stress, "tagging": tagging}
     if sys.argv[1:2] == [] or sys.argv[1] not in commands:
-        raise SystemExit("uso: python -m mtah.training.evidence {%s}" % "|".join(commands))
+        raise SystemExit("usage: python -m mtah.training.evidence {%s}" % "|".join(commands))
     commands[sys.argv[1]]()

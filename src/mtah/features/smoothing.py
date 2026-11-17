@@ -1,29 +1,29 @@
-"""Suavizado *centrado* de features. Nunca de etiquetas.
+"""*Centered* smoothing of features. Never of labels.
 
-La distincion importa y es la leccion central del reto. Suavizar **etiquetas** con una
-ventana es lo que hacen los baselines oficiales, y para no fragmentar una posesion larga
-tienen que borrar las cortas. Suavizar **features** antes de un decodificador que penaliza
-transiciones no tiene ese problema: la senal se limpia y el numero de segmentos lo sigue
-controlando el decodificador.
+The distinction matters and it is the central lesson of the challenge. Smoothing **labels**
+with a window is what the official baselines do, and to avoid fragmenting a long
+possession they have to erase the short ones. Smoothing **features** before a decoder that
+penalises transitions does not have that problem: the signal gets cleaned and the number
+of segments is still controlled by the decoder.
 
-Todo aqui es centrado y por tanto de latencia cero. Medido degradando el ground truth
-publico: +1 frame de retraso es gratis (spellF1 1.0000), pero +25 frames (1 s) baja a
-0.7765 y +50 (2 s) a 0.5882. Un filtro causal no es una opcion en este problema.
+Everything here is centered and therefore zero-latency. Measured by degrading the public
+ground truth: +1 frame of delay is free (spellF1 1.0000), but +25 frames (1 s) drops to
+0.7765 and +50 (2 s) to 0.5882. A causal filter is not an option in this problem.
 
-Medido sobre este partido, suavizar sube el AUC de cada senal:
+Measured on this match, smoothing raises the AUC of each signal:
 
-    actividad de jugadores, deteccion de balon muerto:  0.8336 cruda -> 0.8452 con +-50f
-    diferencia de control, distinguir equipo:           0.8213 cruda -> 0.9091 con +-50f
+    player activity, dead-ball detection:         0.8336 raw -> 0.8452 with +-50f
+    control difference, telling the teams apart:  0.8213 raw -> 0.9091 with +-50f
 """
 
 import numpy as np
 
 
 def box_mean(values, half_width, fill=None):
-    """Media sobre una ventana centrada de +-half_width frames. Coste independiente del ancho.
+    """Mean over a centered window of +-half_width frames. Cost independent of the width.
 
-    Los NaN se rellenan antes con `fill` (por defecto la mediana) porque una suma
-    acumulada no tolera NaN: un solo NaN envenena todo lo que viene detras.
+    NaNs are filled beforehand with `fill` (the median by default) because a cumulative
+    sum does not tolerate NaN: a single NaN poisons everything that comes after it.
     """
     values = np.asarray(values, dtype=np.float64)
     if half_width <= 0:
@@ -40,15 +40,15 @@ def box_mean(values, half_width, fill=None):
 
 
 def box_nanmean(values, half_width):
-    """Media centrada sobre los frames de la ventana **donde el valor esta definido**.
+    """Centered mean over the frames of the window **where the value is defined**.
 
-    Distinto de box_mean con relleno, y la diferencia importa para las senales que
-    dependen del balon: donde el balon no se ve, el control no vale 0, es que no se sabe.
-    Rellenar con 0 diluye la senal hacia "nadie controla"; promediar solo los frames
-    definidos arrastra la informacion de los vecinos a traves del hueco, que es lo que se
-    quiere cuando el balon falta en el 43% de los frames.
+    Different from box_mean with filling, and the difference matters for the signals that
+    depend on the ball: where the ball is not seen, the control is not 0, it is unknown.
+    Filling with 0 dilutes the signal towards "nobody controls"; averaging only the defined
+    frames carries the neighbours' information across the gap, which is what we want when
+    the ball is missing in 43% of frames.
 
-    Devuelve NaN donde la ventana entera esta indefinida.
+    Returns NaN where the whole window is undefined.
     """
     values = np.asarray(values, dtype=np.float64)
     defined = ~np.isnan(values)

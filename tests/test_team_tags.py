@@ -1,4 +1,4 @@
-"""Smart Tagging como evidencia de equipo: lectura, emision y tagging simulado."""
+"""Smart Tagging as team evidence: reading, emission and simulated tagging."""
 
 import numpy as np
 import pytest
@@ -17,9 +17,9 @@ def _phase(code, start_s, end_s, team):
 def test_team_tags_lee_el_codigo_y_no_cuenta_doble_los_espejos():
     from mtah.constants import AWAY_TEAM, HOME_TEAM
     phases = [_phase("BUILD UP", 0, 2, HOME_TEAM),
-              _phase("DEFENDING IN MIDDLE THIRD", 0, 2, AWAY_TEAM),     # espejo: local
-              _phase("DEFENDING IN MIDDLE THIRD", 4, 6, HOME_TEAM),     # balon: visitante
-              _phase("BALL IN THE BOX", 8, 10, HOME_TEAM)]              # no dice de quien
+              _phase("DEFENDING IN MIDDLE THIRD", 0, 2, AWAY_TEAM),     # mirror: home
+              _phase("DEFENDING IN MIDDLE THIRD", 4, 6, HOME_TEAM),     # ball: away
+              _phase("BALL IN THE BOX", 8, 10, HOME_TEAM)]              # does not say whose
     tags = tagging.team_tags(phases, n_frames=300)
     assert tags.dtype == np.int8
     assert set(tags[0:50]) == {1} and set(tags[100:150]) == {-1}
@@ -46,7 +46,7 @@ def test_el_tag_abarata_el_equipo_que_nombra():
     tags = np.zeros(50, dtype=np.int8)
     tags[:10], tags[10:20] = 1, -1
     base, tagged = emissions.costs(features, config), emissions.costs(features, config, tags)
-    # <= y no <: un frame que ya esta en el suelo de probabilidad no puede abaratarse mas.
+    # <= and not <: a frame already at the probability floor cannot get any cheaper.
     assert (tagged[:10, 0] <= base[:10, 0]).all() and (tagged[10:20, 1] <= base[10:20, 1]).all()
     assert (tagged[:10, 0] < base[:10, 0]).any() and (tagged[10:20, 1] < base[10:20, 1]).any()
     assert np.array_equal(tagged[20:], base[20:])
@@ -81,8 +81,8 @@ def test_tagging_simulado_cubre_lo_pedido_con_tramos_disjuntos_y_separados():
     tags = team_tags.tags_from_windows(windows, _draws(np.ones(len(windows))), len(labels))
     assert abs((tags != 0).mean() - 0.3) < 0.05
     edges = np.flatnonzero(tags[1:] != tags[:-1])
-    assert not ((tags[edges] != 0) & (tags[edges + 1] != 0)).any()    # nunca H->A directo
-    for start, stop, truth, _ in windows:                                # equipo mayoritario
+    assert not ((tags[edges] != 0) & (tags[edges + 1] != 0)).any()    # never a direct H->A
+    for start, stop, truth, _ in windows:                                # majority team
         inside = labels[start:stop]
         assert truth == (1 if (inside == "H").sum() >= (inside == "A").sum() else -1)
 
@@ -97,10 +97,10 @@ def test_subir_flip_solo_anade_inversiones():
 
 
 def test_eco_copia_el_equipo_de_nuestra_emision():
-    windows = [(0, 10, 1, -1), (20, 30, -1, 1)]          # la emision se equivoca en los dos
+    windows = [(0, 10, 1, -1), (20, 30, -1, 1)]          # the emission is wrong in both
     draws = _draws([1.0, 1.0], [0.3, 0.7])
     tags = team_tags.tags_from_windows(windows, draws, 40, echo=0.5)
-    assert tags[0] == -1 and tags[20] == -1               # el primero copia el error
+    assert tags[0] == -1 and tags[20] == -1               # the first one copies the error
 
 
 def test_exponente_lleva_los_tramos_a_donde_la_emision_esta_segura():

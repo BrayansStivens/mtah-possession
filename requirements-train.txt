@@ -1,6 +1,6 @@
-# Dependencias SOLO de entrenamiento y calibracion con datos externos.
-# Deliberadamente fuera de requirements.txt: RULES.md exige que el repo regenere el CSV
-# entregado y esa ruta solo necesita numpy y pandas. Nada de aqui se importa desde
+# Dependencies for training and calibration with external data ONLY.
+# Deliberately kept out of requirements.txt: RULES.md requires the repo to regenerate the
+# submitted CSV and that path only needs numpy and pandas. Nothing here is imported from
 # `python -m mtah build`.
 -r requirements.txt
 kloppy==3.19.1

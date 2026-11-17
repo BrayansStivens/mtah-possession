@@ -1,4 +1,4 @@
-"""La velocidad del ATD esta en m/s aunque el XML diga kph. Esto lo fija con datos sinteticos."""
+"""ATD speed is in m/s even though the XML says kph. This pins it down with synthetic data."""
 
 import numpy as np
 import pytest
@@ -8,13 +8,13 @@ from mtah.io import atd
 
 
 def tracking_with_speed_channel(scale_of_declared_speed, n_frames=200, n_slots=4):
-    """Jugadores corriendo en x a velocidades conocidas; el canal declarado se escala."""
+    """Players running in x at known speeds; the declared channel is scaled."""
     true_speed_ms = np.linspace(2.0, 7.0, n_slots, dtype=np.float32)
     step_normalised = true_speed_ms / FPS / PITCH[0]
     x = 0.1 + np.arange(n_frames, dtype=np.float32)[:, None] * step_normalised[None, :]
     players_xy = np.stack([x, np.full_like(x, 0.5)], axis=-1)
     players_speed = np.tile(true_speed_ms * scale_of_declared_speed, (n_frames, 1))
-    # Huecos de tracking, como en el ATD: el cociente tiene que ignorarlos.
+    # Tracking gaps, as in the ATD: the ratio has to ignore them.
     players_xy[50:60, 1] = np.nan
     players_speed[::7, 2] = np.nan
     return atd.Tracking(
@@ -40,5 +40,5 @@ def test_otra_unidad_falla_en_vez_de_escalar_en_silencio(scale):
 def test_sin_frames_comparables_falla():
     tracking = tracking_with_speed_channel(1.0)
     tracking.players_speed[:] = np.nan
-    with pytest.raises(ValueError, match="ningun frame"):
+    with pytest.raises(ValueError, match="no frame"):
         atd.check_speed_channel_units(tracking)

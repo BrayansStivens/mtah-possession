@@ -1,8 +1,8 @@
-# Carga esto antes de trabajar:  source scripts/env.sh
-# Los assets del partido viven fuera del repo: son ~5 GB y no son redistribuibles.
+# Load this before working:  source scripts/env.sh
+# The match assets live outside the repo: they are ~5 GB and not redistributable.
 export MTAH_DATA_DIR="${MTAH_DATA_DIR:-$HOME/Documents/Hackaton/data}"
 _mtah_src="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/src"
-# En Git Bash (Windows) el Python es de Windows: ruta en formato Windows y separador ';'.
+# In Git Bash (Windows) Python is the Windows one: Windows-format path and ';' separator.
 if command -v cygpath >/dev/null 2>&1; then
     export PYTHONPATH="$(cygpath -w "$_mtah_src")${PYTHONPATH:+;$PYTHONPATH}"
 else

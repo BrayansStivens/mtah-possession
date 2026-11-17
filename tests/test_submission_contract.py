@@ -1,4 +1,4 @@
-"""El contrato del fichero de entrega. Un fallo aqui es puntuar cero."""
+"""The submission file contract. A failure here means scoring zero."""
 
 import numpy as np
 import pytest
@@ -33,7 +33,7 @@ def test_nunca_hay_abstencion_en_frames_puntuados():
 def test_build_rechaza_abstencion_dentro_de_bloques():
     bad = all_dead()
     bad[GRADED_BLOCKS[0][0] + 100] = ABSTAIN
-    with pytest.raises(ValueError, match="dominada"):
+    with pytest.raises(ValueError, match="dominated"):
         submission.build(bad)
 
 
@@ -62,7 +62,7 @@ def test_escribir_y_validar(tmp_path):
 def test_validate_detecta_fichero_corto(tmp_path):
     path = tmp_path / "corto.csv"
     path.write_text("frame,label\n0,D\n1,D\n")
-    assert "filas" in submission.validate(str(path))
+    assert "rows" in submission.validate(str(path))
 
 
 def test_validate_detecta_etiqueta_invalida(tmp_path):
@@ -72,4 +72,4 @@ def test_validate_detecta_etiqueta_invalida(tmp_path):
     submission.write(str(path), labels)
     raw = path.read_text().replace("5,D", "5,Z", 1)
     path.write_text(raw)
-    assert "fuera de" in submission.validate(str(path))
+    assert "outside" in submission.validate(str(path))

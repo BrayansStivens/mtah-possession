@@ -1,38 +1,38 @@
-"""Clasificador de equipo sin balon, entrenado en el IDSSE y medido con LOMO anidado.
+"""Team classifier without the ball, trained on the IDSSE and measured with nested LOMO.
 
-**Que intenta arreglar.** En los 7 partidos del IDSSE degradados como el ATD, el modelo
-acierta el 87,5 % de los frames con balon y el 74,5 % de los que no lo tienen (el 41 % del
-total), y de las posesiones reales que pasan casi enteras sin balon recupera el 15 %. Sin
-balon las emisiones a mano solo arrastran la ultima senal vista. Este clasificador lee
-quien tiene la posesion de la forma y el movimiento de los dos equipos
-(`features/team_signals.py`) y suma su logit al de equipo de las emisiones.
+**What it tries to fix.** On the 7 IDSSE matches degraded like the ATD, the model gets
+87.5% of the frames with the ball right and 74.5% of those without it (41% of the total),
+and of the real possessions that pass almost entirely without the ball it recovers 15%.
+Without the ball the hand-built emissions only carry over the last signal seen. This
+classifier reads who has possession from the shape and movement of the two teams
+(`features/team_signals.py`) and adds its logit to the emissions' team logit.
 
-**Como se mide, y por que asi.** No por frame: en spellF1, dentro del decodificador de la
-entrega. Emisiones a mano mas `peso x logit`, con el detector de fronteras puntuando fuera
-de muestra y el descuento y la escala de config.py. Leave-one-match-out *anidado* sobre
-los 7 partidos: para cada partido de fuera, el clasificador se entrena con los otros 6 y
-el peso se elige tambien sobre esos 6, cada uno puntuado por un clasificador que no vio ni
-a ese partido ni al de fuera. El partido de fuera no influye ni en el modelo ni en el
-peso. Las semillas de degradacion 1 y 2 solo comprueban que el resultado aguanta otro
-patron de oclusion, con el modelo y el peso ya fijados en la semilla 0.
+**How it is measured, and why that way.** Not per frame: in spellF1, inside the
+submission's decoder. Hand-built emissions plus `weight x logit`, with the boundary
+detector scoring out of sample and the discount and scale from config.py. *Nested*
+leave-one-match-out over the 7 matches: for each held-out match, the classifier is trained
+on the other 6 and the weight is also chosen on those 6, each one scored by a classifier
+that saw neither that match nor the held-out one. The held-out match influences neither
+the model nor the weight. Degradation seeds 1 and 2 only check that the result holds up
+under another occlusion pattern, with the model and the weight already fixed on seed 0.
 
-El detector de fronteras que acompana a cada partido se entreno con los otros 6, de modo
-que el de un partido de dentro si vio al de fuera. No es lo que se elige aqui, y el
-partido de fuera siempre se evalua con un detector que no lo vio.
+The boundary detector that comes with each match was trained on the other 6, so the one
+for an inner match did see the held-out match. That is not what is chosen here, and the
+held-out match is always evaluated with a detector that did not see it.
 
-Ninguna etiqueta del partido del reto entra aqui. El ATD solo aporta la distribucion de
-oclusiones (`harness.real_spec`, sin etiquetas).
+No label of the challenge match enters here. The ATD only contributes the distribution of
+occlusions (`harness.real_spec`, no labels).
 
-**Lo que esta medicion no ve.** El IDSSE degradado pierde el balon al azar y conserva a
-los jugadores; el ATD lo pierde sobre todo con los jugadores parados y entonces le faltan
-tambien jugadores (19,2 seguidos de media sin balon, 21,4 con el). Un clasificador de
-dominio separa las senales del partido del reto de las del IDSSE con AUC 0,72 (0,53 entre
-partidos del IDSSE), asi que la ganancia de aqui es una cota optimista de la del partido
-del reto. Detalle en trabajo/sin-balon-1111/RESUMEN.md.
+**What this measurement does not see.** The degraded IDSSE loses the ball at random and
+keeps the players; the ATD loses it mostly with the players standing still, and then it is
+also missing players (19.2 tracked on average without the ball, 21.4 with it). A domain
+classifier separates the signals of the challenge match from those of the IDSSE with
+AUC 0.72 (0.53 between IDSSE matches), so the gain here is an optimistic bound on the
+challenge match's. Details in analysis/no-ball-1111/SUMMARY.md.
 
-Uso:  python -m mtah.training.team_classifier           medicion -> out/team_classifier.json
-      python -m mtah.training.team_classifier export    artefacto de la entrega
-      (necesita requirements-train.txt + scikit-learn)
+Usage:  python -m mtah.training.team_classifier           measurement -> out/team_classifier.json
+        python -m mtah.training.team_classifier export    the submission's artifact
+        (needs requirements-train.txt + scikit-learn)
 """
 
 import json
@@ -48,12 +48,13 @@ from ..paths import REPO_ROOT, cache_dir
 from . import boundaries, convention, degrade, harness, idsse
 from .boundaries import SEEDS, TRAIN_STRIDE_FRAMES, log
 
-# Rejilla fija del peso sobre el logit del clasificador; 0 es la entrega sin el. Es la del
-# experimento del 11-11 y no se amplia por arriba aunque gane el borde: el peso manda mas
-# cuanto menos se parezca el partido del reto al IDSSE, y eso aqui no se puede medir.
+# Fixed grid of the weight on the classifier's logit; 0 is the submission without it. It is
+# the one from the Nov 11 experiment and it is not extended upward even if the edge wins: the
+# weight matters more the less the challenge match resembles the IDSSE, and that cannot be
+# measured here.
 WEIGHTS = (0.0, 0.5, 1.0, 2.0)
 
-# Los mismos del detector de fronteras; no se han buscado.
+# The same as the boundary detector's; they were not searched.
 MODEL_PARAMS = {"max_iter": 200, "learning_rate": 0.1, "max_leaf_nodes": 31,
                 "min_samples_leaf": 200, "l2_regularization": 1.0, "early_stopping": False,
                 "random_state": 0}
@@ -61,17 +62,17 @@ MODEL_PARAMS = {"max_iter": 200, "learning_rate": 0.1, "max_leaf_nodes": 31,
 PREPARED_KEYS = ("stack", "labels", "ball_seen")
 
 
-# --------------------------------------------------------------------------- datos
+# --------------------------------------------------------------------------- data
 
 def _settings():
     return json.dumps(team_classifier.feature_settings(), sort_keys=True)
 
 
 def prepare(match_id, spec, seed):
-    """{senales suavizadas, etiquetas, balon visto} de un partido degradado, cacheado.
+    """{smoothed signals, labels, ball seen} of a degraded match, cached.
 
-    La misma degradacion que `boundaries.prepare` (misma semilla, huecos al azar): los
-    logits de las emisiones y estas senales tienen que salir del mismo tracking.
+    The same degradation as `boundaries.prepare` (same seed, random gaps): the emissions'
+    logits and these signals have to come from the same tracking.
     """
     path = os.path.join(cache_dir(), "team_{}_s{}.npz".format(match_id, seed))
     if os.path.exists(path):
@@ -88,7 +89,7 @@ def prepare(match_id, spec, seed):
 
 
 def load_matches(spec, seeds, config):
-    """(base, team): `boundaries.prepare` y `prepare` de cada semilla y partido."""
+    """(base, team): `boundaries.prepare` and `prepare` for each seed and match."""
     base = {seed: {} for seed in seeds}
     team = {seed: {} for seed in seeds}
     for seed in seeds:
@@ -97,16 +98,16 @@ def load_matches(spec, seeds, config):
             team[seed][match_id] = prepare(match_id, spec, seed)
             if not np.array_equal(base[seed][match_id]["ball_seen"],
                                   team[seed][match_id]["ball_seen"]):
-                raise ValueError("out/cache/boundary_{0}_s{1}.npz y team_{0}_s{1}.npz no salen "
-                                 "de la misma degradacion; borralas y vuelve a preparar"
+                raise ValueError("out/cache/boundary_{0}_s{1}.npz and team_{0}_s{1}.npz do not "
+                                 "come from the same degradation; delete them and prepare again"
                                  .format(match_id, seed))
     return base, team
 
 
-# --------------------------------------------------------------------------- modelo
+# --------------------------------------------------------------------------- model
 
 def fit(match_data):
-    """Clasificador entrenado con las dos perspectivas de los frames vivos de esos partidos."""
+    """Classifier trained on both perspectives of the live frames of those matches."""
     from sklearn.ensemble import HistGradientBoostingClassifier
 
     rows, targets = [], []
@@ -123,7 +124,7 @@ def fit(match_data):
 
 
 def out_of_fold_detector(base):
-    """{semilla: {partido: score de frontera}} con el detector de los otros 6 (semilla 0)."""
+    """{seed: {match: boundary score}} with the detector of the other 6 (seed 0)."""
     matches = sorted(base[SEEDS[0]])
     scores = {seed: {} for seed in base}
     for match_id in matches:
@@ -134,7 +135,7 @@ def out_of_fold_detector(base):
 
 
 def team_quality(logit_by_match, team_by_match):
-    """AUC del logit contra el equipo real en los frames vivos; aparte, en los que no hay balon."""
+    """AUC of the logit against the real team on live frames; separately, on those with no ball."""
     from sklearn.metrics import roc_auc_score
 
     logit, truth, unseen = [], [], []
@@ -148,13 +149,13 @@ def team_quality(logit_by_match, team_by_match):
             "auc_ball_unseen": float(roc_auc_score(truth[unseen], logit[unseen]))}
 
 
-# --------------------------------------------------------------------------- decodificacion
+# --------------------------------------------------------------------------- decoding
 
 def decode_score(base, logit, detector_score, config, weight):
-    """spellF1 y macroF1 de un partido en el decodificador de la entrega, con ese peso.
+    """spellF1 and macroF1 of a match in the submission's decoder, with that weight.
 
-    El logit se suma fuera de `home_logit`, como en `emissions.costs`: el detector de
-    fronteras no lo ve. Con peso 0 es exactamente la medicion del detector.
+    The logit is added outside `home_logit`, as in `emissions.costs`: the boundary
+    detector does not see it. With weight 0 it is exactly the detector's measurement.
     """
     data = base
     if weight:
@@ -167,7 +168,7 @@ def decode_score(base, logit, detector_score, config, weight):
 
 
 def choose_weight(base_by_match, logit_by_match, detector_by_match, config, weights=WEIGHTS):
-    """Peso de `weights` con mejor spellF1 medio sobre esos partidos. Desempate macroF1."""
+    """Weight from `weights` with the best mean spellF1 over those matches. Tie-break: macroF1."""
     results = []
     for weight in weights:
         scores = [decode_score(base_by_match[m], logit_by_match[m], detector_by_match[m],
@@ -179,10 +180,10 @@ def choose_weight(base_by_match, logit_by_match, detector_by_match, config, weig
             "grid": [list(r) for r in results]}
 
 
-# --------------------------------------------------------------------------- evaluacion
+# --------------------------------------------------------------------------- evaluation
 
 def nested_leave_one_match_out(base, team, detector, config):
-    """Ver el docstring del modulo. `base[seed][match]`, `team[seed][match]` preparados."""
+    """See the module docstring. `base[seed][match]`, `team[seed][match]` prepared."""
     matches = sorted(team[SEEDS[0]])
     models = {}
 
@@ -202,7 +203,7 @@ def nested_leave_one_match_out(base, team, detector, config):
                                {m: detector[SEEDS[0]][m] for m in inner}, config)
         outer_model = model_for(inner)
         fold = {"held_out": held_out, "choice": choice, "seeds": {}}
-        log("== fuera: %s   peso elegido en los 6 de dentro: %.1f (dentro %.4f)   %.0fs"
+        log("== held out: %s   weight chosen on the 6 inside: %.1f (inside %.4f)   %.0fs"
             % (held_out, choice["weight"], choice["inner_spell_f1"], time.time() - started))
         for seed in SEEDS:
             logit = team_classifier.antisymmetric_logit(outer_model, team[seed][held_out]["stack"])
@@ -213,20 +214,20 @@ def nested_leave_one_match_out(base, team, detector, config):
                    "by_weight": by_weight,
                    "team": team_quality({held_out: logit}, {held_out: team[seed][held_out]})}
             fold["seeds"][seed] = row
-            log("   semilla %d  control %.4f  elegido %+.2f  " % (
+            log("   seed %d  control %.4f  chosen %+.2f  " % (
                 seed, row["control"]["spell_f1"],
                 100 * (row["chosen"]["spell_f1"] - row["control"]["spell_f1"]))
-                + "  ".join("peso %s %+.2f" % (key, 100 * (value["spell_f1"]
+                + "  ".join("weight %s %+.2f" % (key, 100 * (value["spell_f1"]
                                                            - row["control"]["spell_f1"]))
                             for key, value in by_weight.items() if key != "0")
-                + "  AUC %.3f (sin balon %.3f)" % (row["team"]["auc"],
+                + "  AUC %.3f (no ball %.3f)" % (row["team"]["auc"],
                                                    row["team"]["auc_ball_unseen"]))
         folds.append(fold)
     return folds
 
 
 def _paired(folds, seed, pick):
-    """Diferencia de spellF1 y macroF1 contra el control, partido a partido."""
+    """Difference in spellF1 and macroF1 against the control, match by match."""
     spell = np.array([pick(f["seeds"][seed])["spell_f1"] - f["seeds"][seed]["control"]["spell_f1"]
                       for f in folds])
     macro = np.array([pick(f["seeds"][seed])["macro_f1"] - f["seeds"][seed]["control"]["macro_f1"]
@@ -237,7 +238,7 @@ def _paired(folds, seed, pick):
 
 
 def summarise(folds):
-    """El peso elegido anidado contra el control y, como referencia, cada peso fijo."""
+    """The nested-chosen weight against the control and, as a reference, each fixed weight."""
     out = {}
     arms = [("chosen", lambda row: row["chosen"])]
     arms += [("weight_%g" % w, lambda row, key="%g" % w: row["by_weight"][key])
@@ -247,7 +248,7 @@ def summarise(folds):
             [f["seeds"][seed]["control"]["spell_f1"] for f in folds]))}
         for name, pick in arms:
             out[seed][name] = _paired(folds, seed, pick)
-            log("semilla %d  control %.4f  %-10s %+.2f pp spellF1 (%d mejor / %d peor)  "
+            log("seed %d  control %.4f  %-10s %+.2f pp spellF1 (%d better / %d worse)  "
                 "%+.2f pp macroF1" % (seed, out[seed]["control_spell_f1"], name,
                                       out[seed][name]["delta_spell_f1_pp"],
                                       out[seed][name]["matches_better"],
@@ -260,9 +261,9 @@ def main(config=None):
     config = config or DEFAULT
     started = time.time()
     base, team = load_matches(harness.real_spec(), SEEDS, config)
-    log("partidos preparados (%.0fs)" % (time.time() - started))
+    log("matches prepared (%.0fs)" % (time.time() - started))
     detector = out_of_fold_detector(base)
-    log("detector de fronteras fuera de muestra (%.0fs)" % (time.time() - started))
+    log("boundary detector out of sample (%.0fs)" % (time.time() - started))
 
     folds = nested_leave_one_match_out(base, team, detector, config)
     log("=" * 78)
@@ -274,17 +275,17 @@ def main(config=None):
                                 "model": MODEL_PARAMS,
                                 "features": team_classifier.feature_settings()}},
                   handle, indent=2, default=float)
-    log("guardado %s (%.0f min)" % (path, (time.time() - started) / 60))
+    log("saved %s (%.0f min)" % (path, (time.time() - started) / 60))
 
 
 def export(config=None):
-    """Entrena el clasificador de la entrega con los 7 partidos y elige su peso.
+    """Trains the submission's classifier on the 7 matches and chooses its weight.
 
-    El mismo procedimiento que se midio, sin partido de fuera: el peso se elige sobre los 7
-    con logits fuera de muestra (cada partido puntuado por un clasificador entrenado con
-    los otros 6), y el modelo final se entrena con los 7. Semilla 0, como en la medicion.
-    Escribe models/team_classifier.{joblib,json}; el peso elegido se transcribe a config.py
-    (`team_classifier_weight`) con su procedencia.
+    The same procedure that was measured, without a held-out match: the weight is chosen on
+    the 7 with out-of-sample logits (each match scored by a classifier trained on the other
+    6), and the final model is trained on the 7. Seed 0, as in the measurement.
+    Writes models/team_classifier.{joblib,json}; the chosen weight is copied into config.py
+    (`team_classifier_weight`) with its provenance.
     """
     config = config or DEFAULT
     started = time.time()
@@ -313,10 +314,10 @@ def export(config=None):
         "out_of_fold_auc_ball_unseen": quality["auc_ball_unseen"],
         "grid": choice["grid"],
     })
-    log("elegido sobre los 7 (fuera de muestra): peso %.1f -> spellF1 %.4f (sin clasificador "
-        "%.4f), AUC de equipo %.4f" % (choice["weight"], choice["inner_spell_f1"], control[0],
-                                       quality["auc"]))
-    log("guardado %s (sha256 %s..., %.0f min)" % (
+    log("chosen over the 7 (out of sample): weight %.1f -> spellF1 %.4f (without classifier "
+        "%.4f), team AUC %.4f" % (choice["weight"], choice["inner_spell_f1"], control[0],
+                                  quality["auc"]))
+    log("saved %s (sha256 %s..., %.0f min)" % (
         team_classifier.ARTIFACT_PATH, metadata["artifact_sha256"][:12],
         (time.time() - started) / 60))
     return metadata

@@ -1,4 +1,4 @@
-"""Tests del armonizador de convenio. Son puros, no necesitan datos ni red."""
+"""Tests for the convention harmoniser. They are pure, need no data and no network."""
 
 import numpy as np
 
@@ -6,7 +6,7 @@ from mtah.training import convention as cv
 
 
 def _labels(*pairs):
-    """_labels(("H", 10), ("A", 2), ("H", 10)) -> array de 22 etiquetas."""
+    """_labels(("H", 10), ("A", 2), ("H", 10)) -> array of 22 labels."""
     return np.array([c for lab, n in pairs for c in lab * n], dtype="<U1")
 
 
@@ -20,14 +20,14 @@ def test_spells_de_array_vacio():
 
 
 def test_absorbe_un_contacto_sin_control_dentro_de_una_posesion():
-    """CHALLENGE.md: un simple toque sin control no es cambio de posesion. 10 frames = 0,4 s."""
+    """CHALLENGE.md: a mere touch without control is not a possession change. 10 frames = 0.4 s."""
     out, info = cv.harmonise(_labels(("H", 250), ("A", 10), ("H", 250)), fps=25)
     assert set(np.unique(out)) == {"H"}
     assert info["n_poss_antes"] == 3 and info["n_poss_despues"] == 1
 
 
 def test_respeta_una_posesion_controlada_del_rival():
-    """4 s con el balon es posesion controlada segun el proxy de la regla: NO se absorbe."""
+    """4 s with the ball is a controlled possession per the rule's proxy: NOT absorbed."""
     labels = _labels(("H", 250), ("A", 100), ("H", 250))
     out, info = cv.harmonise(labels, fps=25)
     assert np.array_equal(out, labels)
@@ -43,22 +43,22 @@ def test_el_umbral_es_el_de_la_regla_y_es_estricto():
 
 
 def test_no_absorbe_un_cambio_real_de_posesion():
-    """Un tramo breve entre DOS equipos distintos es un cambio de verdad, no un contacto."""
+    """A short stretch between TWO different teams is a real change, not a touch."""
     labels = _labels(("H", 250), ("A", 10), ("D", 100), ("A", 250))
     out, _ = cv.harmonise(labels, fps=25)
     assert "A" in set(np.unique(out[250:260]))
 
 
 def test_el_balon_parado_nunca_se_toca():
-    """La tasa de D del IDSSE ya es comparable: ahi no hay discrepancia que arreglar."""
+    """The IDSSE D rate is already comparable: there is no discrepancy to fix there."""
     labels = _labels(("H", 200), ("D", 5), ("H", 200), ("D", 300), ("A", 400))
     out, _ = cv.harmonise(labels, fps=25)
     assert (out == "D").sum() == (labels == "D").sum()
 
 
 def test_con_balon_parado_entre_posesiones_no_hay_nada_que_fusionar():
-    """No se puentea sobre D. Si todas las posesiones van separadas por D, no cambia nada,
-    y lo dice en vez de inventarse algo."""
+    """D is not bridged. If every possession is separated by D, nothing changes,
+    and it says so instead of making something up."""
     pieces = []
     for i in range(100):
         pieces.append(("HA"[i % 2], 50))

@@ -1,11 +1,11 @@
-"""Features del balon derivados de la posicion.
+"""Ball features derived from the position.
 
-Por que existe este modulo: **la velocidad del balon que trae el fichero es NaN en el
-91.3% de los frames en los que el balon SI se ve.** Medido sobre el partido completo. Es
-decir, la columna de velocidad del balon es inservible y hay que derivarla de la posicion.
+Why this module exists: **the ball speed that comes in the file is NaN in 91.3% of the
+frames in which the ball IS seen.** Measured over the full match. That is, the ball-speed
+column is unusable and has to be derived from the position.
 
-La misma medicion sobre las velocidades de jugador: NaN en el 62.8% de las celdas.
-Cualquier cosa que dependa de las velocidades del fichero tiene que tolerar eso.
+The same measurement on the player speeds: NaN in 62.8% of the cells. Anything that
+depends on the speeds in the file has to tolerate that.
 """
 
 import numpy as np
@@ -14,11 +14,12 @@ from ..constants import BALL_MAX_SPEED, PITCH
 
 
 def speed(tracking):
-    """(n,) velocidad del balon en m/s, derivada de la diferencia de posiciones.
+    """(n,) ball speed in m/s, derived from the position difference.
 
-    NaN donde no hay balon en t o en t-1, asi que esta definida en el 56.8% de los frames.
-    Se recorta a BALL_MAX_SPEED: el tracking automatico produce saltos imposibles cuando
-    confunde el balon con otra cosa, y sin recortar un solo salto domina cualquier media.
+    NaN where there is no ball at t or at t-1, so it is defined in 56.8% of the frames.
+    It is clipped to BALL_MAX_SPEED: the automatic tracking produces impossible jumps when
+    it confuses the ball with something else, and without clipping a single jump dominates
+    any mean.
     """
     xy = np.asarray(tracking.ball_xy, dtype=np.float32) * np.asarray(PITCH, dtype=np.float32)
     out = np.full(len(xy), np.nan, dtype=np.float32)
@@ -28,11 +29,11 @@ def speed(tracking):
 
 
 def displacement(tracking, half_width=25):
-    """(n,) distancia en metros entre la posicion del balon half_width frames antes y despues.
+    """(n,) distance in meters between the ball position half_width frames before and after.
 
-    Complementaria a la velocidad: un balon que vibra en el sitio tiene velocidad
-    instantanea alta y desplazamiento neto cero, que es exactamente lo que pasa con el
-    tracking de un balon parado en el suelo entre las piernas de un jugador.
+    Complementary to speed: a ball that jitters in place has high instantaneous speed and
+    zero net displacement, which is exactly what happens with the tracking of a ball resting
+    on the ground between a player's legs.
     """
     xy = np.asarray(tracking.ball_xy, dtype=np.float32) * np.asarray(PITCH, dtype=np.float32)
     n = len(xy)

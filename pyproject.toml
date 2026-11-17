@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "mtah-possession"
 version = "0.1.0"
-description = "Posesion por frame - More than a Hack 2027, Fase 1"
+description = "Per-frame possession - More than a Hack 2027, Phase 1"
 requires-python = ">=3.9"
 dependencies = ["numpy", "pandas"]
 

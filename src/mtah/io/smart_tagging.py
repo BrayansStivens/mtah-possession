@@ -1,23 +1,23 @@
-"""Smart Tagging: anotacion tactica *automatica* del video tactico.
+"""Smart Tagging: *automatic* tactical annotation of the tactical video.
 
-XML de SportsCode, 638 instancias en este partido. Cada una es un intervalo con un `code`
-y un conjunto de etiquetas agrupadas (`Team`, `Half`, `Type`, ...).
+SportsCode XML, 638 instances in this match. Each one is an interval with a `code`
+and a set of grouped tags (`Team`, `Half`, `Type`, ...).
 
-Base de tiempos verificada por los organizadores: `<start>` y `<end>` son segundos desde el
-primer frame del video tactico, asi que `round(s * 25)` es un frame de video y no hay nada
-mas que corregir.
+Time base verified by the organizers: `<start>` and `<end>` are seconds from the
+first frame of the tactical video, so `round(s * 25)` is a video frame and there is nothing
+else to correct.
 
-Tres avisos que cuestan dinero si se ignoran:
+Three warnings that cost money if ignored:
 
-- **No es ground truth.** Metrica lo genera automaticamente del mismo video y tracking que
-  tienes tu, sin revision manual. Falsos positivos y negativos incluidos.
-- **`Team` no siempre es un equipo.** 36 instancias van con `N/A`, entre ellas *todos* los
-  saques de banda, justo donde saber el lado valdria mas.
-- **Los intervalos son fases, no posesiones.** Un Build Up puede abarcar una posesion,
-  quedarse corto o cubrir dos. Copiar un intervalo como etiqueta importa sus errores.
+- **It is not ground truth.** Metrica generates it automatically from the same video and tracking
+  that you have, with no manual review. False positives and negatives included.
+- **`Team` is not always a team.** 36 instances carry `N/A`, among them *all* the
+  throw-ins, exactly where knowing the side would be worth the most.
+- **The intervals are phases, not possessions.** A Build Up can span one possession,
+  fall short or cover two. Copying an interval as a label imports its errors.
 
-Los codigos van en mayusculas (`SET PIECES`) y los valores de etiqueta en Title Case
-(`Kick Off (Start)`), asi que todo se compara sin distinguir mayusculas.
+Codes are in uppercase (`SET PIECES`) and tag values in Title Case
+(`Kick Off (Start)`), so everything is compared case-insensitively.
 """
 
 import xml.etree.ElementTree as ET
@@ -31,7 +31,7 @@ RESTART_TYPES = ("throw-in", "corner kick", "goal kick", "free kick",
 
 
 class Phase:
-    """Una instancia del tagging, ya convertida a frames de video [start, end)."""
+    """One tagging instance, already converted to video frames [start, end)."""
 
     __slots__ = ("code", "start_frame", "end_frame", "start_s", "end_s", "tags")
 
@@ -44,7 +44,7 @@ class Phase:
         self.tags = tags
 
     def tag(self, group, default=None):
-        """Valor de un grupo de etiquetas, comparando el nombre sin distinguir mayusculas."""
+        """Value of a tag group, comparing the name case-insensitively."""
         for key, value in self.tags.items():
             if (key or "").strip().lower() == group.strip().lower():
                 return value
@@ -52,7 +52,7 @@ class Phase:
 
     @property
     def team_label(self):
-        """'H', 'A' o None. None incluye el `N/A` explicito, que no es un equipo."""
+        """'H', 'A' or None. None includes the explicit `N/A`, which is not a team."""
         value = (self.tag("Team") or "").strip().lower()
         if value == HOME_TEAM.lower():
             return "H"
@@ -75,7 +75,7 @@ class Phase:
 
 
 def load(source="tactical", game=GAME, fps=FPS):
-    """Lista de Phase en el orden del fichero."""
+    """List of Phase in file order."""
     path = require(["smart_tagging"], source=source, game=game)[0]
     phases = []
     for instance in ET.parse(path).iter("instance"):
@@ -90,7 +90,7 @@ def load(source="tactical", game=GAME, fps=FPS):
 
 
 def set_pieces(phases):
-    """Solo los saques: cada uno marca un reinicio, es decir el final de un balon parado."""
+    """Only the set pieces: each one marks a restart, that is the end of a dead ball."""
     return [p for p in phases if p.is_set_piece]
 
 

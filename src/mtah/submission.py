@@ -1,21 +1,21 @@
-"""Construccion, escritura y validacion del fichero de entrega.
+"""Construction, writing and validation of the submission file.
 
-Contrato (SUBMISSION.md): cabecera exacta `frame,label`, 199.319 filas de datos, columna
-`frame` de 0 a 199.318 en orden, etiqueta en {H, A, D, X}, sin celdas vacias.
+Contract (SUBMISSION.md): exact header `frame,label`, 199,319 data rows, `frame` column
+from 0 to 199,318 in order, label in {H, A, D, X}, no empty cells.
 
-Decision de diseno: **nunca escribimos X en un frame puntuado.**
+Design decision: **we never write X on a scored frame.**
 
-Esta medido con el scorer oficial. El scorer rellena las X hacia delante con tu ultima
-etiqueta del mismo tiempo *antes* de emparejar posesiones, asi que en spellF1 una X es
-exactamente "repite mi respuesta anterior". Pero macroF1 la cobra como fallo. Abstenerse
-en el 20% de los frames puntuados frente a escribir uno mismo ese mismo relleno:
+This is measured with the official scorer. The scorer forward-fills the X's with your last
+label of the same half *before* matching possessions, so in spellF1 an X is
+exactly "repeat my previous answer". But macroF1 charges it as a miss. Abstaining
+on 20% of the scored frames versus writing that same filler yourself:
 
-    con 20% de X              spellF1 0.3610   macroF1 0.5438
-    mismo pero relleno a mano spellF1 0.3610   macroF1 0.6192
+    with 20% X                spellF1 0.3610   macroF1 0.5438
+    same but filled by hand   spellF1 0.3610   macroF1 0.6192
 
-Identico en la metrica de ranking, 0.075 peor en el desempate. La X esta estrictamente
-dominada dentro de los bloques puntuados. Fuera de ellos no se puntua nada, y ahi X es la
-respuesta honesta.
+Identical on the ranking metric, 0.075 worse on the tie-breaker. X is strictly
+dominated inside the scored blocks. Outside them nothing is scored, and there X is the
+honest answer.
 """
 
 import os
@@ -29,11 +29,11 @@ HEADER = "frame,label"
 
 def build(labels_graded, n_frames=N_FRAMES, blocks=GRADED_BLOCKS,
           outside=ABSTAIN, dead_before_2nd_kickoff=True):
-    """Array de etiquetas de longitud completa a partir de las de los bloques puntuados.
+    """Full-length label array built from those of the scored blocks.
 
-    `labels_graded` puede ser:
-      - un array de longitud n_frames, del que solo se respetan los bloques puntuados
-      - una lista de arrays, uno por bloque, en el orden de `blocks`
+    `labels_graded` can be:
+      - an array of length n_frames, of which only the scored blocks are respected
+      - a list of arrays, one per block, in the order of `blocks`
     """
     out = np.full(n_frames, outside, dtype="<U1")
 
@@ -42,35 +42,35 @@ def build(labels_graded, n_frames=N_FRAMES, blocks=GRADED_BLOCKS,
         for (start, stop), chunk in zip(blocks, labels_graded):
             chunk = np.asarray(chunk, dtype="<U1")
             if len(chunk) != stop - start:
-                raise ValueError("bloque {}-{}: esperaba {} etiquetas, hay {}"
+                raise ValueError("block {}-{}: expected {} labels, got {}"
                                  .format(start, stop, stop - start, len(chunk)))
             out[start:stop] = chunk
     else:
         source = np.asarray(labels_graded, dtype="<U1")
         if len(source) != n_frames:
-            raise ValueError("esperaba {} etiquetas, hay {}".format(n_frames, len(source)))
+            raise ValueError("expected {} labels, got {}".format(n_frames, len(source)))
         for start, stop in blocks:
             out[start:stop] = source[start:stop]
 
     if dead_before_2nd_kickoff:
-        # El segundo tiempo se puntua desde 110.808 pero no se saca hasta 113.742.
-        # Son 2.934 frames de balon parado, y el dato es publico (FAQ del repo oficial).
+        # The second half is scored from 110,808 but the kick-off is not taken until 113,742.
+        # That is 2,934 frames of dead ball, and the fact is public (FAQ of the official repo).
         second_start = blocks[1][0]
         out[second_start:KICKOFF_2ND] = DEAD
 
-    # Invariante del diseno: ninguna X dentro de los bloques puntuados.
+    # Design invariant: no X inside the scored blocks.
     for start, stop in blocks:
         abstained = out[start:stop] == ABSTAIN
         if abstained.any():
             raise ValueError(
-                "{} frames puntuados quedaron en X (p.ej. {}). La X esta dominada dentro "
-                "de los bloques: escribe tu propio relleno."
+                "{} scored frames were left as X (e.g. {}). X is dominated inside "
+                "the blocks: write your own filler."
                 .format(int(abstained.sum()), int(start + np.flatnonzero(abstained)[0])))
     return out
 
 
 def write(path, labels):
-    """Escribe el CSV de entrega. Devuelve la ruta."""
+    """Writes the submission CSV. Returns the path."""
     labels = np.asarray(labels, dtype="<U1")
     folder = os.path.dirname(os.path.abspath(path))
     if folder:
@@ -83,39 +83,39 @@ def write(path, labels):
 
 
 def validate(path, n_expected=N_FRAMES):
-    """None si el fichero es una entrega valida, o la razon en una linea.
+    """None if the file is a valid submission, or the reason in one line.
 
-    Reimplementa las mismas comprobaciones que el validador oficial, leyendo el fichero
-    desde disco: lo que se valida es el fichero que se va a subir, no el array en memoria.
+    Reimplements the same checks as the official validator, reading the file
+    from disk: what is validated is the file that will be uploaded, not the in-memory array.
     """
     import pandas as pd
 
     try:
         frame = pd.read_csv(path, dtype={"label": "object"})
     except Exception as error:                              # noqa: BLE001
-        return "no se puede leer: {}".format(error)
+        return "cannot read: {}".format(error)
 
     frame.columns = [str(c).strip().lower() for c in frame.columns]
     if "frame" not in frame.columns or "label" not in frame.columns:
-        return "esperaba columnas 'frame' y 'label', hay {}".format(list(frame.columns))
+        return "expected columns 'frame' and 'label', got {}".format(list(frame.columns))
     if len(frame) != n_expected:
-        return "{} filas != {}".format(len(frame), n_expected)
+        return "{} rows != {}".format(len(frame), n_expected)
 
     frames = frame["frame"].values
     if not np.issubdtype(frames.dtype, np.integer):
-        return "la columna 'frame' no es entera (dtype {})".format(frames.dtype)
+        return "the 'frame' column is not integer (dtype {})".format(frames.dtype)
     if not np.array_equal(frames, np.arange(n_expected)):
-        return "la columna 'frame' no es 0..{} en orden".format(n_expected - 1)
+        return "the 'frame' column is not 0..{} in order".format(n_expected - 1)
 
     values = frame["label"].values
     blank = pd.isna(values)
     if blank.any():
-        return "etiqueta vacia en {} filas; escribe X para abstenerte".format(int(blank.sum()))
+        return "empty label in {} rows; write X to abstain".format(int(blank.sum()))
 
     cleaned = np.array([str(v).strip().upper() for v in values], dtype=object)
     bad = sorted(set(cleaned) - set(LABELS))
     if bad:
-        return "etiquetas fuera de {}: {}".format(list(LABELS), bad[:5])
+        return "labels outside {}: {}".format(list(LABELS), bad[:5])
     return None
 
 

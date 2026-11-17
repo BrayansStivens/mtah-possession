@@ -1,5 +1,6 @@
-"""Tests de la degradacion. El fallo que mas duele aqui es silencioso: producir datos que
-no se parecen al ATD y creerse el numero que salga, asi que se comprueban las marginales."""
+"""Tests for the degradation. The failure that hurts most here is a silent one: producing
+data that does not look like the ATD and trusting whatever number comes out, so the
+marginals are checked."""
 
 import numpy as np
 import pytest
@@ -9,7 +10,7 @@ from mtah.training import degrade
 
 
 def _clean(n=4000, n_players=22, seed=0):
-    """Tracking limpio de juguete: todos los jugadores siempre visibles, balon siempre."""
+    """Toy clean tracking: every player always visible, ball always visible."""
     rng = np.random.default_rng(seed)
     xy = rng.uniform(0.1, 0.9, size=(n, n_players, 2)).astype(np.float32)
     sp = rng.uniform(0.0, 8.0, size=(n, n_players)).astype(np.float32)
@@ -30,7 +31,7 @@ def test_runs_cuenta_rachas():
 def test_estimate_mide_lo_que_dice_medir():
     tr = _clean()
     spec = degrade.estimate(tr, ((0, tr.n_frames),))
-    # Tracking limpio: el balon nunca falta y todos los slots estan siempre.
+    # Clean tracking: the ball is never missing and every slot is always present.
     assert len(spec.ball_absent_runs) == 0
     assert spec.n_tracked_values.tolist() == [22]
     assert spec.summary()["objetos_media"] == pytest.approx(22.0)
@@ -47,7 +48,7 @@ def test_apply_produce_los_46_slots_del_reto():
 
 
 def test_la_mascara_de_balon_respeta_la_tasa_objetivo():
-    """La marginal tiene que salir, porque es la estadistica que define el problema."""
+    """The marginal has to come out right, because it is the statistic that defines the problem."""
     rng = np.random.default_rng(0)
     present = np.full(200, 60, dtype=np.int32)
     absent = np.full(200, 40, dtype=np.int32)
@@ -56,8 +57,8 @@ def test_la_mascara_de_balon_respeta_la_tasa_objetivo():
 
 
 def test_la_mascara_produce_rachas_largas_no_bernoulli():
-    """El fallo clasico: tirar cada frame independiente da rachas de 1.7 frames cuando las
-    reales tienen mediana 268. Un modelo entrenado contra huecos de 2 frames interpola."""
+    """The classic failure: drawing every frame independently gives runs of 1.7 frames when the
+    real ones have a median of 268. A model trained against 2-frame gaps interpolates."""
     rng = np.random.default_rng(0)
     present = np.full(50, 600, dtype=np.int32)
     absent = np.full(50, 400, dtype=np.int32)
@@ -66,8 +67,8 @@ def test_la_mascara_produce_rachas_largas_no_bernoulli():
 
 
 def test_el_reparto_de_slots_no_pierde_la_mitad_de_los_objetos():
-    """Regresion del bug real: repartir jugador a jugador en vez de en orden temporal
-    dejaba 6 objetos por frame en lugar de 20,5."""
+    """Regression for the real bug: allocating player by player instead of in temporal order
+    left 6 objects per frame instead of 20.5."""
     tr = _clean()
     spec = degrade.estimate(tr, ((0, tr.n_frames),))
     out = degrade.apply(tr, spec, rng=np.random.default_rng(0), position_noise=False)
@@ -86,9 +87,9 @@ def test_apply_no_modifica_el_original():
 def test_mascara_ponderada_respeta_la_tasa_y_cae_donde_pesa():
     n = 20000
     present = np.array([300, 500, 800], dtype=np.int32)
-    absent = np.array([100, 200, 400], dtype=np.int32)       # 700 / 2300 sin balon
+    absent = np.array([100, 200, 400], dtype=np.int32)       # 700 / 2300 ball absent
     weights = np.full(n, 0.001)
-    weights[5000:10000] = 1.0                                  # un 25 % del partido
+    weights[5000:10000] = 1.0                                  # 25% of the match
     seen = degrade._weighted_mask(n, present, absent, weights, np.random.default_rng(0))
     assert abs((~seen).mean() - 700 / 2300) < 0.005
     zone = np.zeros(n, dtype=bool)

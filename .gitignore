@@ -1,18 +1,20 @@
-# Los datos del partido NO son redistribuibles (ver terminos de la competicion).
-# El repo de entrega es publico: nada de esto puede entrar.
-data/
+# The match data is NOT redistributable (see the competition's terms).
+# The submission repo is public: none of this may get in.
+# Anchored to the root (where MTAH_DATA_DIR points by default): analysis/handoff-plugin-data/data/
+# holds result tables that must be committed.
+/data/
 *.mp4
 *_atd.txt
 *_homography.csv
 *_smart_tagging.xml
 
-# Salidas
+# Outputs
 out/
 *.csv
 !vendor/evaluation/gt/*.csv
-# Las tablas de resultados del material de trabajo si entran (son salidas del modelo y
-# agregados sobre partidos publicos, nunca datos del partido).
-!trabajo/**/*.csv
+# The results tables of the analysis material do get in (they are model outputs and
+# aggregates over public matches, never match data).
+!analysis/**/*.csv
 evaluation/results/
 reports/
 
@@ -28,9 +30,9 @@ dist/
 build/
 .ipynb_checkpoints/
 
-# Entorno
+# Environment
 .DS_Store
 .env
 
-# Baselines oficiales de referencia (vendorizados, no son datos del partido)
+# Official reference baselines (vendored, not match data)
 !vendor/evaluation/results/*.csv.gz

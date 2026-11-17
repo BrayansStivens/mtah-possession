@@ -1,4 +1,4 @@
-"""Piezas de la curva de visibilidad que no necesitan el IDSSE."""
+"""Pieces of the visibility curve that do not need the IDSSE."""
 
 import numpy as np
 
