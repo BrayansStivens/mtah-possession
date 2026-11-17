@@ -1,10 +1,10 @@
-"""Efecto de devolver activity_smooth de 12 a 50, medido en los 7 partidos del IDSSE.
+"""Effect of restoring activity_smooth from 12 to 50, measured on the 7 IDSSE matches.
 
-Un solo cambio sobre config.py, todo lo demas igual. Se mide en los 4 partidos de ajuste
-(donde el 12 se eligio, asi que ahi se espera perder), en los 3 de validacion que no se
-usaron, y en las semillas de degradacion 1 y 2, que no vio ningun ajuste.
+A single change over config.py, everything else equal. It is measured on the 4 fit matches
+(where 12 was chosen, so a loss is expected there), on the 3 validation matches that were
+not used, and on degradation seeds 1 and 2, which no tuning saw.
 
-Uso:  .venv/bin/python -I handoff-plugin-data/activity_smooth.py
+Usage:  .venv/bin/python -I handoff-plugin-data/activity_smooth.py
 """
 
 import json
@@ -21,7 +21,7 @@ from mtah.config import DEFAULT, merged                      # noqa: E402
 AJUSTE = SPLIT_ORIGINAL
 VALIDACION = tuple(m for m in PARTIDOS if m not in AJUSTE)
 
-ANTES = merged()                       # activity_smooth = 12, tal cual config.py
+ANTES = merged()                       # activity_smooth = 12, exactly as in config.py
 DESPUES = merged(activity_smooth=50)
 
 filas = []
@@ -35,7 +35,7 @@ for seed in (0, 1, 2):
                       "smooth12": a, "smooth50": b, "delta_pp": 100 * (b - a)})
     del m
 
-print("DEVOLVER activity_smooth 12 -> 50   (spellF1)")
+print("RESTORING activity_smooth 12 -> 50   (spellF1)")
 print("%-8s %-16s %9s %9s %9s" % ("semilla", "grupo", "12", "50", "delta"))
 for f in filas:
     print("%-8d %-16s %9.4f %9.4f %+8.2f pp"
@@ -44,12 +44,12 @@ for f in filas:
 print()
 for grupo in ("ajuste (4)", "validacion (3)", "los 7"):
     d = np.array([f["delta_pp"] for f in filas if f["grupo"] == grupo])
-    print("%-16s media de las 3 semillas %+6.2f pp   rango [%+.2f, %+.2f]"
+    print("%-16s mean of the 3 seeds %+6.2f pp   range [%+.2f, %+.2f]"
           % (grupo, d.mean(), d.min(), d.max()))
 
-# Por partido, en la semilla 0, para ver si la ganancia es de uno solo o general.
+# Per match, on seed 0, to see whether the gain comes from a single match or is general.
 print()
-print("por partido (semilla 0):")
+print("per match (seed 0):")
 m = {p: cargar(p, 0) for p in PARTIDOS}
 porpartido = {}
 for p in PARTIDOS:
@@ -58,7 +58,7 @@ for p in PARTIDOS:
     print("   %-8s %s  %.4f -> %.4f  %+6.2f pp"
           % (p, "ajuste    " if p in AJUSTE else "validacion", a, b, 100 * (b - a)))
 gana = sum(1 for v in porpartido.values() if v["delta_pp"] > 0)
-print("   mejora en %d de %d partidos" % (gana, len(PARTIDOS)))
+print("   improves in %d of %d matches" % (gana, len(PARTIDOS)))
 
 json.dump({"_que_es": "efecto de activity_smooth 12 -> 50, unico cambio sobre config.py",
            "ajuste": list(AJUSTE), "validacion": list(VALIDACION),

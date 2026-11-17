@@ -1,7 +1,7 @@
-"""Clasificadores nuevos: equipo sin balon (a), vivo/muerto aprendido (b), equipo con contexto (c).
+"""New classifiers: ball-absent team (a), learned live/dead (b), team with context (c).
 
-Todo fuera de muestra por partido. `predict(held, pair)` devuelve los logits de un partido
-con modelos que no vieron ni ese partido ni `pair` (para elegir pesos anidado).
+Everything is out of sample per match. `predict(held, pair)` returns the logits of one match
+from models that saw neither that match nor `pair` (to choose weights in a nested way).
 """
 
 import os
@@ -25,7 +25,7 @@ def feat(match, seed=0):
 
 
 def team_matrix(team, perspective):
-    """(n, f) desde el array (2, senales, ventanas, n)."""
+    """(n, f) from the array (2, signals, windows, n)."""
     p, q = perspective, 1 - perspective
     sums = [F.TEAM_SIGNALS.index(s) for s in F.SUM_SIGNALS]
     cols = []
@@ -43,7 +43,7 @@ def ballteam(data, perspective):
 
 
 def team_xy(data, with_ball, rows):
-    """Filas de las dos perspectivas en los frames vivos de `rows`."""
+    """Rows of the two perspectives in the live frames of `rows`."""
     labels = data["labels"][rows]
     alive = labels != "D"
     xs, ys = [], []
@@ -71,7 +71,7 @@ def new_model():
 
 
 def fit(kind, train):
-    """`train`: lista de dicts de feat()."""
+    """`train`: list of feat() dicts."""
     if kind == "b":
         x = np.concatenate([d["dead"][::STRIDE] for d in train])
         y = np.concatenate([d["labels"][::STRIDE] == "D" for d in train])
@@ -83,7 +83,7 @@ def fit(kind, train):
 
 
 def predict(kind, model, data):
-    """(n,) logit: de muerto para b, de local (antisimetrico) para a y c."""
+    """(n,) logit: dead for b, home (antisymmetric) for a and c."""
     if kind == "b":
         return model.decision_function(data["dead"]).astype(np.float32)
     home = model.decision_function(team_x(data, kind == "c", 0))
@@ -96,7 +96,8 @@ def pred_path(seed=0):
 
 
 def build(seed=0, nested=True):
-    """Guarda {kind_held: logit} (modelo sin held) y {kind_held_pair: logit} (sin held ni pair)."""
+    """Saves {kind_held: logit} (model without held) and {kind_held_pair: logit}
+    (model without held or pair)."""
     data = {m: feat(m, seed) for m in C.MATCHES}
     out = {}
     started = time.time()
@@ -104,7 +105,7 @@ def build(seed=0, nested=True):
         for held in C.MATCHES:
             model = fit(kind, [data[m] for m in C.MATCHES if m != held])
             out["%s_%s" % (kind, held)] = predict(kind, model, data[held])
-            print("%s fuera %s  %.0fs" % (kind, held, time.time() - started), flush=True)
+            print("%s held out %s  %.0fs" % (kind, held, time.time() - started), flush=True)
         if not nested:
             continue
         for i, first in enumerate(C.MATCHES):
@@ -112,7 +113,7 @@ def build(seed=0, nested=True):
                 model = fit(kind, [data[m] for m in C.MATCHES if m not in (first, second)])
                 out["%s_%s_%s" % (kind, first, second)] = predict(kind, model, data[first])
                 out["%s_%s_%s" % (kind, second, first)] = predict(kind, model, data[second])
-            print("%s pares de %s  %.0fs" % (kind, first, time.time() - started), flush=True)
+            print("%s pairs of %s  %.0fs" % (kind, first, time.time() - started), flush=True)
         np.savez_compressed(pred_path(seed), **out)
     np.savez_compressed(pred_path(seed), **out)
 

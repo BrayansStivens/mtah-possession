@@ -1,15 +1,15 @@
-# Codigo de terceros
+# Third-party code
 
-`evaluation/` y `games.py` son copia literal del repositorio oficial de la competicion:
+`evaluation/` and `games.py` are a verbatim copy of the competition's official repository:
 
     https://github.com/metrica-sports/more-than-a-hack-2027
 
-Licencia MIT, incluida en `LICENSE.metrica`. Copyright de Metrica Sports y FC Barcelona
+MIT license, included in `LICENSE.metrica`. Copyright Metrica Sports and FC Barcelona
 Innovation Hub.
 
-Se vendoriza sin modificar para que este repositorio pueda puntuarse en local con **el mismo
-scorer** que decide la competicion, sin depender de tener el repo oficial clonado al lado.
-No lo edites: si hay que cambiar algo, el bug esta en nuestro codigo.
+It is vendored unmodified so that this repository can be scored locally with **the same
+scorer** that decides the competition, without needing the official repo cloned alongside.
+Do not edit it: if something needs to change, the bug is in our code.
 
-`evaluation/gt/` contiene el ground truth **publico** (5 minutos), que se distribuye con ese
-repositorio. Los assets del partido (video, tracking, homografia) NO estan aqui ni pueden estarlo.
+`evaluation/gt/` contains the **public** ground truth (5 minutes), which is distributed with that
+repository. The match assets (video, tracking, homography) are NOT here and cannot be.

@@ -1,4 +1,4 @@
-"""Prepara las senales nuevas de cada partido degradado. Uso: build.py [semilla ...]"""
+"""Prepares the new signals of each degraded match. Usage: build.py [seed ...]"""
 
 import json
 import os
@@ -29,7 +29,7 @@ def build(args):
     clean_direction, clean_report = F.attack_direction(clean)
     smoothed = F.team_smoothed(dirty, direction)
     team = np.stack([[[smoothed[(t, s, w)] for w in F.TEAM_WINDOWS] for s in F.TEAM_SIGNALS]
-                     for t in (0, 1)]).astype(np.float32)          # (2, senales, ventanas, n)
+                     for t in (0, 1)]).astype(np.float32)          # (2, signals, windows, n)
     dead, dead_names = F.dead_matrix(dirty, features, DEFAULT)
     context = F.gap_context(dirty, features)
     ballteam, ballteam_names, odd = F.ballteam_matrix(features, context, DEFAULT)
@@ -48,7 +48,7 @@ if __name__ == "__main__":
     jobs = [(m, s) for s in seeds for m in C.MATCHES if not os.path.exists(path(m, s))]
     with Pool(7) as pool:
         for info in pool.imap_unordered(build, jobs):
-            print("%s s%d  %.0fs  sentido %s  igual que limpio %.4f" % (
+            print("%s s%d  %.0fs  direction %s  same as clean %.4f" % (
                 info["match"], info["seed"], info["seconds"],
                 [(r["block"], r["direction"], round(r["agreement"], 3))
                  for r in info["direction_dirty"]], info["direction_same_as_clean"]),

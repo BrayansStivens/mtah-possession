@@ -1,5 +1,5 @@
-"""Robustez de la eleccion de config: 3 semillas de degradacion x 7 partidos, mas
-ablacion de cada cambio que eligio el descenso por coordenadas.
+"""Robustness of the config choice: 3 degradation seeds x 7 matches, plus an ablation of
+each change chosen by the coordinate descent.
 """
 import json, os, sys
 import numpy as np
@@ -27,14 +27,14 @@ def load(mid, seed):
 
 CFGS = [("solo_centros", SOLO_CENTROS), ("recalibrado", merged(**DEFAULT))]
 
-print("=== 1. las tres semillas de degradacion ===")
+print("=== 1. the three degradation seeds ===")
 print("%-14s %-7s %8s %8s %8s" % ("config", "semilla", "ajuste", "valid.", "todos"))
 tabla = {}
 for seed in (0, 1, 2):
     tune = [m for m in (load(x, seed) for x in TUNE) if m]
     hold = [m for m in (load(x, seed) for x in HOLD) if m]
     if len(tune) < 4 or len(hold) < 3:
-        print("semilla %d incompleta (%d+%d), se salta" % (seed, len(tune), len(hold)))
+        print("seed %d incomplete (%d+%d), skipping" % (seed, len(tune), len(hold)))
         continue
     for nombre, cfg in CFGS:
         ts = mean_score(tune, cfg)[0]; hs = mean_score(hold, cfg)[0]
@@ -43,26 +43,26 @@ for seed in (0, 1, 2):
         print("%-14s s%-6d %8.4f %8.4f %8.4f" % (nombre, seed, ts, hs, als))
 
 print()
-print("delta recalibrado - solo_centros, por semilla:")
+print("delta recalibrado - solo_centros, per seed:")
 if len(tabla) == 2:
     for i, (s, ts, hs, als) in enumerate(tabla["recalibrado"]):
         _, ts0, hs0, als0 = tabla["solo_centros"][i]
-        print("   semilla %d: ajuste %+0.4f  validacion %+0.4f  todos %+0.4f"
+        print("   seed %d: fit %+0.4f  validation %+0.4f  all %+0.4f"
               % (s, ts - ts0, hs - hs0, als - als0))
     d_hold = [r[2] - s[2] for r, s in zip(tabla["recalibrado"], tabla["solo_centros"])]
-    print("   media validacion %+0.4f   rango [%+0.4f, %+0.4f]"
+    print("   mean validation %+0.4f   range [%+0.4f, %+0.4f]"
           % (np.mean(d_hold), min(d_hold), max(d_hold)))
 
 print()
-print("=== 2. ablacion: revertir un solo cambio del descenso, semilla 0 ===")
+print("=== 2. ablation: reverting a single change of the descent, seed 0 ===")
 tune = [load(x, 0) for x in TUNE]; hold = [load(x, 0) for x in HOLD]
 base_t, base_h = mean_score(tune, DEFAULT)[0], mean_score(hold, DEFAULT)[0]
-print("%-24s %8s %8s" % ("config.py completo", "%.4f" % base_t, "%.4f" % base_h))
+print("%-24s %8s %8s" % ("full config.py", "%.4f" % base_t, "%.4f" % base_h))
 revert = {"activity_smooth": 50, "ball_speed_smooth": 50, "shape_smooth": 50,
           "switch_turnover": 28.0,
           "ball_speed_center_ms": 4.10, "control_center": 0.096, "shape_center": 0.975}
 for k, v in revert.items():
     cfg = merged(**{k: v})
     t = mean_score(tune, cfg)[0]; h = mean_score(hold, cfg)[0]
-    print("  revertir %-22s %8.4f %8.4f   (ajuste %+0.4f  validacion %+0.4f)"
+    print("  revert %-22s %8.4f %8.4f   (fit %+0.4f  validation %+0.4f)"
           % ("%s=%s" % (k, v), t, h, t - base_t, h - base_h))

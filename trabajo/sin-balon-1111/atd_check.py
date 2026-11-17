@@ -1,8 +1,8 @@
-"""Comprobacion de transferencia en el partido del reto, sin etiquetas.
+"""Transfer check on the challenge match, without labels.
 
-Los clasificadores se entrenan con los 7 partidos del IDSSE degradados y se aplican al ATD.
-Se comparan con el Smart Tagging (fases automaticas de Metrica, ~18 s): es un diagnostico,
-no un criterio de ajuste. Solo se imprimen agregados.
+The classifiers are trained on the 7 degraded IDSSE matches and applied to the ATD. They are
+compared with Smart Tagging (Metrica's automatic phases, ~18 s): it is a diagnostic, not a
+tuning criterion. Only aggregates are printed.
 """
 
 import json
@@ -55,9 +55,9 @@ def main():
     blind = C.no_ball_in_window(seen)
     regions = {"todo": np.ones(n, bool), "visto": seen, "sin balon": ~seen, "sin balon a +-50": blind}
     out = {"direction": report, "team": {}, "dead": {}}
-    print("sentido de ataque por parte:", [(r["direction"], round(r["agreement"], 3)) for r in report])
-    print("== EQUIPO contra etiquetas debiles del Smart Tagging (frames puntuados con fase y sin conflicto)")
-    print("%-18s %8s | AUC %8s %8s %8s %8s | acuerdo %8s %8s %8s" % (
+    print("attack direction per half:", [(r["direction"], round(r["agreement"], 3)) for r in report])
+    print("== TEAM against weak Smart Tagging labels (graded frames with a phase and no conflict)")
+    print("%-18s %8s | AUC %8s %8s %8s %8s | agreement %8s %8s %8s" % (
         "tramo", "frames", "entrega", "(a)", "ent+(a)", "(c)", "entrega", "(a)", "(c)"))
     for name, mask in regions.items():
         sel = usable & mask
@@ -67,18 +67,18 @@ def main():
         acc = [float(((c > 0) == y).mean()) for c in (cols[0], cols[1], cols[3])]
         out["team"][name] = {"n": int(sel.sum()), "auc": aucs, "agreement": acc,
                              "majority": float(max(y.mean(), 1 - y.mean()))}
-        print("%-18s %8d |     %8.4f %8.4f %8.4f %8.4f |         %8.4f %8.4f %8.4f" % (
+        print("%-18s %8d |     %8.4f %8.4f %8.4f %8.4f |           %8.4f %8.4f %8.4f" % (
             name, sel.sum(), *aucs, *acc))
 
     setpiece = tagging.set_piece_window(phases, n)
-    print("== MUERTO: ventanas de saque del Smart Tagging (~5 s alrededor del reinicio)")
+    print("== DEAD: Smart Tagging set-piece windows (~5 s around the restart)")
     g = graded
-    print("   frames puntuados en ventana de saque: %.1f%%" % (100 * setpiece[g].mean()))
-    print("   sin balon dentro de ventana de saque %.1f%%   fuera %.1f%%" % (
+    print("   graded frames in set-piece window: %.1f%%" % (100 * setpiece[g].mean()))
+    print("   ball-absent inside set-piece window %.1f%%   outside %.1f%%" % (
         100 * (~seen)[g & setpiece].mean(), 100 * (~seen)[g & ~setpiece].mean()))
     out["dead"]["unseen_in_setpiece"] = float((~seen)[g & setpiece].mean())
     out["dead"]["unseen_outside"] = float((~seen)[g & ~setpiece].mean())
-    print("%-18s %8s | AUC ventana de saque: %8s %8s | P(muerto) media: %8s %8s" % (
+    print("%-18s %8s | AUC set-piece window: %8s %8s | P(dead) average: %8s %8s" % (
         "tramo", "frames", "entrega", "(b)", "entrega", "(b)"))
     for name, mask in regions.items():
         sel = g & mask

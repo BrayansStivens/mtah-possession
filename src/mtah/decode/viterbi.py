@@ -1,37 +1,37 @@
-"""Decodificacion temporal: de puntuaciones por frame a segmentos de posesion.
+"""Temporal decoding: from per-frame scores to possession segments.
 
-Por que este modulo es el nucleo del reto
------------------------------------------
-El ranking es `spellF1`: cada posesion se empareja 1 a 1 con la verdad por IoU temporal.
-Eso castiga dos cosas a la vez y de forma simetrica -- inventar posesiones y perderlas.
+Why this module is the core of the challenge
+--------------------------------------------
+The ranking is `spellF1`: each possession is matched 1 to 1 with the truth by temporal IoU.
+That punishes two things at once and symmetrically -- inventing possessions and missing them.
 
-Un voto por mayoria en ventana (lo que hacen los baselines oficiales) controla el numero
-de segmentos *indirectamente*, via el tamano de ventana, y para no fragmentar una posesion
-larga tiene que borrar las cortas. Son dos objetivos distintos y una sola ventana no puede
-separarlos: por eso `baseline_smooth125` gana en numero de posesiones y pierde en macroF1,
-y `baseline_smooth25` lo contrario.
+A majority vote over a window (what the official baselines do) controls the number
+of segments *indirectly*, via the window size, and to avoid fragmenting a long possession
+it has to erase the short ones. They are two different objectives and a single window cannot
+separate them: that is why `baseline_smooth125` wins on number of possessions and loses on
+macroF1, and `baseline_smooth25` the opposite.
 
-Viterbi penaliza el numero de transiciones *directamente*, asi que puede mantener una
-posesion de 1 s y a la vez no trocear una de 40 s. Medido con el scorer oficial sobre la
-ventana publica, partiendo de la MISMA etiqueta cruda que el baseline:
+Viterbi penalizes the number of transitions *directly*, so it can keep a 1 s
+possession and at the same time not chop up a 40 s one. Measured with the official scorer on
+the public window, starting from the SAME raw label as the baseline:
 
-    voto mayoria: baseline_smooth50      spellF1 0.3256   macroF1 0.6207   26 poss
-    voto mayoria: baseline_smooth125     spellF1 0.4242   macroF1 0.5812   16 poss
+    majority vote: baseline_smooth50     spellF1 0.3256   macroF1 0.6207   26 poss
+    majority vote: baseline_smooth125    spellF1 0.4242   macroF1 0.5812   16 poss
     Viterbi switch_cost=40               spellF1 0.4000   macroF1 0.6686   16 poss
 
-Gana a smooth50 en las dos metricas a la vez y supera el macroF1 de los cuatro baselines.
+It beats smooth50 on both metrics at once and exceeds the macroF1 of the four baselines.
 
-AVISO: 40 es el valor que gana en los 5 minutos publicos, y ese es exactamente el error
-que EVALUATION.md demuestra con smooth125. El valor para el partido completo hay que
-elegirlo por un criterio que no sea ajustar contra esa ventana -- distribucion de
-duraciones, validacion cruzada en datos externos, o bootstrap.
+WARNING: 40 is the value that wins on the 5 public minutes, and that is exactly the mistake
+that EVALUATION.md demonstrates with smooth125. The value for the full match has to be
+chosen by a criterion other than tuning against that window -- distribution of
+durations, cross-validation on external data, or bootstrap.
 
-Latencia
---------
-Medido degradando el ground truth publico: +1 frame de retraso es gratis (spellF1 1.0000),
-+25 frames (1 s) baja a 0.7765 y +50 frames (2 s) a 0.5882. Cualquier filtro causal
-(media movil hacia atras, EMA, decodificacion online) es inviable. Viterbi es offline y
-centrado por construccion: usa la secuencia entera, y por eso no introduce retraso.
+Latency
+-------
+Measured by degrading the public ground truth: +1 frame of delay is free (spellF1 1.0000),
++25 frames (1 s) drops to 0.7765 and +50 frames (2 s) to 0.5882. Any causal filter
+(backward moving average, EMA, online decoding) is not viable. Viterbi is offline and
+centered by construction: it uses the whole sequence, and for that reason it introduces no delay.
 """
 
 import numpy as np
@@ -44,23 +44,23 @@ N_STATES = 3
 
 
 def uniform_switch_costs(switch_cost):
-    """Matriz de coste de transicion (3, 3) con el mismo precio para todo cambio."""
+    """Transition cost matrix (3, 3) with the same price for every switch."""
     matrix = np.full((N_STATES, N_STATES), float(switch_cost))
     np.fill_diagonal(matrix, 0.0)
     return matrix
 
 
 def switch_costs(turnover, to_dead, from_dead):
-    """Matriz de transicion asimetrica, que es como se comporta el futbol de verdad.
+    """Asymmetric transition matrix, which is how football really behaves.
 
-    En los 5 minutos publicos, 12 de los 16 cambios de posesion son *directos* (H->A sin
-    balon parado en medio) y solo 4 pasan por una parada. Es decir: el problema dominante
-    son los robos en juego, no los saques, y cobrar lo mismo por H->A que por H->D->A
-    sesga el decodificador hacia inventar paradas.
+    In the 5 public minutes, 12 of the 16 possession changes are *direct* (H->A with no
+    dead ball in between) and only 4 go through a stoppage. That is: the dominant problem
+    is turnovers in live play, not restarts, and charging the same for H->A as for H->D->A
+    biases the decoder toward inventing stoppages.
 
-        turnover    H <-> A directo
-        to_dead     H|A -> D   (el balon se muere)
-        from_dead   D -> H|A   (reinicio)
+        turnover    H <-> A direct
+        to_dead     H|A -> D   (the ball goes dead)
+        from_dead   D -> H|A   (restart)
     """
     matrix = np.zeros((N_STATES, N_STATES))
     matrix[H, A] = matrix[A, H] = float(turnover)
@@ -70,11 +70,11 @@ def switch_costs(turnover, to_dead, from_dead):
 
 
 def costs_from_hard_labels(labels, miss_cost=1.0, unknown_cost=0.0):
-    """Etiquetas duras por frame -> matriz de costes (n, 3), para decodificar un baseline.
+    """Hard per-frame labels -> cost matrix (n, 3), to decode a baseline.
 
-    Coste 0 para el estado observado y `miss_cost` para los otros dos. Donde la
-    observacion es desconocida (`X` o cualquier cosa fuera de H/A/D) el coste es
-    `unknown_cost` para los tres, es decir: el frame no opina y deja que manden los vecinos.
+    Cost 0 for the observed state and `miss_cost` for the other two. Where the
+    observation is unknown (`X` or anything outside H/A/D) the cost is
+    `unknown_cost` for all three, that is: the frame has no opinion and lets its neighbors decide.
     """
     labels = np.asarray(labels)
     cost = np.full((len(labels), N_STATES), float(miss_cost))
@@ -88,39 +88,40 @@ def costs_from_hard_labels(labels, miss_cost=1.0, unknown_cost=0.0):
 
 
 def check_switch_discount(switch_discount, n_frames):
-    """Valida un descuento por frame, en fraccion, sobre el coste de cambiar de estado.
+    """Validates a per-frame discount, as a fraction, on the cost of changing state.
 
-    `switch_discount[t]` multiplica los seis costes de cambio entre los frames t-1 y t por
-    `1 - switch_discount[t]`; `switch_discount[0]` no se usa. Es la entrada del detector de
-    fronteras (training/boundaries.py): donde ve una transicion, cambiar sale mas barato.
+    `switch_discount[t]` multiplies the six switch costs between frames t-1 and t by
+    `1 - switch_discount[t]`; `switch_discount[0]` is not used. It is the input of the
+    boundary detector (training/boundaries.py): where it sees a transition, switching is
+    cheaper.
 
-    Fraccion y no resta, porque los cambios cuestan muy distinto (un robo 40, un reinicio
-    14): una resta tendria que quedar por debajo de 14 y apenas moveria un robo. Tiene que
-    ser < 1: con 1 el cambio sale gratis y el decodificador fragmentaria ahi sin que
-    ninguna emision lo pida.
+    A fraction and not a subtraction, because switches cost very different amounts (a
+    turnover 40, a restart 14): a subtraction would have to stay below 14 and would barely
+    move a turnover. It has to be < 1: with 1 the switch is free and the decoder would
+    fragment there without any emission asking for it.
     """
     discount = np.asarray(switch_discount, dtype=np.float64)
     if discount.shape != (n_frames,):
-        raise ValueError("switch_discount debe tener forma ({},), tiene {}".format(
+        raise ValueError("switch_discount must have shape ({},), has {}".format(
             n_frames, discount.shape))
     if not np.isfinite(discount).all() or (discount < 0).any():
-        raise ValueError("switch_discount debe ser finito y no negativo")
+        raise ValueError("switch_discount must be finite and non-negative")
     if discount.size and discount.max() >= 1.0:
         raise ValueError(
-            "switch_discount llega a {:.3f}: con 1 o mas un cambio sale gratis y hace "
-            "gratis fragmentar. Baja el peso del detector.".format(discount.max()))
+            "switch_discount reaches {:.3f}: with 1 or more a switch is free and makes "
+            "fragmenting free. Lower the detector weight.".format(discount.max()))
     return discount
 
 
 def _viterbi_block(cost, transition, switch_discount=None):
-    """Viterbi sobre un bloque contiguo. cost (n, 3) coste, menor es mejor.
+    """Viterbi over a contiguous block. cost (n, 3) cost, lower is better.
 
-    Bucle en Python puro a proposito: con 3 estados son 9 sumas y 3 minimos por frame, y
-    la sobrecarga por llamada de numpy sobre arrays de 3 elementos es mayor que el calculo.
+    Pure Python loop on purpose: with 3 states it is 9 additions and 3 minima per frame, and
+    the per-call overhead of numpy on 3-element arrays is greater than the computation.
 
-    `switch_discount` (n,) escala los seis costes de cambio al entrar en cada frame (ver
-    check_switch_discount). Sin el, o con ceros, el resultado es identico bit a bit al de
-    antes de existir: multiplicar por 1.0 no cambia ningun float.
+    `switch_discount` (n,) scales the six switch costs on entering each frame (see
+    check_switch_discount). Without it, or with zeros, the result is bit-for-bit identical to
+    what it was before it existed: multiplying by 1.0 changes no float.
     """
     n = len(cost)
     if n == 0:
@@ -180,14 +181,14 @@ def _viterbi_block(cost, transition, switch_discount=None):
 
 
 def decode(cost, transition, blocks=GRADED_BLOCKS, switch_discount=None):
-    """Viterbi por bloque puntuado. Devuelve codigos int8 (0=H, 1=A, 2=D).
+    """Viterbi per scored block. Returns int8 codes (0=H, 1=A, 2=D).
 
-    Nunca decodifica atravesando la frontera entre bloques: el agujero del descanso son
-    20.156 frames y una transicion fantasma ahi es una posesion inventada.
-    Los frames fuera de los bloques quedan como D, que no se puntua.
+    It never decodes across the boundary between blocks: the half-time gap is
+    20,156 frames and a phantom transition there is an invented possession.
+    Frames outside the blocks are left as D, which is not scored.
 
-    `switch_discount` es opcional y por frame (ver check_switch_discount). El primer frame
-    de cada bloque no es una transicion, asi que su descuento no se usa.
+    `switch_discount` is optional and per frame (see check_switch_discount). The first frame
+    of each block is not a transition, so its discount is not used.
     """
     transition = np.asarray(transition, dtype=np.float64)
     if switch_discount is not None:
@@ -200,12 +201,12 @@ def decode(cost, transition, blocks=GRADED_BLOCKS, switch_discount=None):
 
 
 def enforce_min_duration(codes, min_frames, blocks=GRADED_BLOCKS):
-    """Absorbe segmentos mas cortos que `min_frames` en el vecino mas barato.
+    """Absorbs segments shorter than `min_frames` into the cheapest neighbor.
 
-    Cuidado con pasarse: en los 5 minutos publicos, 6 de las 17 posesiones duran menos de
-    4 s y la mas corta 0,76 s (19 frames). Medido sobre el ground truth, borrar las
-    posesiones de menos de 2 s cuesta 0.17 de spellF1 y las de menos de 5 s cuesta 0.44.
-    Un minimo por encima de ~0,5 s empieza a destruir posesiones reales.
+    Careful not to overdo it: in the 5 public minutes, 6 of the 17 possessions last less than
+    4 s and the shortest 0.76 s (19 frames). Measured on the ground truth, erasing
+    possessions shorter than 2 s costs 0.17 of spellF1 and those shorter than 5 s costs 0.44.
+    A minimum above ~0.5 s starts to destroy real possessions.
     """
     if min_frames <= 1:
         return codes.copy()
@@ -231,7 +232,7 @@ def enforce_min_duration(codes, min_frames, blocks=GRADED_BLOCKS):
                 elif after is None:
                     window[a:b] = before
                 else:
-                    # Al vecino mas largo, para no encadenar absorciones en cascada.
+                    # Into the longer neighbor, to avoid chaining cascading absorptions.
                     len_before = a - int(bounds[i - 1]) if i > 0 else 0
                     len_after = int(bounds[i + 2]) - b if i + 2 < len(bounds) else 0
                     window[a:b] = before if len_before >= len_after else after
@@ -242,12 +243,12 @@ def enforce_min_duration(codes, min_frames, blocks=GRADED_BLOCKS):
 
 
 def to_labels(codes):
-    """Codigos int -> array de letras 'H'/'A'/'D'."""
+    """Int codes -> array of letters 'H'/'A'/'D'."""
     return np.array(STATES, dtype="<U1")[np.asarray(codes, dtype=np.int64)]
 
 
 def segment_table(codes, blocks=GRADED_BLOCKS, fps=25):
-    """[(start, stop, label, duracion_s)] por bloque. Para inspeccionar a ojo."""
+    """[(start, stop, label, duration_s)] per block. To inspect by eye."""
     rows = []
     for start, stop in blocks:
         window = codes[start:stop]

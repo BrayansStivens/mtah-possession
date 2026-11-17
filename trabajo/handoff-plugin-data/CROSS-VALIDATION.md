@@ -1,270 +1,270 @@
-# Validación cruzada del procedimiento de recalibración — 35 splits
+# Cross-validation of the recalibration procedure — 35 splits
 
-**Fecha:** 29 oct 2026 · **Qué se midió:** el *procedimiento* de `training/recalibrate.py`, no una
-configuración concreta. **Cómo:** el mismo descenso por coordenadas, desde el mismo punto de
-partida, sobre **los 35 splits** posibles de 4 partidos de ajuste / 3 de validación con los 7
-partidos del IDSSE. Cada descenso se mide en los 3 partidos que ese descenso no vio, y además en
-las semillas de degradación 1 y 2, que ninguno vio.
+**Date:** Oct 29, 2026 · **What was measured:** the *procedure* of `training/recalibrate.py`, not a
+specific configuration. **How:** the same coordinate descent, from the same starting point, over
+**all 35 possible splits** of 4 fit matches / 3 validation matches from the 7 IDSSE
+matches. Each descent is measured on the 3 matches that descent did not see, and also on
+degradation seeds 1 and 2, which none of them saw.
 
-> **Añadido el 31-10:** la rejilla se ampliaba por consejo de este informe. Ya está hecho, y el
-> resultado es que **no sirve**: gana +0,62 pp en el ajuste y −0,13 pp fuera de él. Ver la primera
-> sección; matiza el hallazgo de "la rejilla se queda corta" sin invalidar el resto.
+> **Added on Oct 31:** the grid was to be expanded on this report's advice. That is now done, and the
+> result is that it **is no use**: it gains +0.62 pp on the fit set and −0.13 pp outside it. See the first
+> section; it qualifies the finding that "the grid falls short" without invalidating the rest.
 
-Scripts: `splits.py` (los 35 descensos) y la comprobación de consenso. Datos:
-`datos/splits_cruzados.json`, `datos/consenso_splits.json`. Sólo se leyó `out/cache` (partidos
-externos degradados): no se tocó el ATD ni la ventana pública.
+Scripts: `splits.py` (the 35 descents) and the consensus check. Data:
+`datos/splits_cruzados.json`, `datos/consenso_splits.json`. Only `out/cache` was read (degraded
+external matches): neither the ATD nor the public window was touched.
 
 ---
 
-## 31-10: ampliar la rejilla no sirve
+## Oct 31: expanding the grid is no use
 
-**Veredicto:** la rejilla sí se quedaba corta, y arreglarlo **no mejora nada fuera del ajuste**.
-Toda la capacidad de búsqueda extra se va en sobreajuste. No hay que ampliar la rejilla en
-`training/recalibrate.py`.
+**Verdict:** the grid did fall short, and fixing it **improves nothing outside the fit set**.
+All the extra search capacity goes into overfitting. The grid in
+`training/recalibrate.py` should not be expanded.
 
-Se ampliaron **siete** parámetros, no los cinco de la sección siguiente: al revisar la tabla de
-estabilidad aparecieron dos más que también se clavaban en un borde — `min_duration_frames` (50 es
-su tope y es la moda, 17/35) y `ball_speed_smooth`, que se clava en el **mínimo** de su lista
-(6 en 19/35). Cada lista se prolongó con su mismo paso geométrico (~×1,4) hasta dejar por dentro el
-valor que se elegía: 64 → 82 valores. Nada más cambió — mismo punto de partida, los mismos 14
-parámetros barridos, las mismas 2 pasadas y la misma función `descenso()`, que ahora recibe la
-rejilla como argumento. Antes de lanzar se comprobó que con la rejilla vieja reproduce el split
-original al sexto decimal y elige los mismos 14 valores, así que la parametrización no movió nada.
+**Seven** parameters were expanded, not the five of the next section: when reviewing the stability table
+two more appeared that also got pinned to an edge — `min_duration_frames` (50 is
+its cap and is the mode, 17/35) and `ball_speed_smooth`, which gets pinned to the **minimum** of its list
+(6 in 19/35). Each list was extended with its same geometric step (~×1.4) until the
+value being chosen was left inside: 64 → 82 values. Nothing else changed — same starting point, the same 14
+swept parameters, the same 2 passes and the same `descenso()` function, which now receives the
+grid as an argument. Before launching it was checked that with the old grid it reproduces the original
+split to the sixth decimal and chooses the same 14 values, so the parametrization moved nothing.
 
-Los dos brazos corren sobre los mismos 35 splits desde el mismo punto de partida, así que la
-comparación es **pareada** split a split:
+The two arms run over the same 35 splits from the same starting point, so the
+comparison is **paired** split by split:
 
-| eje | rejilla original | ampliada | diferencia pareada | IC 95 % | gana en |
+| axis | original grid | expanded | paired difference | 95% CI | wins in |
 |---|---|---|---|---|---|
-| en su propio ajuste (4) | +3,27 pp | +3,89 pp | **+0,62 pp** | [+0,34, +0,90] | 26/35 |
-| **en su propia validación (3)** | +1,71 pp | +1,58 pp | **−0,13 pp** | [−0,52, +0,26] | 14/35 |
-| semilla 1, los 7 | +1,93 pp | +1,91 pp | −0,02 pp | [−0,34, +0,30] | 18/35 |
-| semilla 2, los 7 | +1,74 pp | +1,84 pp | +0,10 pp | [−0,18, +0,38] | 20/35 |
-| transferencia | 52 % | **41 %** | | | |
+| on its own fit set (4) | +3.27 pp | +3.89 pp | **+0.62 pp** | [+0.34, +0.90] | 26/35 |
+| **on its own validation set (3)** | +1.71 pp | +1.58 pp | **−0.13 pp** | [−0.52, +0.26] | 14/35 |
+| seed 1, all 7 | +1.93 pp | +1.91 pp | −0.02 pp | [−0.34, +0.30] | 18/35 |
+| seed 2, all 7 | +1.74 pp | +1.84 pp | +0.10 pp | [−0.18, +0.38] | 20/35 |
+| transfer | 52% | **41%** | | | |
 
-Es un resultado limpio y es negativo. En el ajuste la mejora es real y significativa: +0,62 pp con
-el intervalo entero por encima de cero. En los tres partidos que el descenso no vio, el intervalo
-cruza el cero y la mejora se da en **14 de 35** splits, o sea menos de la mitad: indistinguible de
-una moneda. Las dos semillas de degradación dicen lo mismo. La transferencia baja del 52 % al 41 %,
-que es exactamente la firma de ampliar el espacio de búsqueda sin más datos: se ajusta mejor a los
-cuatro partidos de turno y no mejor al problema.
+It is a clean result, and it is negative. On the fit set the improvement is real and significant: +0.62 pp with
+the whole interval above zero. On the three matches the descent did not see, the interval crosses
+zero and the improvement occurs in **14 of 35** splits, that is, fewer than half: indistinguishable from
+a coin flip. The two degradation seeds say the same. Transfer drops from 52% to 41%,
+which is exactly the signature of expanding the search space without more data: it fits the
+four matches at hand better and not the problem better.
 
-El diagnóstico de la sección siguiente era correcto —**ningún** parámetro se clava ya en un borde,
-luego el óptimo sobre el ajuste estaba de verdad fuera de la rejilla vieja. Lo que no se sostiene
-es la implicación: ese óptimo no generaliza. Y la región recién alcanzable es visiblemente ruido.
-`switch_from_dead` se reparte ahora entre **siete** valores distintos (14:12, 8:6, 22:5, 31:4,
-60:4, 4:2, 43:2) y `switch_to_dead` entre 63:12 y 123:8, un rango de casi el doble. Donde antes
-había un borde que parecía señal, hay una meseta plana.
+The diagnosis in the next section was correct —**no** parameter gets pinned to an edge anymore,
+so the optimum on the fit set really was outside the old grid. What does not hold up
+is the implication: that optimum does not generalize. And the newly reachable region is visibly noise.
+`switch_from_dead` is now spread across **seven** distinct values (14:12, 8:6, 22:5, 31:4,
+60:4, 4:2, 43:2) and `switch_to_dead` between 63:12 and 123:8, a range of almost double. Where before
+there was an edge that looked like signal, there is a flat plateau.
 
-En el split original, el de `config.py`, la rejilla ampliada llega más arriba en el ajuste
-(+3,14 pp frente a +2,72) y **más abajo** en la validación (+2,07 pp frente a +2,82). El mismo
-patrón, en el único split que se había mirado antes.
+On the original split, the one of `config.py`, the expanded grid reaches higher on the fit set
+(+3.14 pp versus +2.72) and **lower** on validation (+2.07 pp versus +2.82). The same
+pattern, on the only split that had been looked at before.
 
-### Qué se lleva de aquí sobre `config.py`
+### What to take from this about `config.py`
 
-Con la rejilla ampliada, los splits que eligen el valor que hay hoy en `config.py` se desploman:
+With the expanded grid, the splits that choose the value that is in `config.py` today collapse:
 `shape_smooth` 2/35, `activity_smooth` 3/35, `min_duration_frames` 5/35, `switch_turnover` 6/35,
-`switch_to_dead` 6/35, `ball_speed_weight` 6/35. **Eso no es un argumento para cambiarlos.** Si el
-brazo ampliado no gana fuera de su ajuste, lo que elige no es mejor; es sólo distinto. Los únicos
-valores que aguantan en los dos brazos son `control_weight` (34/35), `shape_weight` (32/35),
-`control_smooth` (31/35) y `activity_weight` (27/35).
+`switch_to_dead` 6/35, `ball_speed_weight` 6/35. **That is not an argument for changing them.** If the
+expanded arm does not win outside its fit set, what it chooses is not better; it is just different. The only
+values that hold up in both arms are `control_weight` (34/35), `shape_weight` (32/35),
+`control_smooth` (31/35) and `activity_weight` (27/35).
 
-Lo de `activity_smooth` = 12 sigue en pie como lo que era: 1/35 con la rejilla vieja, 3/35 con la
-ampliada, y la moda nunca es 12. Esa conclusión no dependía de la rejilla.
+The `activity_smooth` = 12 matter stands as what it was: 1/35 with the old grid, 3/35 with the
+expanded one, and the mode is never 12. That conclusion did not depend on the grid.
 
-### Lo que esta comparación no puede decir
+### What this comparison cannot say
 
-*Dónde* ampliar se decidió mirando los 35 splits del día anterior. Esa decisión usó sólo los
-valores que el descenso eligió en los partidos de **ajuste** de cada split, nunca puntuaciones de
-validación — pero como cada partido entra en el ajuste de algún split, hay una filtración débil.
-Dado que el resultado es negativo, la filtración juega a favor de la rejilla ampliada y aun así
-pierde, luego el veredicto no está en riesgo por ese lado.
+*Where* to expand was decided by looking at the 35 splits of the previous day. That decision used only the
+values the descent chose on the **fit** matches of each split, never validation
+scores — but since every match enters the fit set of some split, there is a weak leak.
+Given that the result is negative, the leak plays in favor of the expanded grid and it still
+loses, so the verdict is not at risk from that side.
 
-El coste real fueron **5 h 48 min** de CPU, no la hora que estimé: los parámetros nuevos incluyen
-ventanas de suavizado grandes, que multiplican las entradas de la caché de `Match._smoothed` y
-encarecen cada evaluación. Si alguien repite esto con otra rejilla, contar con ese orden de
-magnitud.
+The real cost was **5 h 48 min** of CPU, not the hour I estimated: the new parameters include
+large smoothing windows, which multiply the entries of the `Match._smoothed` cache and
+make each evaluation more expensive. If someone repeats this with another grid, expect that order
+of magnitude.
 
-Scripts: `splits.py ampliada` (el brazo nuevo) y `compara_rejillas.py` (la tabla pareada de
-arriba). Datos: `datos/splits_cruzados_ampliada.json`.
-
----
-
-## 31-10: `activity_smooth` vuelve a 50 (aplicado)
-
-Único cambio en `config.py` que ha salido de todo esto. Medido con las tres semillas de
-degradación, sin tocar nada más:
-
-| | ajuste (4) | validación (3) | los 7 |
-|---|---|---|---|
-| semilla 0 | −0,27 pp | **+1,14 pp** | +0,33 pp |
-| semilla 1 | +0,59 pp | **+1,40 pp** | +0,94 pp |
-| semilla 2 | +0,05 pp | **+0,81 pp** | +0,37 pp |
-| media | +0,12 pp | **+1,11 pp** | +0,55 pp |
-
-Las tres semillas del mismo signo en validación, y mejora en 5 de los 7 partidos. En el
-ajuste el cambio es neutro (+0,12 pp), no la pérdida que sugería el barrido documentado en
-`config.py` — ese barrido daba al 12 una ventaja de 0,0014 sobre el 50, con un recorrido
-total de 0,14 pp entre 6 y 50. No distinguía nada.
-
-Tres medidas independientes eligen 50 y ninguna elige 12: el reparto de los 35 splits
-(12 sale 1/35, y 3/35 con la rejilla ampliada; la moda es 50), la ablación de arriba, y la
-planicie del propio barrido.
-
-**Procedencia, que importa aquí más de lo normal.** 50 coincide con el valor que había antes
-del 28-10, y aquel salía de la ventana pública, que `RULES.md` prohíbe como conjunto de
-ajuste. La coincidencia es solo eso: el 50 de ahora se justifica con los partidos del IDSSE
-y con nada más. Si la medición hubiera dado 25, iría 25. Queda escrito así en `config.py`
-para que nadie lea el cambio como una vuelta al valor viejo.
-
-Script: `activity_smooth.py`. Datos: `datos/activity_smooth.json`.
-
-### Comprobado contra el partido real
-
-El cambio se aplicó a `config.py` y se regeneró la entrega con los assets del ATD. Los 55
-tests pasan y el contrato del CSV es válido. Dos lecturas más, ninguna de las cuales decidió
-nada — la decisión ya estaba tomada con el IDSSE:
-
-- **Tasa de balón parado:** 45,8 % → **44,9 %** de los 158.857 frames puntuados, contra la
-  media de 44,9 % de los siete partidos del IDSSE. `activity_center_ms` = 1,26 se fijó por
-  percentil sobre la señal *suavizada*, así que está acoplado a `activity_smooth`: cambiar
-  la ventana mueve la tasa. La movió hacia el objetivo. Si se vuelve a tocar el suavizado,
-  hay que volver a medir esta tasa.
-- **Ventana pública de 5 minutos:** spellF1 0,4875 → **0,4903**; macroF1 0,8108 → 0,8009.
-  Es una lectura, no un criterio: `RULES.md` la prohíbe como conjunto de ajuste. Se mira
-  para comprobar que el cambio no rompe nada ahí, y no lo rompe.
-
-### Un número mal citado en `config.py`
-
-El docstring decía *"ajuste 0.3905, validacion 0.3957"*. El 0,3905 era correcto; el 0,3957
-no lo producía el fichero. Salía del volcado de `recalibrate.py`, que guarda los tres
-centros de clase sin redondear; con los centros redondeados como están en `config.py` la
-validación da **0,3968**. Son 0,001 de suerte en el redondeo, no un error de medida, pero el
-número citado tiene que ser el que produce el fichero. Corregido, y ahora dice lo que da el
-fichero tal cual está: ajuste 0,3878, validación 0,4081, los siete 0,3965.
-
-## Corrección de la corrección
-
-El 29-10 por la mañana escribí, en `VALIDACION.md`, que el descenso por coordenadas **"no
-transfiere nada"**. Es falso, y el error es mío de método: lo deduje comparando dos
-configuraciones fijas (`recalibrado` y `solo_centros`) en tres semillas. Eso mide la diferencia
-entre dos puntos de llegada, que es ruidosa; no mide lo que gana el procedimiento. Corriéndolo 35
-veces:
-
-| | media | rango | mejora en |
-|---|---|---|---|
-| en su propio ajuste (4 partidos) | **+3,27 pp** | +1,49 a +4,58 | 35/35 |
-| **en su propia validación (3 partidos)** | **+1,71 pp** | −0,58 a +3,51 | **32/35** |
-| en la semilla 1, los 7 partidos | +1,93 pp | +0,78 a +3,15 | 35/35 |
-| en la semilla 2, los 7 partidos | +1,74 pp | +0,20 a +2,66 | 35/35 |
-
-IC 95 % de la media en validación: **[+1,37, +2,05] pp**. La recalibración gana algo real fuera de
-donde se ajustó. La transferencia es del **52 %**: de cada dos puntos que compra en ajuste, uno se
-queda en el camino. Eso es sobreajuste parcial, que es lo normal y lo que había que decir desde el
-principio, no "no transfiere nada".
-
-Lo que sigue siendo cierto del informe anterior: el 0,3927 del documento técnico mezcla ajuste y
-validación y no es una predicción, y el split original salió afortunado — su delta en validación
-(+2,82 pp) está en el **percentil 83** de los 35.
+Scripts: `splits.py ampliada` (the new arm) and `compara_rejillas.py` (the paired table
+above). Data: `datos/splits_cruzados_ampliada.json`.
 
 ---
 
-## El hallazgo que importa: la rejilla se queda corta
+## Oct 31: `activity_smooth` goes back to 50 (applied)
 
-> **Medido el 31-10:** cierto, se queda corta — pero ampliarla no mejora la validación. El título
-> de esta sección promete más de lo que acabó valiendo. Ver "ampliar la rejilla no sirve" arriba.
+The only change to `config.py` that has come out of all this. Measured with the three degradation seeds,
+without touching anything else:
 
-En cada descenso se registró qué valor eligió cada hiperparámetro. Cinco de ellos eligen **el
-máximo de su propia rejilla** en la mayoría de los splits, lo que significa que la búsqueda se
-está topando con el borde y el óptimo está más allá:
+| | fit (4) | validation (3) | all 7 |
+|---|---|---|---|
+| seed 0 | −0.27 pp | **+1.14 pp** | +0.33 pp |
+| seed 1 | +0.59 pp | **+1.40 pp** | +0.94 pp |
+| seed 2 | +0.05 pp | **+0.81 pp** | +0.37 pp |
+| mean | +0.12 pp | **+1.11 pp** | +0.55 pp |
 
-| parámetro | elige el tope | en | `config.py` tiene |
+All three seeds have the same sign on validation, and it improves on 5 of the 7 matches. On the
+fit set the change is neutral (+0.12 pp), not the loss that the sweep documented in
+`config.py` suggested — that sweep gave 12 an advantage of 0.0014 over 50, with a total
+range of 0.14 pp between 6 and 50. It distinguished nothing.
+
+Three independent measurements choose 50 and none chooses 12: the distribution over the 35 splits
+(12 comes up 1/35, and 3/35 with the expanded grid; the mode is 50), the ablation above, and the
+flatness of the sweep itself.
+
+**Provenance, which matters here more than usual.** 50 coincides with the value there was before
+Oct 28, and that one came from the public window, which `RULES.md` forbids as a fit set.
+The coincidence is just that: the current 50 is justified with the IDSSE matches
+and nothing else. Had the measurement given 25, it would be 25. It is written that way in `config.py`
+so that nobody reads the change as a return to the old value.
+
+Script: `activity_smooth.py`. Data: `datos/activity_smooth.json`.
+
+### Checked against the real match
+
+The change was applied to `config.py` and the submission was regenerated with the ATD assets. The 55
+tests pass and the CSV contract is valid. Two more readings, neither of which decided
+anything — the decision had already been made with the IDSSE:
+
+- **Dead-ball rate:** 45.8% → **44.9%** of the 158,857 scored frames, against the
+  44.9% mean of the seven IDSSE matches. `activity_center_ms` = 1.26 was set by
+  percentile on the *smoothed* signal, so it is coupled to `activity_smooth`: changing
+  the window moves the rate. It moved it toward the target. If the smoothing is touched again,
+  this rate has to be measured again.
+- **5-minute public window:** spellF1 0.4875 → **0.4903**; macroF1 0.8108 → 0.8009.
+  It is a reading, not a criterion: `RULES.md` forbids it as a fit set. It is looked at
+  to check that the change breaks nothing there, and it does not.
+
+### A misquoted number in `config.py`
+
+The docstring said *"fit 0.3905, validation 0.3957"*. The 0.3905 was correct; the 0.3957
+was not what the file produced. It came from the dump of `recalibrate.py`, which stores the three class
+centers unrounded; with the centers rounded as they are in `config.py` the
+validation gives **0.3968**. That is 0.001 of luck in the rounding, not a measurement error, but the
+quoted number has to be the one the file produces. Corrected, and it now says what the file gives
+as it stands: fit 0.3878, validation 0.4081, all seven 0.3965.
+
+## Correction of the correction
+
+On the morning of Oct 29 I wrote, in `VALIDATION.md`, that coordinate descent **"transfers
+nothing"**. That is false, and the error is mine, a method error: I deduced it by comparing two fixed
+configurations (`recalibrado` and `solo_centros`) on three seeds. That measures the difference
+between two end points, which is noisy; it does not measure what the procedure gains. Running it 35
+times:
+
+| | mean | range | improves in |
+|---|---|---|---|
+| on its own fit set (4 matches) | **+3.27 pp** | +1.49 to +4.58 | 35/35 |
+| **on its own validation set (3 matches)** | **+1.71 pp** | −0.58 to +3.51 | **32/35** |
+| on seed 1, all 7 matches | +1.93 pp | +0.78 to +3.15 | 35/35 |
+| on seed 2, all 7 matches | +1.74 pp | +0.20 to +2.66 | 35/35 |
+
+95% CI of the mean on validation: **[+1.37, +2.05] pp**. The recalibration gains something real outside
+where it was tuned. The transfer is **52%**: of every two points it buys on the fit set, one is lost
+along the way. That is partial overfitting, which is normal and what should have been said from the
+start, not "transfers nothing".
+
+What remains true of the previous report: the 0.3927 in the technical document mixes fit and
+validation and is not a prediction, and the original split turned out lucky — its validation delta
+(+2.82 pp) is at the **83rd percentile** of the 35.
+
+---
+
+## The finding that matters: the grid falls short
+
+> **Measured on Oct 31:** true, it falls short — but expanding it does not improve validation. The title
+> of this section promises more than it ended up being worth. See "expanding the grid is no use" above.
+
+In each descent it was recorded which value each hyperparameter chose. Five of them choose
+**the maximum of their own grid** in most splits, which means the search is hitting the
+edge and the optimum lies beyond:
+
+| parameter | picks the cap | in | `config.py` has |
 |---|---|---|---|
 | `switch_turnover` | 40 | 30/35 | 40 ✅ |
-| `ball_speed_weight` | 1,2 | 28/35 | **0,6** |
+| `ball_speed_weight` | 1.2 | 28/35 | **0.6** |
 | `switch_to_dead` | 45 | 28/35 | **34** |
 | `switch_from_dead` | 22 | 25/35 | **14** |
 | `shape_smooth` | 200 | 22/35 | 200 ✅ |
 
-`config.py` documenta `switch_to_dead` y `switch_from_dead` como *"Confirmado"* porque en el split
-original el barrido no los movió. En 28 y 25 de los 35 splits sí los mueve, y al tope. Los tres
-valores en negrita son candidatos a estar mal por construcción del barrido, no por mala medida.
+`config.py` documents `switch_to_dead` and `switch_from_dead` as *"Confirmed"* because on the
+original split the sweep did not move them. In 28 and 25 of the 35 splits it does move them, and to the cap. The three
+values in bold are candidates to be wrong by construction of the sweep, not by bad measurement.
 
-## Estabilidad por parámetro
+## Stability per parameter
 
-Cuántos de los 35 splits eligen el valor que hay hoy en `config.py`:
+How many of the 35 splits choose the value that is in `config.py` today:
 
-| parámetro | coincide | reparto de lo elegido |
+| parameter | matches | distribution of what was chosen |
 |---|---|---|
 | `switch_turnover` 40 | **30/35** | 40:30 · 28:4 · 20:1 |
 | `control_smooth` 50 | **28/35** | 50:28 · 100:7 |
-| `control_weight` 6,0 | **27/35** | 6:27 · 9:4 · 13:3 · 4:1 |
+| `control_weight` 6.0 | **27/35** | 6:27 · 9:4 · 13:3 · 4:1 |
 | `shape_smooth` 200 | 22/35 | 200:22 · 100:6 · 25:5 · 12:2 |
-| `shape_weight` 1,6 | 22/35 | 1,6:22 · 1,0:12 · 0,5:1 |
-| `activity_weight` 1,0 | 22/35 | 1,0:22 · 0,5:13 |
+| `shape_weight` 1.6 | 22/35 | 1.6:22 · 1.0:12 · 0.5:1 |
+| `activity_weight` 1.0 | 22/35 | 1.0:22 · 0.5:13 |
 | `ball_speed_smooth` 6 | 19/35 | 6:19 · 12:11 · 25:3 · 50:2 |
 | `min_duration_frames` 12 | 12/35 | 50:17 · 12:12 · 0:4 · 25:2 |
-| `activity_center_ms` 1,26 | 12/35 | 1,18:14 · 1,26:12 · 1,10:7 · 1,35:2 |
-| `ball_unseen_logit` 0,5 | 11/35 | 0,0:12 · 0,25:12 · 0,5:11 |
+| `activity_center_ms` 1.26 | 12/35 | 1.18:14 · 1.26:12 · 1.10:7 · 1.35:2 |
+| `ball_unseen_logit` 0.5 | 11/35 | 0.0:12 · 0.25:12 · 0.5:11 |
 | `switch_from_dead` 14 | 8/35 | 22:25 · 14:8 · 8:2 |
-| `ball_speed_weight` 0,6 | 7/35 | 1,2:28 · 0,6:7 |
+| `ball_speed_weight` 0.6 | 7/35 | 1.2:28 · 0.6:7 |
 | `switch_to_dead` 34 | 6/35 | 45:28 · 34:6 · 26:1 |
 | **`activity_smooth` 12** | **1/35** | 50:14 · 6:8 · 100:8 · 25:4 · **12:1** |
 
-Tres grupos:
+Three groups:
 
-**Confirmados de verdad.** `switch_turnover` 40, `control_smooth` 50 y `control_weight` 6,0 los
-elige el descenso en ~80 % de los splits. Son los tres que la ablación del informe anterior ya
-señalaba como los que transfieren, y los dos primeros tienen además justificación mecánica escrita
-en `config.py`. Nada que tocar.
+**Truly confirmed.** `switch_turnover` 40, `control_smooth` 50 and `control_weight` 6.0 are
+chosen by the descent in ~80% of the splits. They are the three that the ablation in the previous report already
+pointed to as the ones that transfer, and the first two also have mechanical justification written
+in `config.py`. Nothing to touch.
 
-**`activity_smooth` = 12 no tiene ningún respaldo: 1 de 35.** Lo modal es 50, el valor que tenía
-antes del 28-10. Y es coherente con todo lo demás: el propio barrido documentado en `config.py`
-(6:.3754 12:.3761 25:.3755 50:.3747) tiene un recorrido de 0,14 pp, o sea nada, y la ablación
-medía +1,14 pp en validación al devolverlo a 50. Tres señales independientes apuntando al mismo
-sitio: **ese 12 es ruido de rejilla**.
+**`activity_smooth` = 12 has no backing at all: 1 of 35.** The mode is 50, the value it had
+before Oct 28. And it is consistent with everything else: the sweep documented in `config.py` itself
+(6:.3754 12:.3761 25:.3755 50:.3747) has a range of 0.14 pp, that is, nothing, and the ablation
+measured +1.14 pp on validation when returning it to 50. Three independent signals pointing to the same
+place: **that 12 is grid noise**.
 
-**Indiferentes.** `ball_unseen_logit` se reparte 12/12/11 entre 0, 0,25 y 0,5: el parámetro no
-hace nada, exactamente lo que el propio `config.py` razona al explicar que sumarlo cuenta la
-evidencia dos veces. `activity_center_ms` se reparte entre 1,10/1,18/1,26, pero aquí hay que
-quedarse con 1,26 **de todas formas**, porque no sale de un barrido sino de igualar la tasa de
-balón parado a la de partidos completos, que es un argumento que no depende de esta medición.
+**Indifferent.** `ball_unseen_logit` splits 12/12/11 between 0, 0.25 and 0.5: the parameter does
+nothing, exactly what `config.py` itself reasons when explaining that adding it counts the
+evidence twice. `activity_center_ms` splits between 1.10/1.18/1.26, but here we must keep
+1.26 **anyway**, because it does not come from a sweep but from matching the dead-ball rate
+to that of full matches, which is an argument that does not depend on this measurement.
 
-## ¿Y si se toman los valores modales?
+## What if the modal values are taken?
 
-La "config de consenso" (el valor más votado de cada parámetro entre los 35 splits) puntúa, en las
-dos semillas de degradación que el descenso no vio, sobre los 7 partidos:
+The "consensus config" (the most-voted value of each parameter across the 35 splits) scores, on the
+two degradation seeds the descent did not see, over the 7 matches:
 
-| | partida | `config.py` | consenso |
+| | start | `config.py` | consensus |
 |---|---|---|---|
-| semilla 1 | 0,3778 | 0,3793 | **0,3935** (+1,42 pp) |
-| semilla 2 | 0,3996 | 0,4092 | **0,4171** (+0,79 pp) |
-| semilla 0 *(vista)* | 0,3797 | 0,3932 | 0,4018 |
+| seed 1 | 0.3778 | 0.3793 | **0.3935** (+1.42 pp) |
+| seed 2 | 0.3996 | 0.4092 | **0.4171** (+0.79 pp) |
+| seed 0 *(seen)* | 0.3797 | 0.3932 | 0.4018 |
 
-Gana en las dos semillas no vistas. **Pero no es un resultado limpio y no debe entregarse así:**
-los valores modales se eligieron mirando los 7 partidos, así que las semillas 1 y 2 controlan el
-ruido de degradación pero **no** la elección de partidos — son los mismos 7. Como estimación de lo
-que rendiría en el partido de la competición no vale.
+It wins on both unseen seeds. **But it is not a clean result and must not be submitted as such:**
+the modal values were chosen by looking at the 7 matches, so seeds 1 and 2 control for degradation
+noise but **not** for the choice of matches — they are the same 7. As an estimate of what it would
+deliver on the competition match it is not valid.
 
-## Qué hacer
+## What to do
 
-1. ~~**Ampliar la rejilla**~~ **HECHO el 31-10, y la respuesta es no.** Se ampliaron siete
-   parámetros (64 → 82 valores): +0,62 pp en el ajuste, −0,13 pp en la validación, 14/35. No
-   ampliar la rejilla en `recalibrate.py`, y no cambiar `switch_to_dead`, `switch_from_dead` ni
-   `ball_speed_weight` a lo que elige el brazo ampliado. Detalle en la primera sección. Lo que
-   queda abierto no es la rejilla: es que con 7 partidos de ajuste no hay señal para distinguir
-   esos valores, y eso no lo arregla buscar más.
-2. **`activity_smooth`:** 1/35 es suficiente para dejar de defender el 12. Pero el valor de
-   repuesto hay que justificarlo con la validación cruzada completa, no con esta columna.
-3. **En el documento técnico**, sustituir "no se sobreajustó" por el número que sí se puede
-   defender: *la recalibración gana +1,7 pp (IC 95 % [+1,4, +2,1]) en partidos que no se usaron
-   para ajustarla, sobre 35 particiones; en los partidos de ajuste gana +3,3 pp, así que
-   aproximadamente la mitad de la ganancia es sobreajuste.*
+1. ~~**Expand the grid**~~ **DONE on Oct 31, and the answer is no.** Seven
+   parameters were expanded (64 → 82 values): +0.62 pp on the fit set, −0.13 pp on validation, 14/35. Do not
+   expand the grid in `recalibrate.py`, and do not change `switch_to_dead`, `switch_from_dead` or
+   `ball_speed_weight` to what the expanded arm chooses. Details in the first section. What
+   remains open is not the grid: it is that with 7 fit matches there is no signal to distinguish
+   those values, and searching more does not fix that.
+2. **`activity_smooth`:** 1/35 is enough to stop defending the 12. But the replacement
+   value has to be justified with the full cross-validation, not with this column.
+3. **In the technical document**, replace "it did not overfit" with the number that can be defended:
+   *the recalibration gains +1.7 pp (95% CI [+1.4, +2.1]) on matches that were not used
+   to tune it, over 35 partitions; on the fit matches it gains +3.3 pp, so roughly
+   half of the gain is overfitting.*
 
-## Cobertura no evaluada
+## Untested coverage
 
-Los 7 partidos son todos Bundesliga con el mismo tracking, degradados para parecerse al ATD; nada
-de esto mide el salto a la liga, la cámara y el tracker del partido de la competición. Las semillas
-1 y 2 varían el ruido de degradación, no los partidos. No se ha tocado el ATD ni la ventana
-pública, y no se ha re-derivado ningún centro de clase: los tres siguen siendo los medianos del
-IDSSE sobre los 4 partidos de ajuste del split original.
+The 7 matches are all Bundesliga with the same tracking, degraded to resemble the ATD; none
+of this measures the jump to the league, camera and tracker of the competition match. Seeds
+1 and 2 vary the degradation noise, not the matches. Neither the ATD nor the public window has
+been touched, and no class center has been re-derived: the three are still the IDSSE medians
+over the 4 fit matches of the original split.

@@ -1,11 +1,11 @@
-"""Deriva sin etiquetas: se parecen las senales de forma del ATD a las del IDSSE degradado?
+"""Drift without labels: do the shape signals of the ATD resemble those of the degraded IDSSE?
 
-El clasificador de equipo (a) se entrena con jugadores degradados quitando jugadores al
-azar frame a frame. En el ATD real faltan mas jugadores justo cuando no se ve el balon.
-Aqui se compara, por tramo (balon visto / sin balon), la distribucion de las senales de
-forma y lo facil que es distinguir el ATD de un partido del IDSSE con un clasificador de
-dominio. Referencia: lo facil que es distinguir un partido del IDSSE de los demas.
-Del ATD solo se imprimen agregados.
+The team classifier (a) is trained on degraded players by dropping players at random,
+frame by frame. In the real ATD more players are missing exactly when the ball is not seen.
+Here we compare, by region (ball seen / ball-absent), the distribution of the shape signals
+and how easy it is to tell the ATD apart from an IDSSE match with a domain classifier.
+Reference: how easy it is to tell one IDSSE match apart from the others.
+Only aggregates are printed for the ATD.
 """
 
 import json
@@ -32,7 +32,7 @@ W100 = F.TEAM_WINDOWS.index(100)
 
 
 def counts(tracking):
-    """(n, 2) jugadores trackeados por equipo."""
+    """(n, 2) tracked players per team."""
     present = ~np.isnan(tracking.players_xy[:, :, 0])
     return np.stack([present[:, tracking.team_of_slot == t].sum(axis=1) for t in (0, 1)], axis=1)
 
@@ -54,7 +54,7 @@ def summary(team, count, mask):
 
 
 def matrix(team, mask, half, builder=None):
-    """Filas de las dos perspectivas en `mask`, primera (0) o segunda (1) mitad de esos frames."""
+    """Rows of the two perspectives in `mask`, first (0) or second (1) half of those frames."""
     builder = builder or M.team_matrix
     index = np.flatnonzero(mask)
     index = index[: len(index) // 2] if half == 0 else index[len(index) // 2:]
@@ -63,8 +63,8 @@ def matrix(team, mask, half, builder=None):
 
 
 def domain_auc(target, target_mask, others, other_masks, builder=None):
-    """AUC de distinguir `target` de otros partidos. Se entrena con la primera mitad del
-    objetivo y la mitad de los otros partidos; se mide con la segunda mitad y el resto."""
+    """AUC of telling `target` apart from other matches. It is trained on the first half of
+    the target and half of the other matches; it is measured on the second half and the rest."""
     k = len(others) // 2
     def stack(half, group):
         pos = matrix(target, target_mask, half, builder)
@@ -113,7 +113,7 @@ def main():
             r["anchura_m"], r["dif_anchura_std_m"], r["longitud_m"], r["velocidad"]))
 
     out = {"rows": rows, "auc": {}}
-    print("== clasificador de dominio sobre las 87 senales de equipo (0,5 = indistinguible)")
+    print("== domain classifier over the 87 team signals (0.5 = indistinguishable)")
     for region, keep in (("visto", True), ("sin balon", False)):
         teams = [proxy_team[m] for m in C.MATCHES]
         masks = [realistic_seen[m] == keep for m in C.MATCHES]
@@ -124,7 +124,7 @@ def main():
             reference.append(domain_auc(teams[i], masks[i], [teams[j] for j in rest],
                                         [masks[j] for j in rest]))
         out["auc"][region] = {"atd_vs_idsse": real, "idsse_match_vs_rest": reference}
-        print("  %-10s ATD contra IDSSE %.3f   |  un partido del IDSSE contra el resto: media %.3f  rango %.3f-%.3f" % (
+        print("  %-10s ATD against IDSSE %.3f   |  one IDSSE match against the rest: mean %.3f  range %.3f-%.3f" % (
             region, real, np.mean(reference), min(reference), max(reference)))
     with open(os.path.join(HERE, "deriva.json"), "w") as handle:
         json.dump(out, handle, indent=1)

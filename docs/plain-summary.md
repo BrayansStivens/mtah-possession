@@ -1,141 +1,141 @@
-# FC Medallo — el reto explicado fácil
+# FC Medallo — the challenge explained simply
 
-28 de octubre de 2026 · quedan **20 días** (entrega: 17 de noviembre)
+October 28, 2026 · **20 days** left (submission: November 17)
 
 ---
 
-## 1. ¿Qué nos piden?
+## 1. What are we being asked?
 
-Nos dan **un partido de fútbol grabado** (Barcelona – Athletic) y los datos de dónde está cada
-jugador y el balón en cada momento. El vídeo tiene **199.319 fotogramas** (25 por segundo).
+We're given **a recorded football match** (Barcelona – Athletic) and the data on where each
+player and the ball are at every moment. The video has **199,319 frames** (25 per second).
 
-Para **cada fotograma** tenemos que decir una de estas cuatro cosas:
+For **each frame** we have to say one of these four things:
 
 | | |
 |---|---|
-| `H` | el balón lo tiene el **Barcelona** |
-| `A` | el balón lo tiene el **Athletic** |
-| `D` | el balón está **parado** (falta, fuera, gol, lesión…) |
-| `X` | no lo sé |
+| `H` | the ball is with **Barcelona** |
+| `A` | the ball is with **Athletic** |
+| `D` | the ball is **dead** (foul, out of play, goal, injury…) |
+| `X` | I don't know |
 
-Eso es todo. Entregamos un archivo con 199.319 líneas, una por fotograma.
+That's all. We submit a file with 199,319 lines, one per frame.
 
-## 2. ¿Cómo nos puntúan?
+## 2. How are we scored?
 
-**No cuentan los fotogramas acertados. Cuentan las posesiones acertadas.**
+**Frames we get right don't count. Possessions we get right do.**
 
-Una posesión es un tramo seguido en que un equipo tiene el balón. Un partido tiene unas 250–300.
-Para que una posesión cuente como acertada, la que decimos nosotros tiene que **solaparse bastante**
-con la real: empezar y acabar más o menos donde empieza y acaba de verdad.
+A possession is a continuous stretch in which one team has the ball. A match has about 250–300.
+For a possession to count as right, the one we say has to **overlap substantially**
+with the real one: start and end more or less where it truly starts and ends.
 
-Por qué esto importa tanto: si una posesión real dura 40 segundos y nosotros la partimos en tres
-trozos, **acertamos el 97% de los fotogramas pero fallamos la posesión**. La métrica se llama
-`spellF1`, va de 0 a 1, y **el mínimo que hay que superar es 0,24**.
+Why this matters so much: if a real possession lasts 40 seconds and we split it into three
+pieces, **we get 97% of the frames right but we miss the possession**. The metric is called
+`spellF1`, it goes from 0 to 1, and **the minimum to beat is 0.24**.
 
-No hay jurado ni presentación. **Solo el número.**
+There is no jury and no presentation. **Just the number.**
 
-## 3. ¿Por qué es difícil?
+## 3. Why is it hard?
 
-Tres cosas:
+Three things:
 
-1. **El balón "desaparece" el 41% del tiempo.** No es que no se vea en el vídeo: es que el
-   programa automático que lo sigue lo pierde (en las áreas, en los balones aéreos, en las
-   entradas). Y cuando lo pierde, lo pierde **durante 10 segundos de media**, a veces minutos.
-2. **No sabemos quién es cada jugador.** Los datos dicen "hay alguien del Barcelona aquí", pero
-   no quién. Y a veces confunden a dos jugadores.
-3. **Solo nos dan las respuestas correctas de 5 minutos** del partido. El resto es secreto hasta
-   el final.
+1. **The ball "disappears" 41% of the time.** It's not that it can't be seen in the video: it's that the
+   automatic program that tracks it loses it (in the penalty areas, on high balls, in
+   tackles). And when it loses it, it loses it **for 10 seconds on average**, sometimes minutes.
+2. **We don't know who each player is.** The data says "there's someone from Barcelona here", but
+   not who. And sometimes it mixes up two players.
+3. **We're only given the correct answers for 5 minutes** of the match. The rest is secret until
+   the end.
 
-## 4. ¿Qué NO se puede hacer? (esto descalifica)
+## 4. What can't we do? (this disqualifies)
 
-Las reglas cambiaron el 22 de octubre y son más estrictas de lo que pensábamos:
+The rules changed on October 22 and are stricter than we thought:
 
-- ❌ **Etiquetar a mano nada de este partido.** Ni para la entrega, ni para entrenar, ni para
-  comprobar. Ni corregir a mano el seguimiento del balón. **Sobre otros partidos sí se puede.**
-- ❌ **Usar los 5 minutos de respuestas para ajustar el programa.** Solo valen para comprobar que
-  no hemos metido la pata (que el archivo está bien hecho, por ejemplo).
-- ❌ **Usar datos de este partido hechos por personas**: estadísticas de LaLiga, Opta, etc.
-- ❌ **Subir el vídeo o los datos a ChatGPT, Claude, Copilot o similares.** Usarlos para escribir
-  código sí; pasarles trozos de los datos, no.
-- ❌ Entregar un archivo que nuestro código no pueda volver a generar igual.
+- ❌ **Label anything from this match by hand.** Not for the submission, not for training, not for
+  checking. Nor manually correct the ball tracking. **On other matches you can.**
+- ❌ **Use the 5 minutes of answers to tune the program.** They're only good for checking that
+  we haven't messed up (that the file is well made, for example).
+- ❌ **Use human-made data about this match**: LaLiga stats, Opta, etc.
+- ❌ **Upload the video or the data to ChatGPT, Claude, Copilot or similar.** Using them to write
+  code is fine; feeding them pieces of the data is not.
+- ❌ Submit a file that our code can't regenerate identically.
 
-## 5. ¿Qué vamos a hacer?
+## 5. What are we going to do?
 
-Un programa que mira **dónde están los jugadores y el balón** y decide con dos preguntas:
+A program that looks at **where the players and the ball are** and decides with two questions:
 
-**Pregunta 1: ¿está el juego parado?**
-Se responde mirando **cómo se mueven los jugadores**. Con el juego parado, la gente anda. Con el
-balón en juego, corre. **No hace falta ver el balón** para esto.
+**Question 1: is play stopped?**
+It's answered by looking at **how the players move**. When play is stopped, people walk. With the
+ball in play, they run. **You don't need to see the ball** for this.
 
-**Pregunta 2: si está en juego, ¿de quién es el balón?**
-Se responde mirando **qué equipo tiene más jugadores cerca del balón** y cómo están colocados los
-dos equipos (el que ataca se estira, el que defiende se encoge).
+**Question 2: if it's in play, whose ball is it?**
+It's answered by looking at **which team has more players near the ball** and how the
+two teams are positioned (the one attacking stretches out, the one defending shrinks).
 
-Y encima, un **"suavizador"**: en vez de decidir fotograma a fotograma (que da saltos), decide por
-tramos, porque una posesión no cambia cada 4 centésimas de segundo.
+And on top of that, a **"smoother"**: instead of deciding frame by frame (which jumps around), it decides by
+stretches, because a possession doesn't change every 4 hundredths of a second.
 
-### ¿Por qué esto y no una inteligencia artificial entrenada?
+### Why this and not a trained artificial intelligence?
 
-Porque para entrenarla hacen falta **miles de ejemplos con la respuesta correcta**, y de este
-partido solo tenemos 5 minutos, y además **está prohibido usarlos para eso**. Hay datos de otros
-partidos (7 de la Bundesliga, públicos y legales) y los estamos usando — pero para **ajustar y
-comprobar** nuestro programa, no para entrenar una red desde cero, porque esos datos son
-"limpios" (el balón siempre se ve) y los nuestros no.
+Because training one takes **thousands of examples with the correct answer**, and for this
+match we only have 5 minutes, and on top of that **it's forbidden to use them for that**. There is data from other
+matches (7 from the Bundesliga, public and legal) and we're using it — but to **tune and
+check** our program, not to train a network from scratch, because that data is
+"clean" (the ball is always visible) and ours isn't.
 
-Separar las dos preguntas es la decisión clave: **cuando el balón desaparece, la pregunta 1 sigue
-funcionando** y el programa se calla en la 2 en vez de inventar. Y callarse dentro de una
-posesión **no penaliza**.
+Separating the two questions is the key decision: **when the ball disappears, question 1 keeps
+working** and the program stays quiet on 2 instead of making things up. And staying quiet inside a
+possession **isn't penalized**.
 
-## 6. ¿Dónde estamos?
+## 6. Where are we?
 
-El programa **ya funciona de punta a punta** y produce un archivo válido.
+The program **already works end to end** and produces a valid file.
 
-| | puntuación |
+| | score |
 |---|---|
-| Mínimo a superar | 0,24 |
-| **Nosotros, en 7 partidos de práctica** | **0,40** |
-| Nosotros, en los 5 minutos públicos | 0,49 (pero esos 5 minutos son "fáciles", no fiarse) |
+| Minimum to beat | 0.24 |
+| **Us, on 7 practice matches** | **0.40** |
+| Us, on the 5 public minutes | 0.49 (but those 5 minutes are "easy", don't trust it) |
 
-¿Qué son los "partidos de práctica"? Cogimos 7 partidos de la Bundesliga que sí tienen las
-respuestas, les **estropeamos los datos a propósito** para que se parezcan a los nuestros (le
-quitamos el balón el 41% del tiempo, mezclamos jugadores…) y así podemos **medir de verdad** en
-partidos completos, no en 5 minutos.
+What are the "practice matches"? We took 7 Bundesliga matches that do have the
+answers, **deliberately degraded their data** so they look like ours (we remove the ball from them
+41% of the time, mix up players…) and that way we can **really measure** on
+full matches, not on 5 minutes.
 
-**Lo que hemos aprendido midiendo:**
-- Detectar el balón parado **ya lo hacemos bien** (92% de acierto).
-- **Lo que fallamos es decir de qué equipo es** (unas 2 de cada 10 veces) y, sobre todo,
-  **las posesiones cortas**: de las que duran menos de 5 segundos, que son 4 de cada 10,
-  solo pillamos 1 de cada 10.
-- Sospechamos por qué: el "suavizador" mira tramos de 4 segundos, así que una posesión de 3
-  segundos se le escapa. Y ese ajuste, junto con otros 15, **venía de los 5 minutos públicos**,
-  cosa que ahora las reglas prohíben. **Ya están rehechos** (28 de octubre) usando solo los
-  partidos de práctica: cambiaron 7 valores. Después (29-31 de octubre) comprobamos el
-  procedimiento de ajuste de todas las formas posibles de repartir los 7 partidos entre
-  "para ajustar" y "para comprobar": gana unos 1,7 puntos en partidos que no vio al ajustar
-  y unos 3,3 en los que sí vio, o sea que **la mitad de la mejora es real y la otra mitad es
-  aprenderse los partidos de ajuste**. Lo importante: **ya no queda nada de los 5 minutos en
-  el programa.**
+**What we've learned by measuring:**
+- Detecting the dead ball **we already do well** (92% accuracy).
+- **What we get wrong is saying which team has it** (about 2 times out of 10) and, above all,
+  **short possessions**: of those that last less than 5 seconds, which are 4 out of 10,
+  we only catch 1 in 10.
+- We suspect why: the "smoother" looks at 4-second stretches, so a 3-second
+  possession slips past it. And that setting, along with 15 others, **came from the 5 public minutes**,
+  which the rules now forbid. **They have been redone** (October 28) using only the
+  practice matches: 7 values changed. Afterwards (October 29-31) we checked the tuning
+  procedure on every possible way of splitting the 7 matches between
+  "to tune on" and "to check on": it gains about 1.7 points on matches it didn't see while tuning
+  and about 3.3 on those it did, so **half of the improvement is real and the other half is
+  memorizing the fit matches**. What matters: **nothing from the 5 minutes is left in
+  the program.**
 
-## 7. ¿Qué vamos a entregar?
+## 7. What are we going to submit?
 
-Tres cosas, por un formulario, antes del 17 de noviembre:
+Three things, through a form, before November 17:
 
-1. **El archivo** de 199.319 líneas con las etiquetas. Es lo único que se puntúa.
-2. **El código**, en un repositorio público, que genere ese archivo exacto.
-3. **Un documento de pocas páginas** explicando qué hicimos, por qué, qué datos usamos, qué
-   descartamos y dónde falla.
+1. **The file** of 199,319 lines with the labels. It's the only thing that's scored.
+2. **The code**, in a public repository, that generates that exact file.
+3. **A document of a few pages** explaining what we did, why, what data we used, what we
+   discarded and where it fails.
 
-## 8. ¿Qué falta? (por orden)
+## 8. What's left? (in order)
 
-1. ~~Rehacer los 16 ajustes que venían de los 5 minutos públicos~~ — **hecho el 28 de octubre.**
-2. **Un detector de balón propio** sobre el vídeo, para recuperar parte del 41% que se pierde.
-   Esto es la línea de visión por computador y **se enchufa directo** a nuestro programa:
-   cuanto más balón recupere, mejor responde la pregunta 2. *(la parte de visión)*
-3. **Mejorar los partidos de práctica** para que se parezcan aún más a los nuestros.
-4. **Escribir el documento final** y dejar el repositorio listo. *(2 días, al final)*
+1. ~~Redo the 16 settings that came from the 5 public minutes~~ — **done on October 28.**
+2. **Our own ball detector** on the video, to recover part of the 41% that gets lost.
+   This is the computer vision line and it **plugs straight into** our program:
+   the more ball it recovers, the better question 2 gets answered. *(the vision part)*
+3. **Improve the practice matches** so they look even more like ours.
+4. **Write the final document** and get the repository ready. *(2 days, at the end)*
 
-## Cómo encaja el trabajo de cada uno
+## How everyone's work fits together
 
-No competimos entre líneas: **se alimentan**. El detector de balón de visión da de comer al
-programa de posesión. Y los partidos de práctica sirven para medir cualquier cosa que haga
-cualquiera — es la única forma que tenemos de saber si algo mejora de verdad.
+We don't compete between lines of work: they **feed each other**. The vision ball detector feeds the
+possession program. And the practice matches serve to measure anything anyone does
+— it's the only way we have to know whether something really improves.

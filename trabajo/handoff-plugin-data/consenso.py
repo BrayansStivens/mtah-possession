@@ -1,9 +1,9 @@
-"""Dos comprobaciones sobre el resultado de los 35 splits:
+"""Two checks on the result of the 35 splits:
 
-  1. Lo que elige el descenso en cada split, comparado con config.py SOBRE EL MISMO hold.
-  2. La config de consenso (valor modal de cada parametro entre los 35), medida en las
-     semillas 1 y 2, que el descenso no ha visto. Controla el ruido de degradacion, no la
-     eleccion de partidos: son los mismos 7 partidos.
+  1. What the descent chooses in each split, compared with config.py ON THE SAME hold.
+  2. The consensus config (modal value of each parameter across the 35), measured on seeds
+     1 and 2, which the descent has not seen. It controls for degradation noise, not for the
+     choice of matches: they are the same 7 matches.
 """
 import json, os, sys, collections
 import numpy as np
@@ -27,7 +27,7 @@ def m(mid, seed):
         cache[(mid, seed)] = cargar(mid, seed)
     return cache[(mid, seed)]
 
-print("1. ELEGIDO vs config.py, sobre el mismo hold de cada split")
+print("1. CHOSEN vs config.py, on the same hold of each split")
 ganan, limpios_ganan, n_limpios = 0, 0, 0
 deltas, deltas_limpios = [], []
 for f in filas:
@@ -37,56 +37,56 @@ for f in filas:
     deltas.append(delta)
     if delta > 1e-9:
         ganan += 1
-    # hold "limpio" para config.py: ninguno de sus 3 partidos se uso para ajustar config.py
+    # "clean" hold for config.py: none of its 3 matches was used to tune config.py
     if not (set(f["hold"]) & TUNE_CFGPY):
         n_limpios += 1; deltas_limpios.append(delta)
         if delta > 1e-9: limpios_ganan += 1
 deltas = np.array(deltas)
-print("   delta medio (elegido - config.py) en el hold: %+.2f pp   rango [%+.2f, %+.2f]"
+print("   mean delta (chosen - config.py) on the hold: %+.2f pp   range [%+.2f, %+.2f]"
       % (100*deltas.mean(), 100*deltas.min(), 100*deltas.max()))
-print("   el elegido gana a config.py en %d/%d splits" % (ganan, len(filas)))
-print("   (aviso: config.py se ajusto sobre %s, asi que en los holds que los contienen"
+print("   the chosen one beats config.py in %d/%d splits" % (ganan, len(filas)))
+print("   (warning: config.py was tuned on %s, so in the holds that contain them"
       % ",".join(sorted(x[3:] for x in TUNE_CFGPY)))
-print("    su puntuacion esta contaminada y sale mejor de lo que le toca)")
+print("    its score is contaminated and comes out better than it deserves)")
 if n_limpios:
     dl = np.array(deltas_limpios)
-    print("   en los %d splits cuyo hold NO toca ninguno de esos 4: %+.2f pp, gana %d/%d"
+    print("   in the %d splits whose hold touches NONE of those 4: %+.2f pp, wins %d/%d"
           % (n_limpios, 100*dl.mean(), limpios_ganan, n_limpios))
 
 print()
-print("2. CONFIG DE CONSENSO (valor modal de los 35 splits)")
+print("2. CONSENSUS CONFIG (modal value of the 35 splits)")
 consenso = dict(INICIO)
 lineas = []
 for name, _ in GRID:
     cuenta = collections.Counter(f["elegido"][name] for f in filas)
     valor, n = cuenta.most_common(1)[0]
     consenso[name] = valor
-    marca = "" if valor == DEFAULT[name] else "   <- config.py tiene %s" % DEFAULT[name]
+    marca = "" if valor == DEFAULT[name] else "   <- config.py has %s" % DEFAULT[name]
     lineas.append("   %-22s %-6s (%2d/35)%s" % (name, valor, n, marca))
 print("\n".join(lineas))
 consenso = merged(**consenso)
 
 print()
-print("   medido en las semillas que el descenso NO vio, los 7 partidos (spellF1):")
+print("   measured on the seeds the descent did NOT see, all 7 matches (spellF1):")
 print("   %-12s %8s %8s %8s" % ("", "partida", "config.py", "consenso"))
 for seed in (1, 2):
     siete = [m(x, seed) for x in PARTIDOS]
     a = mean_score(siete, INICIO)[0]; b = mean_score(siete, DEFAULT)[0]
     c = mean_score(siete, consenso)[0]
-    print("   semilla %-4d %8.4f %8.4f %8.4f   (consenso - config.py %+.2f pp)"
+    print("   seed    %-4d %8.4f %8.4f %8.4f   (consensus - config.py %+.2f pp)"
           % (seed, a, b, c, 100*(c-b)))
 siete0 = [m(x, 0) for x in PARTIDOS]
-print("   semilla 0    %8.4f %8.4f %8.4f   <- esta SI la vio el descenso"
+print("   seed    0    %8.4f %8.4f %8.4f   <- this one the descent DID see"
       % (mean_score(siete0, INICIO)[0], mean_score(siete0, DEFAULT)[0],
          mean_score(siete0, consenso)[0]))
 
 print()
-print("3. PARAMETROS PEGADOS AL BORDE DE SU REJILLA")
+print("3. PARAMETERS STUCK TO THE EDGE OF THEIR GRID")
 for name, valores in GRID:
     cuenta = collections.Counter(f["elegido"][name] for f in filas)
     tope = max(valores); n_tope = cuenta.get(tope, 0)
     if n_tope >= len(filas) / 2:
-        print("   %-22s elige el maximo de la rejilla (%s) en %d/35; config.py tiene %s"
+        print("   %-22s picks the grid maximum (%s) in %d/35; config.py has %s"
               % (name, tope, n_tope, DEFAULT[name]))
 
 json.dump({"consenso": {k: consenso[k] for k, _ in GRID},
@@ -95,4 +95,4 @@ json.dump({"consenso": {k: consenso[k] for k, _ in GRID},
                "max": float(deltas.max()), "gana": int(ganan), "n": len(filas)}},
           open("handoff-plugin-data/datos/consenso_splits.json", "w"), indent=2, default=float)
 print()
-print("guardado handoff-plugin-data/datos/consenso_splits.json")
+print("saved handoff-plugin-data/datos/consenso_splits.json")

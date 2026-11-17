@@ -1,4 +1,4 @@
-"""Descuento por frame en el coste de cambio: la entrada del detector de fronteras."""
+"""Per-frame discount on the switch cost: the boundary detector's input."""
 
 import gzip
 import os
@@ -34,11 +34,11 @@ def test_descuento_cero_reproduce_exactamente_el_decodificador():
 
 
 def test_el_descuento_lleva_la_frontera_a_donde_apunta_el_detector():
-    """Emisiones que no distinguen entre los frames 40 y 60: el corte cae donde se abarata."""
+    """Emissions that do not tell frames 40 and 60 apart: the cut falls where it gets cheaper."""
     n_frames = 100
     cost = np.zeros((n_frames, 3))
-    cost[:40, viterbi.A] = cost[:40, viterbi.D] = 1.0      # claramente H
-    cost[60:, viterbi.H] = cost[60:, viterbi.D] = 1.0      # claramente A
+    cost[:40, viterbi.A] = cost[:40, viterbi.D] = 1.0      # clearly H
+    cost[60:, viterbi.H] = cost[60:, viterbi.D] = 1.0      # clearly A
     transition = viterbi.uniform_switch_costs(5.0)
     blocks = ((0, n_frames),)
     for boundary_frame in (45, 52, 58):
@@ -50,11 +50,11 @@ def test_el_descuento_lleva_la_frontera_a_donde_apunta_el_detector():
 
 
 def test_el_descuento_deja_pasar_una_posesion_corta_que_sin_el_se_borra():
-    """Un robo de 1 s que las emisiones ven con poca fuerza: solo sale si el detector ayuda."""
+    """A 1 s steal that the emissions see only weakly: it only comes out if the detector helps."""
     n_frames = 200
     cost = np.zeros((n_frames, 3))
-    cost[:, viterbi.A] = cost[:, viterbi.D] = 1.0          # H en todo el tramo...
-    cost[100:125, viterbi.H] = 1.5                          # ...menos 25 frames de A tibios
+    cost[:, viterbi.A] = cost[:, viterbi.D] = 1.0          # H over the whole stretch...
+    cost[100:125, viterbi.H] = 1.5                          # ...except 25 lukewarm frames of A
     cost[100:125, viterbi.A] = 0.0
     transition = viterbi.uniform_switch_costs(20.0)
     blocks = ((0, n_frames),)
@@ -69,7 +69,7 @@ def test_el_descuento_deja_pasar_una_posesion_corta_que_sin_el_se_borra():
 def test_descuento_de_uno_falla_en_vez_de_hacer_gratis_el_cambio():
     discount = np.zeros(10)
     discount[3] = 1.0
-    with pytest.raises(ValueError, match="fragmentar"):
+    with pytest.raises(ValueError, match="fragmenting"):
         viterbi.decode(np.zeros((10, 3)), viterbi.uniform_switch_costs(5.0),
                        blocks=((0, 10),), switch_discount=discount)
 

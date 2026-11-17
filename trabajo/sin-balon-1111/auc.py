@@ -1,4 +1,4 @@
-"""AUC fuera de muestra de las senales nuevas frente a las de la entrega, por visibilidad."""
+"""Out-of-sample AUC of the new signals versus those of the submission, by visibility."""
 
 import json
 import os
@@ -28,7 +28,7 @@ def main(seed=0):
     alive = z["labels"] != "D"
     regions = {"todo": np.ones(len(alive), bool), "visto": z["seen"], "sin balon": ~z["seen"],
                "sin balon a +-50": z["blind"]}
-    print("== EQUIPO (frames vivos, objetivo: local). AUC")
+    print("== TEAM (live frames, target: home). AUC")
     print("%-18s %8s %8s %8s %8s %8s" % ("tramo", "frames", "entrega", "(a)", "ent+(a)", "(c)"))
     for name, mask in regions.items():
         sel = mask & alive
@@ -37,14 +37,14 @@ def main(seed=0):
                 roc_auc_score(y, z["hand_home"][sel] + z["a"][sel]), roc_auc_score(y, z["c"][sel])]
         rows["team"][name] = {"n": int(sel.sum()), "auc": vals}
         print("%-18s %8d %8.4f %8.4f %8.4f %8.4f" % (name, sel.sum(), *vals))
-    print("== VIVO/MUERTO (todos los frames, objetivo: muerto). AUC")
+    print("== LIVE/DEAD (all frames, target: dead). AUC")
     print("%-18s %8s %8s %8s" % ("tramo", "frames", "entrega", "(b)"))
     for name, mask in regions.items():
         y = z["labels"][mask] == "D"
         vals = [roc_auc_score(y, z["hand_dead"][mask]), roc_auc_score(y, z["b"][mask])]
         rows["dead"][name] = {"n": int(mask.sum()), "auc": vals}
         print("%-18s %8d %8.4f %8.4f" % (name, mask.sum(), *vals))
-    print("== por partido, sin balon a +-50: AUC equipo entrega / (a) / (c);  muerto entrega / (b)")
+    print("== per match, ball-absent at +-50: AUC team submission / (a) / (c);  dead submission / (b)")
     for m in C.MATCHES:
         b = base[m]
         blind = C.no_ball_in_window(b["ball_seen"]); al = b["labels"] != "D"

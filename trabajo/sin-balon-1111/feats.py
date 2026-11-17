@@ -1,19 +1,19 @@
-"""Senales nuevas para los tramos sin balon. Experimento, no codigo de entrega.
+"""New signals for the ball-absent stretches. Experiment, not submission code.
 
-Tres familias, todas por frame y despues suavizadas con ventanas centradas:
+Three families, all per frame and then smoothed with centered windows:
 
-- `team`: forma y movimiento de cada equipo **en su propio sentido de ataque**. El
-  `centroid_gap_x` de features/geometry.py se descarto (AUC 0,53) porque no esta orientado:
-  los equipos cambian de campo en el descanso y el signo se cancela. Aqui cada equipo se
-  mide en un eje que apunta a la porteria rival, y entonces "el bloque sube" significa lo
-  mismo en las dos partes.
-- `dead`: cinematica colectiva y contexto del hueco (donde estaba el balon al perderse y
-  donde reaparece) para decidir vivo o muerto.
-- `ballteam`: de quien era el balon al perderse y de quien es al reaparecer.
+- `team`: shape and movement of each team **in its own attack direction**. The
+  `centroid_gap_x` of features/geometry.py was discarded (AUC 0.53) because it is not oriented:
+  teams switch ends at half-time and the sign cancels out. Here each team is measured on an
+  axis pointing at the opponent's goal, so "the block moves up" means the same in both
+  halves.
+- `dead`: collective kinematics and gap context (where the ball was when it was lost and
+  where it reappears) to decide live or dead ball.
+- `ballteam`: whose ball it was when it was lost and whose it is when it reappears.
 
-La matriz de equipo se construye por **perspectiva**: la del local y la del visitante son
-la misma funcion con los papeles cambiados. Entrenar con las dos y restar las dos salidas
-da un logit antisimetrico: no puede aprender "el local suele tener el balon".
+The team matrix is built per **perspective**: the home team's and the away team's are the
+same function with the roles swapped. Training on both and subtracting the two outputs
+gives an antisymmetric logit: it cannot learn "the home team usually has the ball".
 """
 
 import numpy as np
@@ -26,17 +26,17 @@ LENGTH, WIDTH = 105.3, 68.0
 HALF = LENGTH / 2.0
 TEAM_WINDOWS = (12, 37, 100)
 DEAD_WINDOWS = (12, 50, 125)
-VEL_LAG = 5                     # diferencia centrada a +-5 frames (0,4 s)
-VEL_MAX = 12.0                  # m/s; por encima es un cambio de identidad del slot
+VEL_LAG = 5                     # centered difference at +-5 frames (0.4 s)
+VEL_MAX = 12.0                  # m/s; above this it is an identity swap of the slot
 TEAM_SIGNALS = ("cen", "len", "wid", "dfl", "atl", "tide", "spd", "opp", "spr")
 SUM_SIGNALS = ("cen", "tide")
 CLIP_FRAMES = 500
 
 
-# --------------------------------------------------------------------------- sentido de ataque
+# --------------------------------------------------------------------------- attack direction
 
 def centroid_gap(tracking):
-    """(n,) centroide visitante menos centroide local en x, metros. >0: el local defiende x=0."""
+    """(n,) away centroid minus home centroid in x, meters. >0: the home team defends x=0."""
     x = tracking.players_xy[:, :, 0].astype(np.float64) * LENGTH
     with np.errstate(invalid="ignore"):
         home = np.nanmean(x[:, tracking.team_of_slot == 0], axis=1)
@@ -45,12 +45,12 @@ def centroid_gap(tracking):
 
 
 def attack_direction(tracking, blocks=None):
-    """(n,) +1 donde el local ataca hacia +x, -1 donde ataca hacia -x; y un informe.
+    """(n,) +1 where the home team attacks toward +x, -1 where it attacks toward -x; and a report.
 
-    Sin etiquetas y sin metadatos: los dos equipos estan ordenados en el campo (cada uno
-    tiene a su portero y a su defensa detras), asi que el signo de la diferencia de
-    centroides dice quien defiende que porteria. `blocks` son las partes si se conocen
-    (GRADED_BLOCKS en el ATD); si no, se busca el unico cambio de signo (el descanso).
+    No labels and no metadata: the two teams are arranged on the pitch (each has its
+    goalkeeper and its defense behind it), so the sign of the centroid difference says
+    which team defends which goal. `blocks` are the halves if known (GRADED_BLOCKS in the
+    ATD); otherwise the single sign change (the half-time break) is searched for.
     """
     sign = np.sign(np.nan_to_num(centroid_gap(tracking)))
     n = len(sign)
@@ -67,7 +67,7 @@ def attack_direction(tracking, blocks=None):
         direction[a:b] = value
         report.append({"block": [int(a), int(b)], "direction": value, "agreement": abs(mean)})
         previous = value
-    # Frames fuera de los bloques (descanso, previa): el sentido del bloque mas cercano.
+    # Frames outside the blocks (half-time, pre-match): the direction of the nearest block.
     if blocks[0][0] > 0:
         direction[:blocks[0][0]] = direction[blocks[0][0]]
     for (_, b), (a2, _) in zip(blocks[:-1], blocks[1:]):
@@ -76,10 +76,10 @@ def attack_direction(tracking, blocks=None):
     return direction, report
 
 
-# --------------------------------------------------------------------------- por frame
+# --------------------------------------------------------------------------- per frame
 
 def _velocity(xy_m):
-    """(n, slots, 2) velocidad por slot en m/s, NaN donde el slot no es el mismo objeto."""
+    """(n, slots, 2) velocity per slot in m/s, NaN where the slot is not the same object."""
     v = np.full(xy_m.shape, np.nan, dtype=np.float32)
     v[VEL_LAG:-VEL_LAG] = (xy_m[2 * VEL_LAG:] - xy_m[:-2 * VEL_LAG]) * (25.0 / (2 * VEL_LAG))
     with np.errstate(invalid="ignore"):
@@ -89,7 +89,7 @@ def _velocity(xy_m):
 
 
 def _second(sorted_values, count, from_end):
-    """Segundo valor mas bajo (o mas alto) de cada fila ya ordenada con los NaN al final."""
+    """Second-lowest (or second-highest) value of each already sorted row, NaNs at the end."""
     n = len(sorted_values)
     index = np.clip(count - 2, 0, sorted_values.shape[1] - 1) if from_end else np.ones(n, int)
     out = sorted_values[np.arange(n), index]
@@ -97,7 +97,7 @@ def _second(sorted_values, count, from_end):
 
 
 def team_raw(tracking, direction):
-    """{equipo: {senal: (n,)}} con cada equipo en su propio eje de ataque."""
+    """{team: {signal: (n,)}} with each team on its own attack axis."""
     xy = tracking.players_xy.astype(np.float32) * np.array([LENGTH, WIDTH], dtype=np.float32)
     velocity = _velocity(xy)
     speed = tracking.players_speed
@@ -105,7 +105,7 @@ def team_raw(tracking, direction):
     for team, own in ((0, direction), (1, -direction)):
         slots = np.flatnonzero(tracking.team_of_slot == team)
         own = own.astype(np.float32)[:, None]
-        u = own * (xy[:, slots, 0] - HALF)             # >0: campo rival
+        u = own * (xy[:, slots, 0] - HALF)             # >0: opponent's half
         y = xy[:, slots, 1]
         count = np.sum(~np.isnan(u), axis=1)
         ordered = np.sort(u, axis=1)
@@ -126,7 +126,7 @@ def team_raw(tracking, direction):
 
 
 def team_smoothed(tracking, direction):
-    """{(equipo, senal, ventana): (n,) float32}."""
+    """{(team, signal, window): (n,) float32}."""
     raw = team_raw(tracking, direction)
     return {(team, name, w): smoothing.box_nanmean(raw[team][name], w)
             for team in (0, 1) for name in TEAM_SIGNALS for w in TEAM_WINDOWS}
@@ -143,7 +143,7 @@ def team_names():
 
 
 def team_matrix(smoothed, perspective):
-    """(n, f) matriz de equipo vista por `perspective` (0 local, 1 visitante)."""
+    """(n, f) team matrix seen from `perspective` (0 home, 1 away)."""
     p, q = perspective, 1 - perspective
     cols = []
     for w in TEAM_WINDOWS:
@@ -154,10 +154,10 @@ def team_matrix(smoothed, perspective):
     return np.column_stack(cols).astype(np.float32)
 
 
-# --------------------------------------------------------------------------- contexto del hueco
+# --------------------------------------------------------------------------- gap context
 
 def _fill(values, seen, forward):
-    """Arrastra el ultimo (o el siguiente) valor con balon a traves de los huecos."""
+    """Carries the last (or the next) ball-seen value across the gaps."""
     n = len(values)
     index = np.where(seen, np.arange(n), -1 if forward else n)
     if forward:
@@ -173,7 +173,7 @@ def _fill(values, seen, forward):
 
 
 def gap_context(tracking, features):
-    """Dict de senales del hueco: ultimo y siguiente balon visto, y cuanto hace."""
+    """Dict of gap signals: last and next seen ball, and how long ago/until."""
     seen = tracking.ball_seen
     bx = tracking.ball_xy[:, 0].astype(np.float64) * LENGTH
     by = tracking.ball_xy[:, 1].astype(np.float64) * WIDTH
@@ -199,7 +199,7 @@ def gap_context(tracking, features):
 
 
 def dead_matrix(tracking, features, config=DEFAULT):
-    """(n, f) matriz para vivo/muerto y sus nombres."""
+    """(n, f) matrix for live/dead ball and its names."""
     xy = tracking.players_xy.astype(np.float32) * np.array([LENGTH, WIDTH], dtype=np.float32)
     speed = tracking.players_speed
     velocity = _velocity(xy)
@@ -248,9 +248,9 @@ def dead_matrix(tracking, features, config=DEFAULT):
 
 
 def ballteam_matrix(features, context, config=DEFAULT):
-    """(n, f) senales de equipo que dependen del balon, vistas por el local, y nombres.
+    """(n, f) ball-dependent team signals, seen by the home team, and names.
 
-    Todas cambian de signo al cambiar de perspectiva salvo las marcadas como pares.
+    All of them change sign when the perspective changes, except those marked as even.
     """
     control = (features["control_home"] - features["control_away"]).astype(np.float64)
     control = np.where(features["ball_seen"], control, np.nan)

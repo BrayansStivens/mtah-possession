@@ -1,14 +1,13 @@
-"""Prueba de estres: huecos sin balon colocados como en el ATD, segun la actividad.
+"""Stress test: ball-absent gaps placed as in the ATD, according to activity.
 
-En el partido del reto el balon se pierde sobre todo con poca actividad de jugadores (se ve
-en el 6 % de los frames por debajo de 0,6 m/s y en el 90 % por encima de 2,6); el proxy lo
-esconde al azar. Aqui se recolocan los huecos de la semilla 0 para que P(sin balon |
-actividad) siga la curva del ATD (perfil.json, sin etiquetas). La degradacion de jugadores
-no cambia: degrade.apply dibuja la mascara del balon lo ultimo, asi que con la misma
-semilla solo cambia el balon (se comprueba).
+In the challenge match the ball is lost mostly when player activity is low (it is seen in
+6% of the frames below 0.6 m/s and in 90% above 2.6); the proxy hides it at random. Here the
+gaps of seed 0 are repositioned so that P(ball-absent | activity) follows the ATD curve
+(perfil.json, label-free). The player degradation does not change: degrade.apply draws the
+ball mask last, so with the same seed only the ball changes (this is checked).
 
-Aqui no se elige nada: los pesos de las senales nuevas son los de la seleccion anidada con
-huecos al azar (exp.py). Uso: realista.py prep | modelos | decode
+Nothing is chosen here: the weights of the new signals are those of the nested selection with
+random gaps (exp.py). Usage: realista.py prep | modelos | decode
 """
 
 import json
@@ -58,7 +57,7 @@ def unseen_by_bin(seen, bins):
 
 
 def calibrate(bins, spec, rounds=30, draws=3):
-    """Peso por tramo de actividad para que P(sin balon | actividad) se acerque al ATD."""
+    """Weight per activity band so that P(ball-absent | activity) gets close to the ATD's."""
     weight = TARGET / (1.0 - TARGET)
     weight /= weight.max()
     n = len(bins)
@@ -115,7 +114,7 @@ def run_prep():
     with multiprocessing.get_context("fork").Pool(7) as pool:
         infos = pool.map(prep, C.MATCHES)
     for info in infos:
-        print("%s  %.0fs  jugadores iguales que con huecos al azar: %s  sin balon %.1f%%  huecos %d (al azar %d)  mediana %.0f  p90 %.0f  max %d" % (
+        print("%s  %.0fs  same players as with random gaps: %s  ball-absent %.1f%%  gaps %d (random %d)  median %.0f  p90 %.0f  max %d" % (
             info["match"], info["seconds"], info["same_players"],
             100.0 * info["n_unseen"] / info["n"], info["gaps"], info["random_gaps"],
             info["gap_median"], info["gap_p90"], info["gap_max"]), flush=True)
@@ -123,14 +122,14 @@ def run_prep():
     count = np.sum([i["count"] for i in infos], axis=0)
     unseen = np.sum([i["unseen"] for i in infos], axis=0)
     random_unseen = np.sum([i["random_unseen"] for i in infos], axis=0)
-    print("actividad (m/s) | sin balon: ATD real  IDSSE al azar  IDSSE realista")
+    print("activity (m/s)  | ball-absent: real ATD  random IDSSE  realistic IDSSE")
     for b in range(len(TARGET)):
         print("  %.1f - %-4s    |           %5.1f%%        %5.1f%%          %5.1f%%" % (
-            EDGES[b], "%.1f" % EDGES[b + 1] if EDGES[b + 1] < 99 else "mas",
+            EDGES[b], "%.1f" % EDGES[b + 1] if EDGES[b + 1] < 99 else "more",
             100 * TARGET[b], 100 * random_unseen[b] / count[b], 100 * unseen[b] / count[b]))
     total = {k: sum(i[k] for i in infos) for k in (
         "n", "n_unseen", "dead_unseen", "dead_seen", "random_dead_unseen", "random_n_unseen")}
-    print("P(muerto | sin balon)  al azar %.1f%%   realista %.1f%%     P(muerto | visto) realista %.1f%%" % (
+    print("P(dead | ball-absent)  random %.1f%%   realistic %.1f%%     P(dead | seen) realistic %.1f%%" % (
         100.0 * total["random_dead_unseen"] / total["random_n_unseen"],
         100.0 * total["dead_unseen"] / total["n_unseen"],
         100.0 * total["dead_seen"] / (total["n"] - total["n_unseen"])))
@@ -141,13 +140,13 @@ def run_prep():
 def load(match):
     blob = np.load(path(match))
     data = {k: blob[k] for k in blob.files}
-    data["team"] = M.feat(match, SEED)["team"]      # los jugadores no cambian
+    data["team"] = M.feat(match, SEED)["team"]      # the players do not change
     return data
 
 
 def run_modelos():
-    """Scores y logits del partido de fuera con huecos realistas: modelos entrenados con
-    huecos al azar (`rand`, lo que tendriamos hoy) y con huecos realistas (`real`)."""
+    """Scores and logits of the held-out match with realistic gaps: models trained with
+    random gaps (`rand`, what we would have today) and with realistic gaps (`real`)."""
     base = C.base(SEED)
     rand = {m: M.feat(m, SEED) for m in C.MATCHES}
     real = {m: load(m) for m in C.MATCHES}
@@ -163,11 +162,11 @@ def run_modelos():
             for kind in ("b", "c"):
                 model = M.fit(kind, [train_feat[m] for m in others])
                 out["%s_%s_%s" % (kind, source, held)] = M.predict(kind, model, real[held])
-        print("fuera %s  %.0fs" % (held, time.time() - started), flush=True)
+        print("held out %s  %.0fs" % (held, time.time() - started), flush=True)
         np.savez_compressed(pred_path(), **out)
 
 
-# --------------------------------------------------------------------------- decodificar
+# --------------------------------------------------------------------------- decode
 
 CTL = (("det", "rand"),)
 U_SHIFTS = (-1.0, -0.5, 0.5, 1.0, 1.5, 2.0, 3.0)
@@ -246,15 +245,15 @@ def run_decode():
     started = time.time()
     with multiprocessing.get_context("fork").Pool(9) as pool:
         results = dict(pool.imap_unordered(run, jobs, chunksize=2))
-    print("%d decodificaciones en %.0fs" % (len(jobs), time.time() - started))
+    print("%d decodings in %.0fs" % (len(jobs), time.time() - started))
 
     def col(name, key):
         return np.array([results[(name, m)][key] for m in C.MATCHES])
 
     control = "control (entrega, detector de huecos al azar)"
     base = col(control, "spell")
-    print("%-46s spellF1  delta pp  mej/peor  macroF1  pos pred/real  acierto visto  sin balon  %%D pred sin balon (real %.1f%%)" % (
-        "variante (huecos realistas, semilla 0)", 100 * col(control, "gt_dead_unseen").mean()))
+    print("%-46s spellF1  delta pp  win/loss  macroF1  pos pred/real  accuracy seen  ball-absent  %%D pred ball-absent (real %.1f%%)" % (
+        "variant (realistic gaps, seed 0)", 100 * col(control, "gt_dead_unseen").mean()))
     summary = {}
     for name in VARIANTS:
         s = col(name, "spell")
@@ -273,8 +272,8 @@ def run_decode():
             col(name, "n_pred").mean(), col(name, "n_gt").mean(), 100 * col(name, "acc_seen").mean(),
             100 * col(name, "acc_unseen").mean(), 100 * col(name, "pred_dead_unseen").mean()))
 
-    # El empuje `u` es un escalar: se elige dejando un partido fuera (en los otros 6) y se
-    # evalua en el de fuera. No usa modelos, asi que no hace falta mas anidado.
+    # The `u` push is a scalar: it is chosen leaving one match out (on the other 6) and
+    # evaluated on the held-out one. It uses no models, so no further nesting is needed.
     for prefix, label in (("u  empuje a muerto sin balon [%+.1f]", "u"), ("a + u [%+.1f]", "a + u")):
         zero = control if label == "u" else "a  equipo sin balon [2.0]"
         options = [zero] + [prefix % d for d in U_SHIFTS]
@@ -286,7 +285,7 @@ def run_decode():
             picks[options[best]] = picks.get(options[best], 0) + 1
             deltas.append(table[best, h] - base[h])
         deltas = np.array(deltas) * 100
-        print("ELEGIDO DEJANDO UNO FUERA  %-6s %+.2f pp vs control  (%d mejor / %d peor)  %s" % (
+        print("CHOSEN LEAVING ONE OUT  %-6s %+.2f pp vs control  (%d better / %d worse)  %s" % (
             label, deltas.mean(), (deltas > 0).sum(), (deltas < 0).sum(),
             ", ".join("%s x%d" % kv for kv in picks.items())))
         summary["lomo " + label] = {"delta_pp": float(deltas.mean()), "picks": picks}

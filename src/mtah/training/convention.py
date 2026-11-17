@@ -1,48 +1,51 @@
-"""Llevar las etiquetas del IDSSE al convenio de posesion del reto.
+"""Bring the IDSSE labels to the challenge's possession convention.
 
-**El problema.** El `BallPossession` del DFL cambia en cada toque individual: J03WPY tiene
-421 posesiones de 7,7 s de media. El reto no: CHALLENGE.md define el cambio de posesion
-como el momento en que un rival gana posesion **controlada**, y dice que un simple toque sin
-control, un desvio que no intercepta o un duelo aereo sin control posterior **no** son
-cambios de posesion. Son dos convenios distintos para el mismo fenomeno.
+**The problem.** The DFL `BallPossession` changes on every individual touch: J03WPY has
+421 possessions averaging 7.7 s. The challenge does not: CHALLENGE.md defines a change of
+possession as the moment a rival gains **controlled** possession, and says that a simple
+touch without control, a deflection that does not intercept, or an aerial duel with no
+subsequent control are **not** changes of possession. They are two different conventions
+for the same phenomenon.
 
-Mientras no se corrija, el spellF1 del arnes esta hundido por una razon estructural que no
-tiene que ver con la calidad del modelo: se le pide acertar 421 posesiones cuando esta
-disenado para producir ~220.
+As long as this is not corrected, the harness's spellF1 is sunk for a structural reason that
+has nothing to do with the model's quality: it is asked to get 421 possessions right when it
+is designed to produce ~220.
 
-**De donde sale la regla de fusion -- y de donde NO.** Sale de la definicion del reto,
-aplicada a los partidos externos. CHALLENGE.md propone como proxy de posesion controlada
-que *«a player keeps the ball for a few seconds»*. Aqui eso se lee como: un tramo del rival
-mas corto que `MIN_CONTROLLED_S`, encajado dentro de una posesion ajena, es un contacto sin
-control y se absorbe. Un tramo igual o mas largo es un cambio real y se respeta.
+**Where the merge rule comes from -- and where it does NOT.** It comes from the challenge's
+definition, applied to the external matches. CHALLENGE.md proposes as a proxy for controlled
+possession that *«a player keeps the ball for a few seconds»*. Here that is read as: a
+rival run shorter than `MIN_CONTROLLED_S`, wedged inside someone else's possession, is a
+contact without control and gets absorbed. A run equal or longer is a real change and is
+respected.
 
-Una version anterior de este modulo buscaba el umbral que diera 14,2 s de duracion media,
-que es la media de las 17 posesiones de la ventana publica. Se retiro: desde el 22 de
-octubre las reglas dicen que esa ventana no es conjunto de ajuste, y aunque fuera solo
-para interpretar el convenio, 17 posesiones son poca base para una constante. Ahora la
-duracion media resultante es una **medicion** que se reporta, no un objetivo que se busca.
+An earlier version of this module searched for the threshold that gave a mean duration of
+14.2 s, which is the mean of the 17 possessions of the public window. It was withdrawn:
+since October 22 the rules say that window is not a tuning set, and even if it were only
+to interpret the convention, 17 possessions are a thin basis for a constant. Now the
+resulting mean duration is a **measurement** that gets reported, not a target that is
+sought.
 
-**Que se ajusta y que no.** Solo se fusionan posesiones de equipo separadas por contactos
-breves del rival. **El balon parado no se toca**: la tasa de `D` del IDSSE ya es comparable
-a la que se espera del partido completo, y ahi no hay discrepancia que arreglar.
+**What is adjusted and what is not.** Only team possessions separated by brief rival
+contacts are merged. **Dead ball is not touched**: the `D` rate of IDSSE is already
+comparable to the one expected for the full match, and there is no discrepancy to fix there.
 
-**Lo que esta lectura deja fuera, a proposito.** CHALLENGE.md da un segundo proxy, *«a team
-completes more than two consecutive passes»*, que necesitaria el event data del DFL
-(kloppy lo carga con `sportec.load_open_event_data`). No esta implementado. Un rival que
-en menos de `MIN_CONTROLLED_S` completa tres pases es un caso raro, pero existe, y esta
-version lo absorberia mal.
+**What this reading leaves out, on purpose.** CHALLENGE.md gives a second proxy, *«a team
+completes more than two consecutive passes»*, which would need the DFL event data (kloppy
+loads it with `sportec.load_open_event_data`). It is not implemented. A rival who completes
+three passes in less than `MIN_CONTROLLED_S` is a rare case, but it exists, and this
+version would absorb it wrongly.
 """
 
 import numpy as np
 
-# "A few seconds" de CHALLENGE.md, leido como 3. Es una lectura del texto de la regla, no
-# una medida sobre ningun partido: si alguien tiene mejor criterio para el numero, este es
-# el unico sitio que hay que tocar.
+# "A few seconds" from CHALLENGE.md, read as 3. It is a reading of the rule's text, not a
+# measurement on any match: if someone has better judgement for the number, this is the
+# only place that needs touching.
 MIN_CONTROLLED_S = 3.0
 
 
 def spells(labels):
-    """[(etiqueta, inicio, fin_exclusivo)] de rachas maximas."""
+    """[(label, start, end_exclusive)] of maximal runs."""
     labels = np.asarray(labels, dtype="<U1")
     if not len(labels):
         return []
@@ -53,11 +56,11 @@ def spells(labels):
 
 
 def _absorb_uncontrolled(sp, max_len):
-    """Absorbe tramos de equipo mas cortos que `max_len` flanqueados por el MISMO rival.
+    """Absorb team runs shorter than `max_len` flanked by the SAME rival.
 
-    Solo cuando los dos vecinos son el mismo equipo: eso es un contacto breve dentro de una
-    posesion ajena. Un toque breve entre dos equipos distintos, o pegado a un balon parado,
-    no se toca: ahi no hay posesion ajena que lo envuelva.
+    Only when both neighbours are the same team: that is a brief contact inside someone
+    else's possession. A brief touch between two different teams, or next to a dead ball,
+    is left alone: there is no one else's possession wrapping it there.
     """
     changed = True
     while changed:
@@ -84,7 +87,7 @@ def _mean_possession_s(sp, fps):
 
 
 def harmonise(labels, fps=25, min_controlled_s=MIN_CONTROLLED_S):
-    """Etiquetas con el convenio del reto. Devuelve (etiquetas, info) para poder auditarlo."""
+    """Labels with the challenge's convention. Returns (labels, info) so it can be audited."""
     labels = np.asarray(labels, dtype="<U1")
     base = spells(labels)
     final = _absorb_uncontrolled(base, min_controlled_s * fps)

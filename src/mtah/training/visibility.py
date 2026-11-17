@@ -1,26 +1,26 @@
-"""Curva de sensibilidad a la visibilidad del balon: el Paso cero de plan-detector-balon.md.
+"""Sensitivity curve to ball visibility: Step zero of plan-detector-balon.md.
 
-**La pregunta.** Un detector de balon propio sobre el video solo vale la pena si ver mas
-balon sube el spellF1. El arnes lo responde sin construir nada: se degrada el IDSSE como
-siempre (balon visible ~59 %, como el ATD) y despues se le *devuelve* balon hasta el 70,
-80, 90 y 100 %, con el modelo de `config.py` sin tocar. Curva plana: el detector no se
-empieza. Curva empinada: es la mejor inversion que queda.
+**The question.** A ball detector of our own on the video is only worth it if seeing more
+ball raises the spellF1. The harness answers it without building anything: IDSSE is degraded
+as always (ball visible ~59%, like the ATD) and then ball is *given back* up to 70, 80, 90
+and 100%, with the `config.py` model untouched. Flat curve: the detector is not started.
+Steep curve: it is the best investment left.
 
-**Dos formas de devolver balon**, porque un detector real no recupera al azar:
+**Two ways of giving the ball back**, because a real detector does not recover at random:
 
-- `random`: huecos enteros en orden aleatorio.
-- `easy_first`: primero los huecos con el balon lejos de todo jugador (juego abierto), al
-  final los abarrotados -- duelos, areas, entradas --, que es donde un detector falla y
-  donde la posesion se decide. Esta es la estimacion honesta; `random` es la optimista.
+- `random`: whole gaps in random order.
+- `easy_first`: first the gaps with the ball far from every player (open play), and the
+  crowded ones last -- duels, boxes, tackles --, which is where a detector fails and where
+  possession is decided. This is the honest estimate; `random` is the optimistic one.
 
-Se recuperan huecos enteros y no frames sueltos: el modelo promedia +-50 frames y unos
-frames dispersos dentro de un hueco largo le servirian mas de lo que serviria un detector
-que pierde el balon en los mismos sitios que el tracker.
+Whole gaps are recovered and not isolated frames: the model averages +-50 frames and a few
+scattered frames inside a long gap would help it more than a detector that loses the ball
+in the same places as the tracker would.
 
-Lo que importa es la **pendiente**. El nivel esta inflado porque la degradacion coloca los
-huecos al azar y el ATD los concentra en los frames dificiles.
+What matters is the **slope**. The level is inflated because the degradation places the
+gaps at random and the ATD concentrates them in the hard frames.
 
-Uso:  python -m mtah.training.visibility
+Usage:  python -m mtah.training.visibility
 """
 
 import json
@@ -46,24 +46,24 @@ def log(message):
 
 
 def hidden_gaps(dirty_seen, clean_seen):
-    """[(inicio, fin)] de rachas en que la degradacion oculto un balon que si existia."""
+    """[(start, end)] of runs in which the degradation hid a ball that did exist."""
     hidden = ~dirty_seen & clean_seen
     edges = np.diff(np.concatenate(([0], hidden.astype(np.int8), [0])))
     return list(zip(np.flatnonzero(edges == 1), np.flatnonzero(edges == -1)))
 
 
 def recovery_order(gaps, strategy, nearest_player_m, rng):
-    """Orden en que un detector devolveria los huecos."""
+    """Order in which a detector would give the gaps back."""
     if strategy == "random":
         return list(rng.permutation(len(gaps)))
     if strategy == "easy_first":
         openness = [float(np.nanmean(nearest_player_m[a:b])) for a, b in gaps]
         return list(np.argsort(openness)[::-1])
-    raise ValueError("estrategia desconocida {!r}".format(strategy))
+    raise ValueError("unknown strategy {!r}".format(strategy))
 
 
 def restore_ball(dirty, clean, frames):
-    """Tracking degradado con el balon limpio devuelto en `frames` (mascara bool)."""
+    """Degraded tracking with the clean ball given back at `frames` (bool mask)."""
     ball_xy, ball_speed = dirty.ball_xy.copy(), dirty.ball_speed.copy()
     ball_xy[frames] = clean.ball_xy[frames]
     ball_speed[frames] = clean.ball_speed[frames]
@@ -73,7 +73,7 @@ def restore_ball(dirty, clean, frames):
 
 
 def frames_to_restore(gaps, order, n_frames, n_needed):
-    """Mascara con huecos enteros en `order` hasta sumar `n_needed` frames (el ultimo, parcial)."""
+    """Mask with whole gaps in `order` until reaching `n_needed` frames (the last, partial)."""
     mask = np.zeros(n_frames, dtype=bool)
     remaining = n_needed
     for index in order:
@@ -146,13 +146,13 @@ def main(config=None):
                             "matches_above_base": int(sum(
                                 s > b["spell_f1"] for s, b in zip(spell, base)))})
     for row in summary:
-        log("MEDIA  %-10s visible %.3f  spellF1 %.4f  macroF1 %.4f" % (
+        log("MEAN   %-10s visible %.3f  spellF1 %.4f  macroF1 %.4f" % (
             row["strategy"], row["visibility"], row["spell_f1"], row["macro_f1"]))
     path = os.path.join(REPO_ROOT, "out", "visibility.json")
     with open(path, "w") as handle:
         json.dump({"by_match": by_match, "summary": summary, "seed": SEED}, handle,
                   indent=2, default=float)
-    log("guardado %s (%.0f min)" % (path, (time.time() - started) / 60))
+    log("saved %s (%.0f min)" % (path, (time.time() - started) / 60))
 
 
 if __name__ == "__main__":

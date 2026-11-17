@@ -1,10 +1,11 @@
-"""Mide las senales nuevas dentro del decodificador de la entrega. Semilla 0, 7 partidos IDSSE.
+"""Measures the new signals inside the submission decoder. Seed 0, 7 IDSSE matches.
 
-Control: la config de la entrega (descuento 0,95 y escala 2,0 con el detector fuera de
-muestra). Tratamientos: cambiar el logit de equipo o el de muerto con los clasificadores
-de modelos.py. Cada peso se elige **anidado**: para el partido de fuera h se elige la
-variante con mejor media en los otros 6, puntuados con modelos que no vieron ni h ni el
-propio partido, y se evalua en h con el modelo que no vio h. La ventana publica no entra.
+Control: the submission config (discount 0.95 and scale 2.0 with the out-of-sample
+detector). Treatments: swap the team logit or the dead-ball logit with the classifiers
+from modelos.py. Each weight is chosen **nested**: for the held-out match h the variant
+with the best mean over the other 6 is picked, scored with models that saw neither h nor
+the match itself, and it is evaluated on h with the model that did not see h. The public
+window is not used.
 """
 
 import json
@@ -133,7 +134,7 @@ class Runner:
             self.results[job] = value
         with open(self.path, "w") as handle:
             json.dump({json.dumps(k): v for k, v in self.results.items()}, handle)
-        print("   %d decodificaciones en %.0fs" % (len(todo), time.time() - started), flush=True)
+        print("   %d decodings in %.0fs" % (len(todo), time.time() - started), flush=True)
 
     def spell(self, variant, match, other=None):
         return self.results[key((variant, match, other))][0]
@@ -151,7 +152,7 @@ def name(variant):
 
 
 def nested(runner, family, title):
-    """Elige en los 6 de dentro, evalua en el de fuera. Devuelve {partido: variante elegida}."""
+    """Choose on the 6 inner matches, evaluate on the held-out one. Returns {match: variant}."""
     options = [CTL] + list(family)
     deltas, chosen = [], {}
     for held in C.MATCHES:
@@ -162,10 +163,10 @@ def nested(runner, family, title):
     picks = {}
     for v in chosen.values():
         picks[name(v)] = picks.get(name(v), 0) + 1
-    print("ANIDADO %-36s %+.2f pp  (%d mejor / %d peor)  por partido %s" % (
+    print("NESTED  %-36s %+.2f pp  (%d better / %d worse)  per match %s" % (
         title, deltas.mean(), (deltas > 0).sum(), (deltas < 0).sum(),
         " ".join("%+.1f" % d for d in deltas)))
-    print("        elegido: %s" % ", ".join("%s x%d" % kv for kv in sorted(picks.items(), key=lambda kv: -kv[1])))
+    print("        chosen: %s" % ", ".join("%s x%d" % kv for kv in sorted(picks.items(), key=lambda kv: -kv[1])))
     return chosen, float(deltas.mean())
 
 
@@ -174,13 +175,13 @@ def main(seed=0):
     runner = Runner(seed)
     runner.ensure([CTL])
     control = runner.outer(CTL)
-    print("CONTROL spellF1 %.4f  por partido %s" % (
+    print("CONTROL spellF1 %.4f  per match %s" % (
         control, " ".join("%.4f" % runner.spell(CTL, m) for m in C.MATCHES)), flush=True)
     summary = {"control": control, "families": {}}
     chosen = {}
     for title, family in FAMILIES.items():
         runner.ensure(family)
-        print("== %s   (media fuera de muestra, SIN elegir anidado: optimista)" % title)
+        print("== %s   (out-of-sample mean, WITHOUT nested choice: optimistic)" % title)
         for v in family:
             d = np.array([runner.spell(v, m) - runner.spell(CTL, m) for m in C.MATCHES]) * 100
             print("   %-34s %.4f  %+.2f pp  (%d/%d)" % (
@@ -191,16 +192,16 @@ def main(seed=0):
             "variants": {name(v): runner.outer(v) - control for v in family}}
         sys.stdout.flush()
 
-    # Equipo: lo mejor de las tres familias de equipo, elegido anidado.
+    # Team: the best of the three team families, chosen nested.
     team_all = [v for t in TEAM_FAMILIES for v in FAMILIES[t]]
-    chosen_team, delta = nested(runner, team_all, "equipo (a o c, cualquiera)")
+    chosen_team, delta = nested(runner, team_all, "team (a or c, either)")
     summary["team_any_nested_pp"] = delta
     dead_all = FAMILIES["b  muerto aprendido"] + FAMILIES["u  empuje a muerto sin balon"]
-    chosen_dead, delta = nested(runner, dead_all, "muerto (b o u, cualquiera)")
+    chosen_dead, delta = nested(runner, dead_all, "dead ball (b or u, either)")
     summary["dead_any_nested_pp"] = delta
 
-    # Combinacion: por partido de fuera, lo elegido de equipo + lo elegido de muerto; y se
-    # decide anidado entre control, solo equipo, solo muerto y los dos.
+    # Combination: per held-out match, the chosen team variant + the chosen dead-ball variant;
+    # and the choice is made nested among control, team only, dead ball only and both.
     combos = {h: chosen_team[h] + chosen_dead[h] for h in C.MATCHES}
     runner.ensure(set(combos.values()))
     deltas, picks = [], {}
@@ -210,10 +211,10 @@ def main(seed=0):
         picks[name(best)] = picks.get(name(best), 0) + 1
         deltas.append(runner.spell(best, h) - runner.spell(CTL, h))
     deltas = np.array(deltas) * 100
-    print("ANIDADO %-36s %+.2f pp  (%d mejor / %d peor)  por partido %s" % (
-        "equipo + muerto", deltas.mean(), (deltas > 0).sum(), (deltas < 0).sum(),
+    print("NESTED  %-36s %+.2f pp  (%d better / %d worse)  per match %s" % (
+        "team + dead ball", deltas.mean(), (deltas > 0).sum(), (deltas < 0).sum(),
         " ".join("%+.1f" % d for d in deltas)))
-    print("        elegido: %s" % ", ".join("%s x%d" % kv for kv in picks.items()))
+    print("        chosen: %s" % ", ".join("%s x%d" % kv for kv in picks.items()))
     summary["combo_nested_pp"] = float(deltas.mean())
     with open(os.path.join(HERE, "exp_resumen_s%d.json" % seed), "w") as handle:
         json.dump(summary, handle, indent=1)

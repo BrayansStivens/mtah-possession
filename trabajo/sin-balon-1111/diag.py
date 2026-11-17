@@ -1,7 +1,7 @@
-"""Donde pierde el modelo entregado cuando no se ve el balon. IDSSE degradado, semilla 0.
+"""Where the submitted model loses when the ball is not seen. Degraded IDSSE, seed 0.
 
-Predicciones = pipeline de la entrega sobre cada partido (emisiones de config.py + detector
-de fronteras fuera de muestra, peso 0.95 y escala 2.0). Solo lectura: no elige nada.
+Predictions = the submission pipeline on each match (emissions from config.py + out-of-sample
+boundary detector, weight 0.95 and scale 2.0). Read-only: it chooses nothing.
 """
 
 import json
@@ -81,7 +81,7 @@ def spell_tables(gt, pred, seen):
 
 
 def transition_tables(gt, pred, seen, tol=25):
-    """Cambios reales encontrados a +-tol frames con el mismo estado de destino."""
+    """Real changes found within +-tol frames with the same target state."""
     blind = C.no_ball_in_window(seen, 12)
     change = np.flatnonzero(gt[1:] != gt[:-1]) + 1
     pchange = np.flatnonzero(pred[1:] != pred[:-1]) + 1
@@ -109,7 +109,7 @@ def add(total, part):
 
 
 def atd_gap_profile():
-    """Sin etiquetas: como se reparten los frames puntuados del ATD real por tipo de hueco."""
+    """No labels: how the graded frames of the real ATD split by gap type."""
     tracking = atd.load(source="tactical")
     seen = tracking.ball_seen
     gap, blind = C.gap_lengths(seen), C.no_ball_in_window(seen)
@@ -150,28 +150,28 @@ def main():
     with open(path, "w") as handle:
         json.dump(total, handle, indent=1)
 
-    print("\nMEDIA spellF1 %.4f  macroF1 %.4f" % (total["mean_spell_f1"], total["mean_macro_f1"]))
-    print("\n== FRAMES (suma de los 7 partidos)")
+    print("\nMEAN spellF1 %.4f  macroF1 %.4f" % (total["mean_spell_f1"], total["mean_macro_f1"]))
+    print("\n== FRAMES (sum over the 7 matches)")
     print("%-32s %8s %7s %7s | %8s %8s %8s | %6s" % (
-        "tramo", "frames", "%tot", "acierto", "equipo", "D perdido", "D invent", "%gt D"))
+        "bucket", "frames", "%tot", "correct", "team", "D missed", "D false", "%gt D"))
     for name, r in total["frames"].items():
         n = max(r["frames"], 1)
         print("%-32s %8d %6.1f%% %6.1f%% | %7.1f%% %7.1f%% %7.1f%% | %5.1f%%" % (
             name, r["frames"], 100.0 * r["frames"] / n_all, 100.0 * r["aciertos"] / n,
             100.0 * r["err_equipo"] / n, 100.0 * r["err_muerto_no_visto"] / n,
             100.0 * r["err_muerto_inventado"] / n, 100.0 * r["gt_D"] / n))
-    for side, label in (("gt", "POSESIONES REALES: recuperadas a IoU>=0.5"),
-                        ("pred", "POSESIONES PREDICHAS: correctas a IoU>=0.5")):
+    for side, label in (("gt", "REAL POSSESSIONS: recovered at IoU>=0.5"),
+                        ("pred", "PREDICTED POSSESSIONS: correct at IoU>=0.5")):
         print("\n== %s" % label)
         for group, rows in total["spells"][side].items():
             for name, (n, h) in rows.items():
                 print("  %-24s %-9s n %5d  ok %5d  %5.1f%%" % (group, name, n, h,
                                                               100.0 * h / max(n, 1)))
-    print("\n== CAMBIOS REALES encontrados a +-1 s con el destino correcto")
+    print("\n== REAL CHANGES found within +-1 s with the correct target state")
     for name in sorted(total["transitions"]):
         n, h = total["transitions"][name]
         print("  %-30s n %5d  ok %5d  %5.1f%%" % (name, n, h, 100.0 * h / max(n, 1)))
-    print("\n== REPARTO DE FRAMES POR HUECO: ATD real (bloques puntuados) vs IDSSE degradado")
+    print("\n== FRAME DISTRIBUTION BY GAP: real ATD (graded blocks) vs degraded IDSSE")
     for name, v in total["atd_reparto_huecos"].items():
         print("  %-32s ATD %5.1f%%   IDSSE %5.1f%%" % (
             name, 100 * v, 100 * total["idsse_reparto_huecos"].get(name, float("nan"))))

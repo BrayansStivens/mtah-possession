@@ -1,9 +1,9 @@
-"""Clasificador de equipo sin balon (a) con menos senales: cuales transfieren al ATD.
+"""Ball-absent team classifier (a) with fewer signals: which ones transfer to the ATD.
 
-deriva_senal.py dice que `opp` (y algo `cen` y `len`) se distribuyen distinto en el ATD que
-en el IDSSE degradado, y que la anchura, que es la senal que mas pesa, no. Aqui se quita lo
-que deriva y se mide lo que cuesta. El peso (2.0) es el de la seleccion anidada con todas
-las senales: aqui no se elige nada. Uso: robusto.py modelos | decode
+deriva_senal.py says that `opp` (and somewhat `cen` and `len`) are distributed differently in
+the ATD than in the degraded IDSSE, and that width, the signal that weighs the most, is not.
+Here we drop what drifts and measure what it costs. The weight (2.0) is the one from the
+nested selection with all the signals: nothing is chosen here. Usage: robusto.py modelos | decode
 """
 
 import json
@@ -109,7 +109,7 @@ def run_modelos():
                 D.domain_auc(teams[j], masks[j], [teams[k] for k in range(7) if k != j],
                              [masks[k] for k in range(7) if k != j], build) for j in (0, 3, 6)]))
         info[name] = row
-        print("%-20s %2d columnas  AUC equipo IDSSE %.4f (sin balon %.4f)  dominio ATD-IDSSE visto %.3f (ref %.3f)  sin balon %.3f (ref %.3f)  %.0fs" % (
+        print("%-20s %2d columns  IDSSE team AUC %.4f (ball-absent %.4f)  ATD-IDSSE domain seen %.3f (ref %.3f)  ball-absent %.3f (ref %.3f)  %.0fs" % (
             name, row["columns"], row["auc_all"], row["auc_unseen"], row["domain_seen"],
             row["domain_ref_seen"], row["domain_unseen"], row["domain_ref_unseen"],
             time.time() - started), flush=True)
@@ -118,7 +118,7 @@ def run_modelos():
         json.dump(info, handle, indent=1)
 
 
-# --------------------------------------------------------------------------- decodificar
+# --------------------------------------------------------------------------- decode
 
 def setup():
     import realista as R
@@ -148,7 +148,7 @@ def run(job):
 
 
 def real_match():
-    """Lectura en el partido del reto, como real.py: {subconjunto: fila}."""
+    """Reading on the challenge match, as in real.py: {subset: row}."""
     import real as RM
     from mtah import features as feature_set
     from mtah import submission
@@ -203,7 +203,7 @@ def run_decode():
     with open(os.path.join(HERE, "robusto_modelos.json")) as handle:
         info = json.load(handle)
     summary = {}
-    print("%-20s | IDSSE: AUC equipo  delta azar  delta realista (mej/peor) | dominio ATD visto / sin balon | partido real (LECTURA): spellF1 macroF1 pos/17  posesiones  igual que entrega  acuerdo fases" % "senales de (a)")
+    print("%-20s | IDSSE: team AUC  delta random  delta realistic (win/loss) | ATD domain seen / ball-absent | real match (READING): spellF1 macroF1 pos/17  possessions  same as submission  phase agreement" % "signals for (a)")
     for name in [None] + list(SUBSETS):
         delta = {}
         for gaps in ("rand", "real"):

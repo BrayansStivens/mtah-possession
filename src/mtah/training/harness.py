@@ -1,22 +1,21 @@
-"""Arnes de validacion: medir el pipeline sobre un partido COMPLETO con etiquetas.
+"""Validation harness: measure the pipeline on a FULL match with labels.
 
-El problema que resuelve. El unico ground truth que tenemos del partido del reto son 5
-minutos y 17 posesiones, y EVALUATION.md es explicito en que **no sirve para elegir entre
-dos versiones del modelo**: el baseline que gana ahi pierde en el partido completo. Hasta
-aqui cada numero de este proyecto sale de esa ventana.
+The problem it solves. The only ground truth we have for the challenge match is 5 minutes
+and 17 possessions, and EVALUATION.md is explicit that it is **no use for choosing between
+two versions of the model**: the baseline that wins there loses on the full match. Up to
+here every number in this project comes from that window.
 
-Un partido del IDSSE degradado si da un spellF1 de partido completo contra etiquetas
-reales. Siete veces.
+A degraded IDSSE match does give a full-match spellF1 against real labels. Seven times.
 
-**Lo que mide bien y lo que no.** Mide bien las diferencias *relativas*: si un cambio
-mejora en los siete partidos, mejora. El valor *absoluto* solo es orientativo, por dos
-motivos que no se pueden quitar: el convenio de `BallStatus` del DFL no es identico al `D`
-del reto, y la Bundesliga no es este Barcelona-Athletic. Ademas la degradacion reparte las
-rachas sin balon al azar mientras que el ATD las concentra en los frames dificiles, asi
-que el proxy es **optimista** por construccion.
+**What it measures well and what it does not.** It measures *relative* differences well: if
+a change improves on all seven matches, it improves. The *absolute* value is only
+indicative, for two reasons that cannot be removed: the DFL `BallStatus` convention is not
+identical to the challenge's `D`, and the Bundesliga is not this Barcelona-Athletic. Also
+the degradation spreads the ball-absent runs at random whereas the ATD concentrates them in
+the hard frames, so the proxy is **optimistic** by construction.
 
-Antes de creerse ningun numero, `compare_stats()` comprueba que lo degradado se parece al
-ATD en los ejes que se midieron. Si no se parece, el numero no vale nada.
+Before believing any number, `compare_stats()` checks that the degraded data looks like the
+ATD on the axes that were measured. If it does not, the number is worthless.
 """
 
 import numpy as np
@@ -33,7 +32,7 @@ from . import convention, degrade, idsse
 
 
 def real_spec(source="tactical"):
-    """Parametros de degradacion medidos sobre el ATD real del partido del reto."""
+    """Degradation parameters measured on the real ATD of the challenge match."""
     return degrade.estimate(atd.load(source=source), GRADED_BLOCKS)
 
 
@@ -60,25 +59,25 @@ def _stats(tracking, blocks=None):
 
 
 def compare_stats(degraded, source="tactical"):
-    """Imprime lado a lado las estadisticas del ATD real y las del proxy degradado."""
+    """Print side by side the statistics of the real ATD and those of the degraded proxy."""
     real = _stats(atd.load(source=source), GRADED_BLOCKS)
     fake = _stats(degraded)
-    print("%-22s %>12s %12s" .replace(">", "") % ("estadistica", "ATD real", "degradado"))
+    print("%-22s %>12s %12s" .replace(">", "") % ("statistic", "real ATD", "degraded"))
     for k in real:
         print("%-22s %12.2f %12.2f" % (k, real[k], fake[k]))
     return real, fake
 
 
 def predict(tracking, config=None):
-    """(etiquetas, features) del pipeline sobre un tracking cualquiera, en un solo bloque.
+    """(labels, features) of the pipeline on any tracking, in a single block.
 
-    Un solo bloque porque el fichero del IDSSE no trae los frames del descanso: no hay
-    hueco que separar y el decodificador no arrastra nada a traves de nada. Devuelve
-    tambien los features para que el analisis de errores no tenga que recalcularlos.
+    A single block because the IDSSE file does not include the halftime frames: there is no
+    gap to separate and the decoder carries nothing across anything. It also returns the
+    features so that error analysis does not have to recompute them.
 
-    Sin el detector de fronteras, a proposito: se entreno con estos mismos 7 partidos y
-    aplicarlo aqui seria medirlo sobre su conjunto de entrenamiento. Su medicion honesta
-    es la de `training/boundaries.py` (leave-one-match-out anidado).
+    Without the boundary detector, on purpose: it was trained on these same 7 matches and
+    applying it here would be measuring it on its training set. Its honest measurement is
+    the one in `training/boundaries.py` (nested leave-one-match-out).
     """
     config = config or DEFAULT
     blocks = ((0, tracking.n_frames),)
@@ -92,12 +91,12 @@ def predict(tracking, config=None):
 
 
 def run_match(match_id, config=None, seed=0, spec=None, verbose=True, harmonise=True):
-    """Degrada un partido del IDSSE, pasa el pipeline y puntua contra sus etiquetas.
+    """Degrade an IDSSE match, run the pipeline and score it against its labels.
 
-    `harmonise=True` lleva antes las etiquetas al convenio de posesion del reto (ver
-    convention.py). Sin eso se le pide al modelo acertar 421 posesiones cuando esta
-    disenado para producir ~220, y el spellF1 sale hundido por un motivo que no tiene que
-    ver con la calidad del modelo.
+    `harmonise=True` first brings the labels to the challenge's possession convention (see
+    convention.py). Without that, the model is asked to get 421 possessions right when it is
+    designed to produce ~220, and the spellF1 comes out sunk for a reason that has nothing
+    to do with the model's quality.
     """
     config = config or DEFAULT
     spec = spec or real_spec()
@@ -119,10 +118,10 @@ def run_match(match_id, config=None, seed=0, spec=None, verbose=True, harmonise=
 
 
 def run_all(config=None, seed=0, matches=None, spec=None, harmonise=True):
-    """Los siete partidos. Devuelve (lista de resultados, media de spellF1, media macroF1).
+    """The seven matches. Returns (list of results, mean spellF1, mean macroF1).
 
-    La media sobre siete partidos es el numero en el que apoyarse para decidir, no el de
-    ningun partido suelto ni el de la ventana publica.
+    The mean over seven matches is the number to rely on when deciding, not that of any
+    single match nor that of the public window.
     """
     spec = spec or real_spec()
     out = []
@@ -132,5 +131,5 @@ def run_all(config=None, seed=0, matches=None, spec=None, harmonise=True):
     spell = float(np.mean([r["spell_f1_mean"] for r in out]))
     macro = float(np.mean([r["macro_f1"] for r in out]))
     print("-" * 64)
-    print("MEDIA de %d partidos   spellF1 %.4f   macroF1 %.4f" % (len(out), spell, macro))
+    print("MEAN of %d matches   spellF1 %.4f   macroF1 %.4f" % (len(out), spell, macro))
     return out, spell, macro

@@ -1,17 +1,17 @@
-"""Features geometricos por frame, en metros y vectorizados sobre todo el partido.
+"""Per-frame geometric features, in meters and vectorized over the whole match.
 
-Todo se calcula en metros, no en coordenadas normalizadas: el campo mide 105.3 x 68 m y
-comparar distancias sin escalar los dos ejes estira cada distancia en el eje corto y
-elige el jugador equivocado cerca de las bandas.
+Everything is computed in meters, not in normalized coordinates: the pitch is 105.3 x 68 m
+and comparing distances without scaling the two axes stretches every distance along the
+short axis and picks the wrong player near the touchlines.
 
-Dos familias, a proposito:
+Two families, on purpose:
 
-- **Dependientes del balon** (distancia al mas cercano, control, presion). Son las mas
-  informativas y las menos fiables: el balon falta en el 43% de los frames y
-  desproporcionadamente en los que importan -- areas abarrotadas, duelos aereos, entradas.
-- **Independientes del balon** (actividad de los jugadores, forma de equipo, centroides).
-  Son las que tienen que sostener el 41% de frames puntuados sin balon, y la razon por la
-  que este modulo calcula forma de equipo aunque no haya balon que ver.
+- **Ball-dependent** (distance to the nearest player, control, pressure). They are the most
+  informative and the least reliable: the ball is missing in 43% of frames, and
+  disproportionately in the ones that matter -- crowded boxes, aerial duels, tackles.
+- **Ball-independent** (player activity, team shape, centroids). They are the ones that
+  have to carry the 41% of scored frames without a ball, and the reason this module
+  computes team shape even when there is no ball to see.
 """
 
 import numpy as np
@@ -21,20 +21,20 @@ from ..constants import PITCH
 HOME_CODE, AWAY_CODE = 0, 1
 SCALE = np.asarray(PITCH, dtype=np.float32)
 
-# Minimos por debajo de los cuales la forma de equipo no significa nada. Un equipo del que
-# se ven menos de 3 jugadores no tiene "forma", y una dispersion en x por debajo de 1 m no
-# ocurre en un partido real: es el tracker viendo a dos personas juntas.
+# Minimums below which team shape means nothing. A team with fewer than 3 players seen has
+# no "shape", and an x spread below 1 m does not happen in a real match: it is the tracker
+# seeing two people together.
 MIN_TRACKED_FOR_SHAPE = 3
 MIN_SPREAD_M = 1.0
 
 
 def to_metres(xy):
-    """Coordenadas normalizadas 0-1 -> metros, escalando cada eje."""
+    """Normalized 0-1 coordinates -> meters, scaling each axis."""
     return np.asarray(xy, dtype=np.float32) * SCALE
 
 
 def ball_distances(tracking):
-    """(n, slots) distancia en metros de cada slot al balon. NaN donde falte alguno."""
+    """(n, slots) distance in meters from each slot to the ball. NaN where either is missing."""
     ball = to_metres(tracking.ball_xy)[:, None, :]          # (n, 1, 2)
     players = to_metres(tracking.players_xy)                # (n, slots, 2)
     delta = players - ball
@@ -42,7 +42,7 @@ def ball_distances(tracking):
 
 
 def nearest_per_team(distances, team_of_slot):
-    """(n, 2) distancia al jugador mas cercano de cada equipo. NaN si el equipo no tiene a nadie."""
+    """(n, 2) distance to the nearest player of each team. NaN if the team has nobody."""
     out = np.full((distances.shape[0], 2), np.nan, dtype=np.float32)
     for team in (HOME_CODE, AWAY_CODE):
         slots = np.flatnonzero(team_of_slot == team)
@@ -56,15 +56,15 @@ def nearest_per_team(distances, team_of_slot):
 
 
 def control_scores(distances, team_of_slot, tau=3.0):
-    """(n, 2) influencia de cada equipo sobre el balon: suma de exp(-d / tau).
+    """(n, 2) influence of each team on the ball: sum of exp(-d / tau).
 
-    Un kernel exponencial en lugar de "el mas cercano gana" porque el mas cercano es una
-    decision de un solo jugador sobre un tracking con huecos y cambios de identidad: si
-    ese slot se pierde un frame, la etiqueta salta de equipo. Sumar sobre todos los
-    jugadores hace la senal colectiva, que es lo unico que este dataset soporta -- no hay
-    identificadores de jugador, solo 46 slots que aparecen y desaparecen.
+    An exponential kernel instead of "the nearest wins" because the nearest is the decision
+    of a single player over tracking with gaps and identity switches: if that slot is lost
+    for one frame, the label jumps to the other team. Summing over all the players makes
+    the signal collective, which is the only thing this dataset supports -- there are no
+    player identifiers, only 46 slots that appear and disappear.
 
-    `tau` en metros fija cuanto cuenta estar cerca. 3 m es un radio de control razonable.
+    `tau`, in meters, sets how much being close counts. 3 m is a reasonable control radius.
     """
     weights = np.exp(-distances / float(tau))
     weights = np.where(np.isnan(distances), 0.0, weights)
@@ -75,7 +75,7 @@ def control_scores(distances, team_of_slot, tau=3.0):
 
 
 def count_within(distances, team_of_slot, radius):
-    """(n, 2) jugadores de cada equipo a menos de `radius` metros del balon."""
+    """(n, 2) players of each team within `radius` meters of the ball."""
     close = np.where(np.isnan(distances), False, distances < float(radius))
     out = np.zeros((distances.shape[0], 2), dtype=np.int16)
     for team in (HOME_CODE, AWAY_CODE):
@@ -84,12 +84,12 @@ def count_within(distances, team_of_slot, radius):
 
 
 def player_activity(tracking):
-    """(n,) velocidad media de los jugadores visibles, en m/s.
+    """(n,) mean speed of the visible players, in m/s.
 
-    El mejor candidato a detector de balon parado que hay en estos datos y no depende del
-    balon: con el juego detenido la gente anda o esta parada, y con el balon vivo corre.
-    Se usa la media y no la suma para que no dependa de cuantos slots ve el tracker en ese
-    frame -- cuenta entre 20 y 23 y eso varia por si solo.
+    The best candidate for a dead-ball detector in this data that does not depend on the
+    ball: with play stopped people walk or stand still, and with the ball live they run.
+    The mean is used rather than the sum so it does not depend on how many slots the
+    tracker sees in that frame -- it counts between 20 and 23, and that varies by itself.
     """
     speed = tracking.players_speed
     with np.errstate(invalid="ignore"):
@@ -97,12 +97,12 @@ def player_activity(tracking):
 
 
 def team_shape(tracking):
-    """Dict de features de forma de equipo, todos independientes del balon.
+    """Dict of team-shape features, all independent of the ball.
 
-    Por que importan: en el 41% de frames puntuados sin balon son lo unico que queda. El
-    equipo que defiende se comprime y retrocede; el que ataca se estira y sube. La
-    asimetria entre las dos formas lleva informacion de quien tiene el balon incluso
-    cuando el balon no se ve.
+    Why they matter: in the 41% of scored frames without a ball they are all that is left.
+    The defending team compresses and drops back; the attacking one stretches and moves up.
+    The asymmetry between the two shapes carries information about who has the ball even
+    when the ball is not seen.
     """
     xy = to_metres(tracking.players_xy)
     out = {}
@@ -117,10 +117,10 @@ def team_shape(tracking):
             out[name + "_n_tracked"] = np.sum(~np.isnan(subset[:, :, 0]), axis=1).astype(np.int16)
     out["centroid_gap_x"] = out["home_centroid_x"] - out["away_centroid_x"]
 
-    # NaN, no un numero, cuando el ratio no significa nada. Si el tracker ve menos de dos
-    # jugadores de un equipo en ese frame, la desviacion tipica es 0 y el ratio colapsa a
-    # 0 o a infinito, dando una opinion fortisima e infundada sobre quien tiene el balon.
-    # Marcarlo indefinido hace que el sumando de forma se neutralice en lugar de mentir.
+    # NaN, not a number, when the ratio means nothing. If the tracker sees fewer than two
+    # players of a team in that frame, the standard deviation is 0 and the ratio collapses
+    # to 0 or to infinity, giving a very strong and unfounded opinion about who has the
+    # ball. Marking it undefined makes the shape term neutralise itself instead of lying.
     degenerate = ((out["home_n_tracked"] < MIN_TRACKED_FOR_SHAPE)
                   | (out["away_n_tracked"] < MIN_TRACKED_FOR_SHAPE)
                   | (out["home_spread_x"] < MIN_SPREAD_M)
@@ -133,11 +133,11 @@ def team_shape(tracking):
 
 
 def ball_out_of_pitch(tracking, margin=0.01):
-    """(n,) True donde el balon trackeado cae fuera del campo -> el balon esta muerto.
+    """(n,) True where the tracked ball falls outside the pitch -> the ball is dead.
 
-    Senal dura y barata, pero de cobertura limitada: cuando el balon sale, el tracker
-    suele perderlo en lugar de seguirlo fuera, asi que esto marca menos frames de los que
-    deberia. No sustituye a un detector, lo ancla.
+    A hard, cheap signal, but with limited coverage: when the ball goes out, the tracker
+    usually loses it instead of following it outside, so this flags fewer frames than it
+    should. It does not replace a detector, it anchors it.
     """
     xy = tracking.ball_xy
     outside = (xy[:, 0] < -margin) | (xy[:, 0] > 1 + margin) | \
@@ -146,11 +146,11 @@ def ball_out_of_pitch(tracking, margin=0.01):
 
 
 def ball_gap_lengths(tracking):
-    """(n,) longitud de la racha de ausencia del balon a la que pertenece cada frame.
+    """(n,) length of the ball-absent run that each frame belongs to.
 
-    Un hueco de 3 frames es una oclusion y se interpola; uno de 400 es que el balon lleva
-    15 s sin verse y cualquier posicion inferida ahi es ficcion. Distinguirlos permite
-    confiar en el relleno solo donde se puede.
+    A gap of 3 frames is an occlusion and gets interpolated; one of 400 means the ball has
+    gone 15 s without being seen and any position inferred there is fiction. Telling them
+    apart lets us trust the fill only where we can.
     """
     seen = tracking.ball_seen
     out = np.zeros(len(seen), dtype=np.int32)
@@ -167,7 +167,7 @@ def ball_gap_lengths(tracking):
 
 
 def build(tracking, tau=3.0, radii=(2.0, 5.0)):
-    """Todos los features en un dict de arrays de longitud n_frames."""
+    """All the features in a dict of arrays of length n_frames."""
     distances = ball_distances(tracking)
     features = {
         "ball_seen": tracking.ball_seen,

@@ -1,11 +1,11 @@
-"""Features del detector de fronteras: que cambia entre justo antes y justo despues.
+"""Boundary detector features: what changes between just before and just after.
 
-Las emisiones miran ventanas de +-50 frames (y la forma de equipo +-200): saben *que*
-equipo domina un tramo, pero no *donde* empieza. Esto mira, para cada frame, la media de
-13 senales en una ventana corta despues del frame y su diferencia con la de antes, a
-0,24 / 0,48 / 1 / 2 s. Lo consume `models/boundary_detector.py` en la entrega y
-`training/boundaries.py` para entrenar y medir; los dos tienen que ver exactamente las
-mismas columnas, por eso viven aqui y en ningun otro sitio.
+The emissions look at windows of +-50 frames (and team shape +-200): they know *which*
+team dominates a stretch, but not *where* it starts. This looks, for each frame, at the
+mean of 13 signals over a short window after the frame and its difference from the one
+before, at 0.24 / 0.48 / 1 / 2 s. It is consumed by `models/boundary_detector.py` in the
+submission and by `training/boundaries.py` to train and measure; both have to see exactly
+the same columns, which is why they live here and nowhere else.
 """
 
 import numpy as np
@@ -13,7 +13,7 @@ import numpy as np
 from ..constants import FPS
 from ..models import emissions
 
-# Ventanas a cada lado del frame, en frames: de 0,24 s a 2 s.
+# Windows on each side of the frame, in frames: from 0.24 s to 2 s.
 WINDOWS_FRAMES = (6, 12, 25, 50)
 PRODUCT_WINDOWS_FRAMES = (25, 50)
 
@@ -23,7 +23,7 @@ SIGNAL_NAMES = ("control_diff", "nearest_gap_m", "activity", "ball_speed", "ball
 
 
 def feature_names():
-    """Nombres de las columnas de `feature_matrix`, en orden. No depende de los datos."""
+    """Names of the `feature_matrix` columns, in order. Does not depend on the data."""
     names = ["%s_%s_%d" % (signal, kind, width) for signal in SIGNAL_NAMES
              for width in WINDOWS_FRAMES for kind in ("change", "after")]
     names += ["both_vx_change_product_%d" % width for width in PRODUCT_WINDOWS_FRAMES]
@@ -31,10 +31,10 @@ def feature_names():
 
 
 def window_means(values, width):
-    """(antes, despues): media ignorando NaN en [t-width, t) y en [t, t+width).
+    """(before, after): mean ignoring NaN over [t-width, t) and over [t, t+width).
 
-    NaN donde la ventana no tiene ningun valor definido: un hueco de balon es un dato que
-    falta, no un cero, y el clasificador (HistGradientBoosting) trata NaN como tal.
+    NaN where the window has no defined value: a ball gap is missing data, not a zero, and
+    the classifier (HistGradientBoosting) treats NaN as such.
     """
     values = np.asarray(values, dtype=np.float64)
     defined = np.isfinite(values)
@@ -50,14 +50,14 @@ def window_means(values, width):
 
 
 def _frames_since(event):
-    """(n,) frames desde la ultima vez que `event` fue True (n si nunca)."""
+    """(n,) frames since the last time `event` was True (n if never)."""
     n = len(event)
     last = np.maximum.accumulate(np.where(event, np.arange(n), -1))
     return np.where(last >= 0, np.arange(n) - last, n).astype(np.float64)
 
 
 def frame_signals(features, config):
-    """Senales por frame, sin suavizar, de las que se miran los cambios antes/despues."""
+    """Per-frame signals, unsmoothed, from which the before/after changes are taken."""
     seen = features["ball_seen"]
     ball_x = np.where(seen, features["ball_x"], np.nan)
     return {
@@ -80,17 +80,17 @@ def frame_signals(features, config):
 
 
 def feature_matrix(features, config):
-    """(matriz (n, k) float32, nombres). Todo lo que ve el detector en cada frame."""
+    """(matrix (n, k) float32, names). Everything the detector sees at each frame."""
     signals = frame_signals(features, config)
     if tuple(signals) != SIGNAL_NAMES:
-        raise ValueError("frame_signals y SIGNAL_NAMES no coinciden")
+        raise ValueError("frame_signals and SIGNAL_NAMES do not match")
     columns = []
     for values in signals.values():
         for width in WINDOWS_FRAMES:
             before, after = window_means(values, width)
             columns += [after - before, after]
-    # Un robo invierte el sentido de los dos bloques a la vez: si los dos centroides
-    # cambian de velocidad en sentidos opuestos, el producto sale negativo.
+    # A turnover reverses the direction of both blocks at once: if the two centroids
+    # change speed in opposite directions, the product comes out negative.
     for width in PRODUCT_WINDOWS_FRAMES:
         home = window_means(signals["home_vx"], width)
         away = window_means(signals["away_vx"], width)

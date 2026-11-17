@@ -1,24 +1,25 @@
-"""Anade a los ficheros del dashboard las dos configuraciones medidas fuera de muestra.
+"""Adds to the dashboard files the two configurations measured out of sample.
 
-regenera_datos.py puntua configuraciones de config.py sobre los 7 partidos del IDSSE. Desde
-el 7-11 la entrega lleva ademas dos modelos entrenados en esos mismos partidos (el detector
-de fronteras y el clasificador de equipo): puntuarla tal cual sobre ellos seria puntuar en
-muestra. Aqui cada partido se decodifica con modelos que no lo vieron, igual que en
-`mtah.training.team_classifier` (semilla 0 de degradacion):
+regenera_datos.py scores config.py configurations on the 7 IDSSE matches. Since Nov 7 the
+submission also carries two models trained on those same matches (the boundary detector
+and the team classifier): scoring it as is on them would be scoring in sample. Here each
+match is decoded with models that did not see it, as in `mtah.training.team_classifier`
+(degradation seed 0):
 
-    detector  = config.py con el detector de fronteras de los otros 6 partidos y sin
-                clasificador de equipo. Es el "control" de datos/equipo_sin_balon_lomo.json
-    equipo    = lo mismo mas el clasificador de equipo de los otros 6, con peso 2,0. Es el
-                "elegido" de ese fichero: el peso salio 2,0 en los 7 pliegues
+    detector  = config.py with the boundary detector of the other 6 matches and without the
+                team classifier. It is the "control" of datos/equipo_sin_balon_lomo.json
+    equipo    = the same plus the team classifier of the other 6, with weight 2.0. It is the
+                "chosen" of that file: the weight came out 2.0 in all 7 folds
 
-El IDSSE no trae Smart Tagging, asi que ninguna de las dos lo lleva.
+IDSSE has no Smart Tagging, so neither of the two carries it.
 
-Antes de escribir nada comprueba que cada partido reproduce exactamente el spellF1, el
-macroF1 y las posesiones de datos/equipo_sin_balon_lomo.json, que las categorias del
-diagnostico tienen el mismo tamano que las de regenera_datos.py (misma degradacion) y que
-out/submission.csv es el que genera main. Si algo no cuadra, no escribe.
+Before writing anything it checks that each match reproduces exactly the spellF1, the
+macroF1 and the possessions of datos/equipo_sin_balon_lomo.json, that the diagnostic
+categories have the same size as those of regenera_datos.py (same degradation) and that
+out/submission.csv is the one main generates. If anything does not add up, it writes
+nothing.
 
-Uso:  source scripts/env.sh && python trabajo/handoff-plugin-data/regenera_equipo.py
+Usage:  source scripts/env.sh && python trabajo/handoff-plugin-data/regenera_equipo.py
 """
 
 import hashlib
@@ -46,14 +47,14 @@ NUEVAS = (("detector", "Con detector (7-11)", 5, 0.0),
 ETIQUETA_RECALIBRADO = "Recalibrado (31-10)"
 LOMO = json.load(open(os.path.join(R.DATOS, "equipo_sin_balon_lomo.json")))
 SIN_BALON = os.path.join(AQUI, "..", "sin-balon-1111")
-# Las entregas que se conservan en out/, para releerlas en los 5 minutos publicos.
+# The submissions kept in out/, to re-read them on the 5 public minutes.
 ENTREGAS = (("31-10", "submission_31-10_73c361d5.csv", "73c361d5", "recalibrada"),
             ("8-11", "submission_0811_e7938350.csv", "e7938350", "con detector y Smart Tagging"),
             ("15-11", "submission.csv", "a43c52fb", "con clasificador de equipo"))
 
 
 def etiquetas(base, logit, score, config, peso):
-    """Lo mismo que `team_classifier.decode_score`, pero devolviendo las etiquetas."""
+    """Same as `team_classifier.decode_score`, but returning the labels."""
     data = base
     if peso:
         home = base["home_logit"].astype(np.float64) + peso * logit.astype(np.float64)
@@ -64,7 +65,7 @@ def etiquetas(base, logit, score, config, peso):
 
 
 def decodificar_todo(config):
-    """{config: {partido: (reales, predichos, balon visto, etiquetas)}}, todo fuera de muestra."""
+    """{config: {match: (real, predicted, ball seen, labels)}}, all out of sample."""
     base, team = arnes.load_matches(harness.real_spec(), (SEMILLA,), config)
     detector = arnes.out_of_fold_detector(base)
     partidos = sorted(team[SEMILLA])
@@ -77,7 +78,7 @@ def decodificar_todo(config):
             lab = etiquetas(b, logit, detector[SEMILLA][fuera], config, peso)
             out[nombre][fuera] = (pm.label_codes(b["labels"]), pm.label_codes(lab),
                                   b["ball_seen"], lab)
-        print("   decodificado %s" % fuera, flush=True)
+        print("   decoded %s" % fuera, flush=True)
     return out
 
 
@@ -93,7 +94,7 @@ def por_partido(decodificado, nombre):
 
 
 def reproduce_el_lomo(decodificado):
-    """Cada partido tiene que dar lo que guardo la medicion del 12-11, sin redondear."""
+    """Each match has to give what the Nov 12 measurement saved, unrounded."""
     ok = True
     pliegues = {f["held_out"]: f for f in LOMO["folds"]}
     for nombre, clave in (("detector", "control"), ("equipo", "chosen")):
@@ -106,19 +107,19 @@ def reproduce_el_lomo(decodificado):
                      and r["n_pred_spells"] == ref["n_pred_spells"]
                      and r["n_gt_spells"] == ref["n_gt_spells"])
             if not igual:
-                print("   DIFIERE %s %s: aqui %.6f, LOMO %.6f" % (
+                print("   DIFFERS %s %s: here %.6f, LOMO %.6f" % (
                     nombre, mid, r["spell_f1_mean"], ref["spell_f1"]))
             ok &= igual
     if any(f["choice"]["weight"] != 2.0 for f in LOMO["folds"]):
-        print("   el peso elegido no es 2,0 en todos los pliegues: 'equipo' no seria el elegido")
+        print("   the chosen weight is not 2.0 in every fold: 'equipo' would not be the chosen one")
         ok = False
     if ok:
-        print("   ok  los 14 partidos-config reproducen equipo_sin_balon_lomo.json")
+        print("   ok  the 14 match-config pairs reproduce equipo_sin_balon_lomo.json")
     return ok
 
 
 def tamanos(filas):
-    """Tamano de cada categoria, que depende de los datos y no de la prediccion."""
+    """Size of each category, which depends on the data and not on the prediction."""
     out = [(f[1], f[2], int(f[4])) for f in filas if f[1] != "confusion_pct_fila"]
     for real in "HAD":
         out.append(("confusion_pct_fila", "real %s" % real, sum(
@@ -128,7 +129,7 @@ def tamanos(filas):
 
 
 def clasificador_rows():
-    """Las 21 ejecuciones del LOMO y su resumen, mas la medida con huecos realistas."""
+    """The 21 LOMO runs and their summary, plus the measurement with realistic gaps."""
     filas, resumen = [], []
     for fold in LOMO["folds"]:
         for semilla, fila in sorted(fold["seeds"].items()):
@@ -161,14 +162,14 @@ def clasificador_rows():
 
 
 def lectura_publica():
-    """Cada entrega conservada, puntuada en los 5 minutos publicos. Lectura, no criterio."""
+    """Each kept submission, scored on the 5 public minutes. A reading, not a criterion."""
     filas = []
     for fecha, fichero, sha, que in ENTREGAS:
         ruta = os.path.join(R.REPO, "out", fichero)
         if not os.path.exists(ruta):
             continue
         if not hashlib.sha256(open(ruta, "rb").read()).hexdigest().startswith(sha):
-            raise ValueError("%s no es la entrega %s" % (ruta, sha))
+            raise ValueError("%s is not submission %s" % (ruta, sha))
         r = ev.score(np.asarray(pm.read_label_csv(ruta)["label"], dtype="<U1"))
         filas.append({"entrega": fecha, "que_lleva": que, "sha256": sha,
                       "spellF1": round(r["spell_f1_mean"], 4), "macroF1": round(r["macro_f1"], 4),
@@ -186,7 +187,7 @@ def escribir_lectura_publica():
 
 
 def _resumen(nombre, semillas):
-    """Media sin redondear de las ejecuciones de esas semillas, con huecos al azar."""
+    """Unrounded mean of the runs of those seeds, with random gaps."""
     pares = [(fold["seeds"][s]["control"], fold["seeds"][s]["chosen"])
              for fold in LOMO["folds"] for s in semillas]
     ganancia = [100 * (e["spell_f1"] - c["spell_f1"]) for c, e in pares]
@@ -204,9 +205,9 @@ def _resumen(nombre, semillas):
 def main():
     submission = os.path.join(R.REPO, "out", "submission.csv")
     sha = hashlib.sha256(open(submission, "rb").read()).hexdigest()
-    print("comprobando:")
+    print("checking:")
     ok = sha == SUBMISSION_SHA256
-    print("   %s out/submission.csv es %s" % ("ok " if ok else "NO ", sha[:8]))
+    print("   %s out/submission.csv is %s" % ("ok " if ok else "NO ", sha[:8]))
 
     decodificado = decodificar_todo(DEFAULT)
     ok &= reproduce_el_lomo(decodificado)
@@ -219,15 +220,15 @@ def main():
     referencia = tamanos([f for f in dx if f[0] == "actual"])
     for nombre, _, _, _ in NUEVAS:
         nuevas = R.diagnostico_de((decodificado[nombre][m][:3] for m in R.PARTIDOS), nombre)
-        ok &= R.mismo(tamanos(nuevas), referencia, "tamanos de categoria de '%s'" % nombre)
+        ok &= R.mismo(tamanos(nuevas), referencia, "category sizes of '%s'" % nombre)
         dx += nuevas
         filas = por_partido(decodificado, nombre)
         ok &= R.mismo([(f[0], f[5]) for f in filas],
                       [(f[0], f[5]) for f in pp if f[2] == "actual"],
-                      "posesiones reales por partido de '%s'" % nombre)
+                      "real possessions per match of '%s'" % nombre)
         pp += filas
     if not ok:
-        print("\nNO SE ESCRIBE NADA: lo que tenia que ser exacto no lo es, revisar antes.")
+        print("\nNOTHING IS WRITTEN: what had to be exact is not, check before going on.")
         sys.exit(1)
 
     R.escribir_csv("scores_por_partido.csv", viejo_pp[0], pp)
@@ -271,10 +272,10 @@ def main():
             print("   %-11s %-11s spellF1 %.4f  macroF1 %.4f" % (
                 a["config"], a["grupo"], a["spellF1"], a["macroF1"]))
     for r in resumen:
-        print("   huecos %-9s semilla %-5s %.4f -> %.4f  %+.2f pp  %d de %d" % (
+        print("   gaps %-9s seed %-5s %.4f -> %.4f  %+.2f pp  %d of %d" % (
             r["huecos"], r["semilla"], r["sin_clasificador"], r["con_clasificador"],
             r["ganancia_pp"], r["mejoran"], r["ejecuciones"]))
-    print("\nescritos 8 ficheros en datos/")
+    print("\nwrote 8 files in datos/")
 
 
 if __name__ == "__main__":

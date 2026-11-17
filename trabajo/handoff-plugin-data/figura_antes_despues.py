@@ -1,4 +1,4 @@
-"""Figura antes/despues de spellF1 para el documento tecnico."""
+"""Before/after spellF1 figure for the technical document."""
 import json
 import matplotlib
 matplotlib.use("Agg")
@@ -11,7 +11,7 @@ OUT = "/Users/bultoesal/Documents/Hackaton/figuras/"
 MINIMO = 0.2433
 
 AZUL, GRIS, ROJO, TENUE, TINTA = "#2f6db5", "#8b909a", "#c0564e", "#dcdfe4", "#2b2f36"
-X_VAL, X_PP, X_MAX = 0.525, 0.645, 0.66   # columnas de texto, fuera de la zona de datos
+X_VAL, X_PP, X_MAX = 0.525, 0.645, 0.66   # text columns, outside the data area
 
 sc = pd.read_csv(D + "scores_por_partido.csv")
 agg = json.load(open(D + "agregados_por_config.json"))
@@ -20,7 +20,7 @@ media = {(a["config"], a["grupo"]): a["spellF1"] for a in agg}
 piv = sc.pivot(index="partido", columns="config", values="spellF1")
 grupo = sc.drop_duplicates("partido").set_index("partido").grupo
 
-# De arriba abajo: ajuste (4 partidos + media), hueco, validacion (3 + media).
+# From top to bottom: fit (4 matches + mean), gap, validation (3 + mean).
 filas = []
 for g, etiqueta in [("ajuste", "Ajuste"), ("validacion", "Validación")]:
     ids = sorted([p for p in piv.index if grupo[p] == g],
@@ -33,7 +33,7 @@ for g, etiqueta in [("ajuste", "Ajuste"), ("validacion", "Validación")]:
                   "a": media[("actual", g)], "r": media[("recalibrado", g)], "media": True})
     filas[-1]["banda"] = (etiqueta, ini, len(filas) - 1)
     if g == "ajuste":
-        filas.append(None)   # hueco entre bloques
+        filas.append(None)   # gap between blocks
         len_hueco = len(filas) - 1
 
 filas_d = [f for f in filas if f]
@@ -56,7 +56,7 @@ for f in filas_d:
     ax.annotate(f"{(r - a) * 100:+.2f} pp".replace(".", ","), (X_PP, y), va="center",
                 ha="right", fontsize=9, color=GRIS if sube else ROJO, fontweight=peso)
 
-# Bandas de grupo: etiqueta girada a la izquierda y corchete.
+# Group bands: label rotated on the left, and a bracket.
 for f in filas_d:
     if "banda" not in f:
         continue

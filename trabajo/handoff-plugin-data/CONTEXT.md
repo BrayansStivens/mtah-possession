@@ -1,83 +1,85 @@
-# Traspaso a una sesión con el plugin Data — FC Medallo
+# Handoff to a session with the Data plugin — FC Medallo
 
-Este paquete existe para usar el plugin **Data** de claude.ai (`/analyze`, `/create-viz`,
-`/build-dashboard`, `/validate`) sobre los resultados de nuestro modelo. El plugin está activado
-en la cuenta de claude.ai pero no en la sesión de Claude Code donde se hizo el trabajo.
+This package exists to use claude.ai's **Data** plugin (`/analyze`, `/create-viz`,
+`/build-dashboard`, `/validate`) on our model's results. The plugin is enabled
+in the claude.ai account but not in the Claude Code session where the work was done.
 
-## ⚠️ Lo primero: qué se puede subir y qué no
+## ⚠️ First things first: what can be uploaded and what cannot
 
-Las reglas de la competición prohíben subir a cualquier LLM en la nube **el vídeo, el tracking,
-la homografía, el Smart Tagging o cualquier extracto** del partido. Por eso este paquete
-**no contiene nada de eso** y en la sesión nueva **no hay que subir nada de la carpeta `data/`**.
+The competition rules forbid uploading **the video, the tracking, the homography, the Smart
+Tagging or any excerpt** of the match to any cloud LLM. That is why this package
+**contains none of that** and in the new session **nothing from the `data/` folder
+should be uploaded**.
 
-Lo que sí hay aquí, y es seguro:
-- **Salidas de nuestro modelo** (etiquetas H/A/D que produce nuestro programa).
-- **El ground truth público** de 5 minutos, que los organizadores publican en GitHub.
-- **Estadísticas agregadas** medidas sobre **otros partidos** (7 de la Bundesliga, públicos).
+What is here, and is safe:
+- **Outputs of our model** (H/A/D labels that our program produces).
+- **The public ground truth** of 5 minutes, which the organizers publish on GitHub.
+- **Aggregate statistics** measured on **other matches** (7 from the Bundesliga, public).
 
-## Qué hay en `datos/`
+## What's in `datos/`
 
-| fichero | qué es |
+| file | what it is |
 |---|---|
-| `scores_por_partido.csv` | spellF1 y macroF1 por partido externo, para la config **actual** (la anterior al 28-10, reconstruida) y la **recalibrada** (el `config.py` de hoy). Columna `grupo`: 4 partidos de *ajuste*, 3 de *validación* que no se tocaron al ajustar. Regenerado el 2-11 con `regenera_datos.py` |
-| `diagnostico_errores.csv` | cuatro tablas (formato largo) para cada config: error según cuánto lleva el balón sin verse, error según distancia a la transición real, matriz de confusión, % de posesiones recuperadas por duración |
-| `recalibracion.json` | la config recalibrada del 28-10 (histórica: `activity_smooth` volvió a 50 el 31-10), las medianas por clase medidas, y los scores de ese día |
-| `ventana_publica_5min.csv` | 7.500 filas: ground truth público y nuestra etiqueta, por fotograma |
-| `partido_completo_1hz.csv` | nuestra etiqueta a 1 muestra por segundo, las dos partes (sin ground truth: es privado) |
-| `clasificador_equipo.json` | (15-11) las 21 ejecuciones del leave-one-match-out del clasificador de equipo: spellF1 sin y con él por partido y semilla |
-| `clasificador_equipo_resumen.json` | (15-11) su resumen por semilla y en media, más la medida con huecos de balón como los del partido real |
-| `lectura_publica.json` | (15-11) spellF1 de cada entrega conservada sobre los 5 minutos públicos. Lectura, nunca criterio |
+| `scores_por_partido.csv` | spellF1 and macroF1 per external match, for the **current** config (the one before Oct 28, reconstructed) and the **recalibrated** one (today's `config.py`). Column `grupo`: 4 *fit* matches, 3 *validation* matches that were not touched when tuning. Regenerated on Nov 2 with `regenera_datos.py` |
+| `diagnostico_errores.csv` | four tables (long format) for each config: error by how long the ball has gone unseen, error by distance to the real transition, confusion matrix, % of possessions recovered by duration |
+| `recalibracion.json` | the recalibrated config from Oct 28 (historical: `activity_smooth` went back to 50 on Oct 31), the measured per-class medians, and that day's scores |
+| `ventana_publica_5min.csv` | 7,500 rows: public ground truth and our label, per frame |
+| `partido_completo_1hz.csv` | our label at 1 sample per second, both halves (no ground truth: it's private) |
+| `clasificador_equipo.json` | (Nov 15) the 21 leave-one-match-out runs of the team classifier: spellF1 without and with it, per match and seed |
+| `clasificador_equipo_resumen.json` | (Nov 15) its summary per seed and on average, plus the measurement with ball gaps like those of the real match |
+| `lectura_publica.json` | (Nov 15) spellF1 of every preserved submission on the 5 public minutes. A reading, never a criterion |
 
-Desde el 15-11 `scores_por_partido.csv`, `diagnostico_errores.csv` y `agregados_por_config.json`
-traen dos configuraciones más, `detector` y `equipo` (la de hoy), medidas con modelos que no
-vieron el partido que se puntúa (`regenera_equipo.py`). Las dos vistas temporales son la
-entrega que genera `main` (sha256 `a43c52fb…`).
+Since Nov 15, `scores_por_partido.csv`, `diagnostico_errores.csv` and `agregados_por_config.json`
+carry two more configurations, `detector` and `equipo` (today's), measured with models that did
+not see the match being scored (`regenera_equipo.py`). The two time views are the
+submission that `main` generates (sha256 `a43c52fb…`).
 
-Y en `figuras/` las tres gráficas ya hechas a mano con matplotlib, por si sirven de referencia.
+And in `figuras/` the three charts already made by hand with matplotlib, in case they are useful
+as a reference.
 
-## Los números que importan
+## The numbers that matter
 
-- Métrica de ranking: **spellF1** (posesiones acertadas por solapamiento temporal, no fotogramas).
-- Mínimo oficial a superar: **0,2433**.
-- Nuestro modelo sobre los 7 partidos externos, con el `config.py` de hoy (31-10): **0,3965**
-  (ajuste 0,3878, validación 0,4081). La config anterior al 28-10 daba 0,3767 (validación 0,3837).
-- ¿Sobreajuste? La frase defendible, medida sobre las 35 particiones posibles de 4 ajuste / 3
-  validación: **la recalibración gana +1,7 pp (IC 95 % [+1,4, +2,1]) en partidos que no se usaron
-  para ajustarla; en los de ajuste gana +3,3 pp, así que aproximadamente la mitad de la ganancia
-  es sobreajuste.** No vale decir "no se sobreajustó". Detalle en `VALIDACION-CRUZADA.md`.
-- Lo que más falla: decir de qué equipo es el balón (~20% de los frames vivos) y las posesiones
-  de menos de 5 segundos (se recupera ~1 de cada 10).
+- Ranking metric: **spellF1** (possessions correctly identified by temporal overlap, not frames).
+- Official minimum to beat: **0.2433**.
+- Our model over the 7 external matches, with today's `config.py` (Oct 31): **0.3965**
+  (fit 0.3878, validation 0.4081). The config prior to Oct 28 gave 0.3767 (validation 0.3837).
+- Overfitting? The defensible sentence, measured over the 35 possible splits of 4 fit / 3
+  validation: **recalibration gains +1.7 pp (95% CI [+1.4, +2.1]) on matches that were not used
+  to tune it; on the fit matches it gains +3.3 pp, so roughly half of the gain
+  is overfitting.** It is not valid to say "it did not overfit". Details in `CROSS-VALIDATION.md`.
+- What fails most: saying which team the ball belongs to (~20% of live frames) and possessions
+  shorter than 5 seconds (about 1 in 10 is recovered).
 
 ---
 
-## Prompt para pegar en la sesión nueva
+## Prompt to paste into the new session
 
 ```
-Contexto: competimos en "More than a Hack 2027". Hay que etiquetar cada fotograma de un partido
-de fútbol con H (balón del equipo local), A (visitante) o D (balón parado). Nos puntúan con
-spellF1: cada posesión (tramo seguido de un equipo con el balón) cuenta una vez y se acierta si
-se solapa bastante con la real. El mínimo a superar es 0,2433.
+Context: we are competing in "More than a Hack 2027". We have to label every frame of a football
+match as H (ball with the home team), A (away) or D (dead ball). We are scored with
+spellF1: each possession (a continuous stretch of one team having the ball) counts once and is
+a hit if it overlaps enough with the real one. The minimum to beat is 0.2433.
 
-Te adjunto resultados de nuestro modelo evaluado sobre 7 partidos externos (Bundesliga), con dos
-configuraciones: "actual" y "recalibrado". Cuatro partidos se usaron para ajustar y tres para
-validar. Los ficheros están descritos en CONTEXTO.md. Son salidas de nuestro modelo y agregados
-sobre otros partidos: no contienen datos del partido de la competición.
+I'm attaching the results of our model evaluated on 7 external matches (Bundesliga), with two
+configurations: "current" and "recalibrated". Four matches were used to tune and three to
+validate. The files are described in CONTEXT.md. They are outputs of our model and aggregates
+over other matches: they contain no data from the competition match.
 
-Quiero tres cosas, en este orden:
+I want three things, in this order:
 
-1. /validate — revisa el análisis antes de que lo compartamos con el equipo. En particular:
-   ¿la comparación actual vs recalibrado es justa? ¿hay algún sesgo en cómo se agregan los
-   errores (por ejemplo, las categorías con pocos frames)? ¿la mejora de 0,3767 a 0,3965 es
-   creíble dado que 3 partidos de validación dan 0,3837 → 0,4081?
+1. /validate — review the analysis before we share it with the team. In particular:
+   is the comparison current vs recalibrated fair? Is there any bias in how the
+   errors are aggregated (for example, the categories with few frames)? Is the improvement from
+   0.3767 to 0.3965 believable given that the 3 validation matches go 0.3837 → 0.4081?
 
-2. /build-dashboard — un dashboard HTML para el equipo con: (a) spellF1 por partido, actual vs
-   recalibrado, marcando ajuste vs validación; (b) las cuatro tablas de diagnóstico como gráficas,
-   con un selector de config; (c) la línea de tiempo de los 5 minutos públicos (ground truth
-   arriba, modelo abajo, errores marcados); (d) el partido completo a 1 Hz como franja de colores.
-   Colores: H azul, A rojo, D gris.
+2. /build-dashboard — an HTML dashboard for the team with: (a) spellF1 per match, current vs
+   recalibrated, marking fit vs validation; (b) the four diagnostic tables as charts,
+   with a config selector; (c) the timeline of the 5 public minutes (ground truth
+   on top, model below, errors marked); (d) the full match at 1 Hz as a color strip.
+   Colors: H blue, A red, D gray.
 
-3. /create-viz — una figura limpia "antes/después" para el documento técnico: spellF1 en los 7
-   partidos con las dos configs, separando ajuste y validación, con la línea del mínimo 0,2433.
+3. /create-viz — a clean "before/after" figure for the technical document: spellF1 over the 7
+   matches with the two configs, separating fit and validation, with the 0.2433 minimum line.
 
-No inventes datos que no estén en los ficheros. Si algo no se puede responder con lo adjunto, dilo.
+Don't invent data that isn't in the files. If something can't be answered with what's attached, say so.
 ```

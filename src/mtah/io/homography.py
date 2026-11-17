@@ -1,14 +1,13 @@
-"""Homografia por frame: campo normalizado (0-1) -> pixel de la imagen.
+"""Per-frame homography: normalized pitch (0-1) -> image pixel.
 
-Una fila por frame de video, `frame` contando desde 0, asi que para el video tactico el
-indice coincide con la fila de la submission. Columnas 1-9 son la matriz 3x3 en orden de
-filas.
+One row per video frame, `frame` counting from 0, so for the tactical video the
+index matches the submission row. Columns 1-9 are the 3x3 matrix in row order.
 
-Para que sirve de verdad: proyectar los jugadores sobre el frame del video y mirar con tus
-ojos que engaño al modelo. Es la herramienta de depuracion, no un feature fuerte --
-medido sobre este partido, `reprojection_error` separa "camara apuntando al campo" de
-"camara en el publico", pero NO separa jugada de balon parado (mediana 0.231 en juego vs
-0.395 en el descanso, p90 en juego 0.308).
+What it is really for: projecting the players onto the video frame and checking with your own
+eyes what fooled the model. It is a debugging tool, not a strong feature --
+measured on this match, `reprojection_error` separates "camera pointing at the pitch" from
+"camera on the crowd", but it does NOT separate live play from dead ball (median 0.231 in play vs
+0.395 at half-time, p90 in play 0.308).
 """
 
 import numpy as np
@@ -19,16 +18,16 @@ from ..paths import require
 
 
 def load(source="tactical", game=GAME):
-    """(H, reprojection_error, valid) con H de forma (n, 3, 3)."""
+    """(H, reprojection_error, valid) with H of shape (n, 3, 3)."""
     path = require(["homography"], source=source, game=game)[0]
     frame = pd.read_csv(path)
     expected = ["frame", "h00", "h01", "h02", "h10", "h11", "h12", "h20", "h21", "h22",
                 "reprojection_error", "valid"]
     missing = [c for c in expected if c not in frame.columns]
     if missing:
-        raise ValueError("{}: faltan columnas {}".format(path, missing))
+        raise ValueError("{}: missing columns {}".format(path, missing))
     if not (frame["frame"].values == np.arange(len(frame))).all():
-        raise ValueError("{}: la columna frame no es 0..n-1 en orden".format(path))
+        raise ValueError("{}: the frame column is not 0..n-1 in order".format(path))
 
     matrices = frame[expected[1:10]].to_numpy(dtype=np.float64).reshape(-1, 3, 3)
     return (matrices,
@@ -37,7 +36,7 @@ def load(source="tactical", game=GAME):
 
 
 def project(matrix, x, y):
-    """Punto(s) del campo normalizado -> pixel. Acepta escalares o arrays."""
+    """Point(s) of the normalized pitch -> pixel. Accepts scalars or arrays."""
     x = np.asarray(x, dtype=np.float64)
     y = np.asarray(y, dtype=np.float64)
     denominator = matrix[2, 0] * x + matrix[2, 1] * y + matrix[2, 2]
@@ -47,6 +46,6 @@ def project(matrix, x, y):
 
 
 def unproject(matrix, px, py):
-    """Pixel -> punto del campo normalizado. Inversa de project()."""
+    """Pixel -> point of the normalized pitch. Inverse of project()."""
     inverse = np.linalg.inv(matrix)
     return project(inverse, px, py)

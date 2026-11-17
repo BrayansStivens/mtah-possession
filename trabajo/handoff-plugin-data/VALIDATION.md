@@ -1,273 +1,273 @@
-# Validación del análisis spellF1 — actual vs recalibrado
+# Validation of the spellF1 analysis — current vs recalibrated
 
-**Fecha:** 28 oct 2026 · **Alcance:** los 5 ficheros de `handoff-plugin-data/datos/`.
-**Método:** sólo lectura; todos los números se recalcularon de forma independiente desde los CSV/JSON
-(script: `verificar.py`, en el scratchpad de la sesión). No se tocó nada de `data/`.
+**Date:** Oct 28, 2026 · **Scope:** the 5 files in `handoff-plugin-data/datos/`.
+**Method:** read-only; all numbers were recalculated independently from the CSV/JSON files
+(script: `verificar.py`, in the session scratchpad). Nothing in `data/` was touched.
 
-## Veredicto: **compartir con salvedades, y corregir dos afirmaciones antes de enviarlo**
+## Verdict: **share with caveats, and correct two claims before sending it**
 
-> **29-10, más tarde:** la afirmación de que el descenso "no transfiere nada" **es falsa**;
-> corriendo el procedimiento sobre los 35 splits gana +1,7 pp fuera de su ajuste. Ver
-> [VALIDACION-CRUZADA.md](VALIDACION-CRUZADA.md), que sustituye a la sección de corrección
-> de abajo en todo lo que se refiere al sobreajuste.
+> **Oct 29, later:** the claim that the descent "transfers nothing" **is false**;
+> running the procedure over the 35 splits gains +1.7 pp outside its fit set. See
+> [CROSS-VALIDATION.md](CROSS-VALIDATION.md), which supersedes the correction section
+> below on everything concerning overfitting.
 >
-> **29-10:** el hallazgo 1 se midió de nuevo con las tres semillas de degradación y **se
-> retira** su recomendación de cambiar de config. Leer *Corrección del 29-10* antes del
-> hallazgo 1. El resto del informe se mantiene.
+> **Oct 29:** finding 1 was measured again with the three degradation seeds and its
+> recommendation to change config is **withdrawn**. Read *Correction of Oct 29* before
+> finding 1. The rest of the report stands.
 
-Las cuentas del paquete son correctas: los agregados del JSON reproducen exactamente la media de los
-CSV por partido, las filas de la matriz de confusión suman 100 %, los `n` cuadran entre tablas
-(1.002.644 fotogramas, 1.945 posesiones reales) y los centros recalibrados son en efecto el punto
-medio de las medianas por clase. No hay errores de cálculo.
+The package's calculations are correct: the JSON aggregates exactly reproduce the mean of the per-match
+CSVs, the rows of the confusion matrix sum to 100%, the `n` values match across tables
+(1,002,644 frames, 1,945 real possessions) and the recalibrated centers are indeed the midpoint
+of the per-class medians. There are no calculation errors.
 
 ---
 
-## Corrección del 29-10-2026 — el hallazgo 1 no sobrevive a su propia comprobación
+## Correction of Oct 29, 2026 — finding 1 does not survive its own check
 
-Al intentar llevar `solo_centros` a `config.py` se midió de nuevo el arnés IDSSE, esta vez con las
-**tres semillas de degradación** que hay en `out/cache` en lugar de una sola. Dos cosas cambian:
+When trying to bring `solo_centros` into `config.py`, the IDSSE harness was measured again, this time with the
+**three degradation seeds** that exist in `out/cache` instead of just one. Two things change:
 
-**a) `solo_centros` no es "config.py sin el ajuste extra".** El script que generó `recalibracion.json`
-lo define como `merged(**centres)` sobre el `DEFAULT` **de ese momento**, es decir el `config.py`
-anterior al 28-10: ventanas de suavizado ±50, `switch_turnover` 28 y los centros de la ventana
-pública, con sólo los tres centros nuevos encima. Ese fichero **no se conserva** (el repo no tiene
-ningún commit), así que `solo_centros` no se puede reproducir exactamente. Reconstruido desde la
-procedencia documentada en `config.py` queda a −0,3 pp en ajuste y −0,02 pp en validación de los
-valores publicados — cerca, pero no igual.
+**a) `solo_centros` is not "config.py without the extra tuning".** The script that generated `recalibracion.json`
+defines it as `merged(**centers)` on top of the `DEFAULT` **of that moment**, that is, the `config.py`
+from before Oct 28: smoothing windows ±50, `switch_turnover` 28 and the centers of the public
+window, with only the three new centers on top. That file **is not preserved** (the repo has
+no commits at all), so `solo_centros` cannot be reproduced exactly. Rebuilt from the provenance
+documented in `config.py` it comes out at −0.3 pp on the fit set and −0.02 pp on the validation set relative to the
+published values — close, but not the same.
 
-**b) la ventaja de −0,22 pp está dentro del ruido entre semillas.** Delta de spellF1
-(`recalibrado` − `solo_centros`), midiendo las dos configs con el mismo código y la misma semilla:
+**b) the −0.22 pp advantage is within seed-to-seed noise.** spellF1 delta
+(`recalibrado` − `solo_centros`), measuring both configs with the same code and the same seed:
 
-| semilla | ajuste (4) | validación (3) |
+| seed | fit (4) | validation (3) |
 |---|---|---|
-| 0 | +1,91 pp | +0,60 pp |
-| 1 | +0,59 pp | −0,44 pp |
-| 2 | +2,13 pp | −0,61 pp |
-| **media** | **+1,54 pp** | **−0,15 pp** |
+| 0 | +1.91 pp | +0.60 pp |
+| 1 | +0.59 pp | −0.44 pp |
+| 2 | +2.13 pp | −0.61 pp |
+| **mean** | **+1.54 pp** | **−0.15 pp** |
 
-El signo en validación cambia con la semilla y el recorrido es de 1,2 pp: siete veces el −0,22 pp
-sobre el que se apoyaba la recomendación. El sesgo de la reconstrucción es un desplazamiento
-constante y no afecta a ese recorrido.
+The sign on validation changes with the seed and the range is 1.2 pp: seven times the −0.22 pp
+the recommendation rested on. The bias of the reconstruction is a
+constant offset and does not affect that range.
 
-**Lo que sí queda demostrado, y más firme que antes:** en ajuste la recalibración gana en las tres
-semillas (+0,6 a +2,1 pp) y en validación no gana en ninguna (media −0,15 pp). El descenso por
-coordenadas compra puntos donde se ajustó y **no transfiere nada**. El hallazgo 2 se mantiene; lo que
-cae es el corolario de que `solo_centros` sea mejor. Las dos son indistinguibles fuera del ajuste.
+**What does remain demonstrated, and more firmly than before:** on the fit set the recalibration wins on all three
+seeds (+0.6 to +2.1 pp) and on validation it wins on none (mean −0.15 pp). Coordinate
+descent buys points where it was tuned and **transfers nothing**. Finding 2 stands; what falls is
+the corollary that `solo_centros` is better. The two are indistinguishable outside the fit set.
 
-**Qué hacer con esto:** no cambiar la config de entrega. No hay evidencia para preferir ninguna de
-las dos, y `config.py` tiene la procedencia de cada valor escrita al lado, que es lo que exige
-RULES.md. Lo que hay que corregir es el **relato**: la recalibración vale +1,5 pp donde se ajustó y
-0 pp fuera.
+**What to do about this:** do not change the submission config. There is no evidence to prefer either
+of the two, and `config.py` has the provenance of each value written next to it, which is what
+RULES.md requires. What has to be corrected is the **narrative**: the recalibration is worth +1.5 pp where it was tuned and
+0 pp outside.
 
-### De dónde sale la ganancia, parámetro a parámetro
+### Where the gain comes from, parameter by parameter
 
-Revirtiendo **un solo valor** de `config.py` al que tenía antes del 28-10 (semilla 0, el resto igual):
+Reverting **a single value** of `config.py` to what it was before Oct 28 (seed 0, everything else the same):
 
-| se revierte | Δ ajuste | Δ validación |
+| reverted | Δ fit | Δ validation |
 |---|---|---|
-| `control_center` 0,008 → 0,096 | −0,06 pp | **−1,55 pp** |
-| `switch_turnover` 40 → 28 | −0,37 pp | **−1,27 pp** |
-| `shape_smooth` 200 → 50 | −0,69 pp | −0,63 pp |
-| `ball_speed_center` 3,14 → 4,10 | −0,52 pp | +0,06 pp |
-| `ball_speed_smooth` 6 → 50 | −1,10 pp | +0,33 pp |
-| `activity_smooth` 12 → 50 | −0,27 pp | **+1,14 pp** |
-| `shape_center` 0,976 → 0,975 | 0,00 pp | 0,00 pp |
+| `control_center` 0.008 → 0.096 | −0.06 pp | **−1.55 pp** |
+| `switch_turnover` 40 → 28 | −0.37 pp | **−1.27 pp** |
+| `shape_smooth` 200 → 50 | −0.69 pp | −0.63 pp |
+| `ball_speed_center` 3.14 → 4.10 | −0.52 pp | +0.06 pp |
+| `ball_speed_smooth` 6 → 50 | −1.10 pp | +0.33 pp |
+| `activity_smooth` 12 → 50 | −0.27 pp | **+1.14 pp** |
+| `shape_center` 0.976 → 0.975 | 0.00 pp | 0.00 pp |
 
-Se separa limpio en dos grupos. Lo que **transfiere** son los dos valores con justificación
-mecánica: el centro de control (simétrico entre equipos por construcción) y el coste de giro de
-pelota (que `config.py` ya documenta como una meseta por encima de 40, no un pico). Lo que **no
-transfiere** es `activity_smooth` = 12: cuesta 1,1 pp en validación y sólo compra 0,27 pp en ajuste
-— es ruido elegido por rejilla. `ball_speed_smooth` = 6 va en la misma dirección, más suave.
-`shape_center` es indistinguible: el redondeo a tres decimales no mueve ni un fotograma.
+It separates cleanly into two groups. What **transfers** are the two values with mechanical
+justification: the control center (symmetric between teams by construction) and the ball turnover
+cost (which `config.py` already documents as a plateau above 40, not a peak). What does **not
+transfer** is `activity_smooth` = 12: it costs 1.1 pp on validation and only buys 0.27 pp on the fit set
+— it is noise picked by grid. `ball_speed_smooth` = 6 goes in the same direction, more mildly.
+`shape_center` is indistinguishable: rounding to three decimals does not move a single frame.
 
-Aviso de método: esa última tabla está medida **sobre el conjunto de validación**. Sirve para
-diagnosticar de dónde viene el sobreajuste; usarla para elegir `activity_smooth` = 50 sería cometer
-otra vez el mismo error, con el último conjunto limpio que queda. Si se quiere decidir eso bien,
-hace falta volver a partir los 7 partidos y re-derivar, no leer esta columna.
+Method warning: that last table is measured **on the validation set**. It serves to
+diagnose where the overfitting comes from; using it to choose `activity_smooth` = 50 would be making
+the same mistake again, with the last clean set left. If you want to decide that properly,
+the 7 matches have to be re-split and re-derived, not read off this column.
 
-Medido con `handoff-plugin-data/semillas.py` y `reeval.py`; números en
-`datos/robustez_semillas.json`. Se re-ejecutó sólo el arnés sobre `out/cache` (partidos externos
-degradados): no se tocó el ATD ni la ventana pública.
-
----
-
-Lo que no se sostiene es la lectura: **"0,3767 → 0,3927 y no se sobreajustó" es demasiado optimista, y
-la configuración que el paquete recomienda no es la que mejor generaliza.**
+Measured with `handoff-plugin-data/semillas.py` and `reeval.py`; numbers in
+`datos/robustez_semillas.json`. Only the harness was re-run over `out/cache` (degraded external
+matches): neither the ATD nor the public window was touched.
 
 ---
 
-## Hallazgos
+What does not hold up is the reading: **"0.3767 → 0.3927 and it did not overfit" is too optimistic, and
+the configuration the package recommends is not the one that generalizes best.**
 
-### 1. [ALTA] `solo_centros` gana a `recalibrado` en los partidos de validación
+---
 
-Está en `recalibracion.json`, en el bloque `scores`, y el paquete no lo menciona. spellF1:
+## Findings
 
-| config | ajuste (4) | validación (3) | los 7 |
+### 1. [HIGH] `solo_centros` beats `recalibrado` on the validation matches
+
+It is in `recalibracion.json`, in the `scores` block, and the package does not mention it. spellF1:
+
+| config | fit (4) | validation (3) | all 7 |
 |---|---|---|---|
-| `original_pre_sesion` | 0,3110 | 0,3272 | 0,3179 |
-| `actual_config_py` | 0,3714 | 0,3837 | 0,3767 |
-| `solo_centros` | 0,3747 | **0,3979** | 0,3847 |
-| `recalibrado` | **0,3905** | 0,3957 | 0,3927 |
+| `original_pre_sesion` | 0.3110 | 0.3272 | 0.3179 |
+| `actual_config_py` | 0.3714 | 0.3837 | 0.3767 |
+| `solo_centros` | 0.3747 | **0.3979** | 0.3847 |
+| `recalibrado` | **0.3905** | 0.3957 | 0.3927 |
 
-Leído por columnas: re-centrar y nada más gana +1,42 pp en validación; añadir el resto de la
-recalibración encima gana +1,58 pp **en ajuste** y pierde **−0,22 pp en validación**. Es la firma
-clásica de sobreajuste: los parámetros extra compran puntos donde se ajustaron y no los transfieren.
+Read by columns: re-centering and nothing else gains +1.42 pp on validation; adding the rest of the
+recalibration on top gains +1.58 pp **on the fit set** and loses **−0.22 pp on validation**. This is the
+classic signature of overfitting: the extra parameters buy points where they were fitted and do not transfer them.
 
-La brecha ajuste−validación lo confirma: −0,0232 con `solo_centros` → −0,0052 con `recalibrado`. El
-conjunto de ajuste "alcanza" al de validación, que es lo que pasa cuando se ajusta sobre él.
+The fit−validation gap confirms it: −0.0232 with `solo_centros` → −0.0052 with `recalibrado`. The
+fit set "catches up" with the validation set, which is what happens when you fit on it.
 
-**Consecuencia práctica** — *corregida el 29-10, ver la sección de corrección*: la ventaja de
-−0,22 pp es una sola semilla de degradación y cambia de signo con las otras dos. **No hay evidencia
-para cambiar de config.** Lo que sí hay que decir es que la ventaja de `recalibrado` sobre
-`solo_centros` no está demostrada fuera del conjunto de ajuste: ahí son indistinguibles.
+**Practical consequence** — *corrected on Oct 29, see the correction section*: the
+−0.22 pp advantage is a single degradation seed and changes sign with the other two. **There is no evidence
+to change config.** What must be said is that the advantage of `recalibrado` over
+`solo_centros` is not demonstrated outside the fit set: there they are indistinguishable.
 
-### 2. [ALTA] "No se sobreajustó" no es lo que dicen los datos
+### 2. [HIGH] "It did not overfit" is not what the data say
 
-La mejora es +1,91 pp en ajuste y +1,19 pp en validación: transfiere el 62 %, no el 100 %. Y uno de
-los tres partidos de validación **empeora** (J03WPY, −0,0035).
+The improvement is +1.91 pp on the fit set and +1.19 pp on validation: it transfers 62%, not 100%. And one of
+the three validation matches **gets worse** (J03WPY, −0.0035).
 
-Deltas por partido (recalibrado − actual):
+Per-match deltas (recalibrated − current):
 
-| partido | grupo | actual | recalibrado | Δ |
+| match | group | current | recalibrated | Δ |
 |---|---|---|---|---|
-| J03WMX | ajuste | 0,3556 | 0,3606 | +0,0050 |
-| J03WN1 | ajuste | 0,3227 | 0,3508 | +0,0281 |
-| J03WOH | ajuste | 0,4515 | 0,4570 | +0,0055 |
-| J03WOY | ajuste | 0,3556 | 0,3936 | +0,0380 |
-| J03WPY | validación | 0,3824 | 0,3789 | **−0,0035** |
-| J03WQQ | validación | 0,4210 | 0,4357 | +0,0147 |
-| J03WR9 | validación | 0,3478 | 0,3724 | +0,0246 |
+| J03WMX | fit | 0.3556 | 0.3606 | +0.0050 |
+| J03WN1 | fit | 0.3227 | 0.3508 | +0.0281 |
+| J03WOH | fit | 0.4515 | 0.4570 | +0.0055 |
+| J03WOY | fit | 0.3556 | 0.3936 | +0.0380 |
+| J03WPY | validation | 0.3824 | 0.3789 | **−0.0035** |
+| J03WQQ | validation | 0.4210 | 0.4357 | +0.0147 |
+| J03WR9 | validation | 0.3478 | 0.3724 | +0.0246 |
 
-Los dos saltos grandes (+0,028 y +0,038) caen los dos en ajuste.
+The two big jumps (+0.028 and +0.038) both fall in the fit set.
 
-Significación con n=7: t emparejado p=0,029, Wilcoxon p=0,031, pero test de signos p=0,125 (6/7).
-IC 95 % del delta medio: **[+0,002, +0,030]** — el intervalo roza el cero. Con los 3 de validación
-solos (2/3 positivos, p=1,0) no se puede afirmar nada estadísticamente.
+Significance with n=7: paired t p=0.029, Wilcoxon p=0.031, but sign test p=0.125 (6/7).
+95% CI of the mean delta: **[+0.002, +0.030]** — the interval grazes zero. With the 3 validation matches
+alone (2/3 positive, p=1.0) nothing can be claimed statistically.
 
-**Redacción honesta:** "+1,2 pp en 3 partidos no usados para ajustar, con 1 de los 3 en contra; la
-muestra no permite descartar que parte del salto sea ruido."
+**Honest wording:** "+1.2 pp on 3 matches not used for tuning, with 1 of the 3 going against; the
+sample does not allow ruling out that part of the jump is noise."
 
-### 3. [ALTA] El conjunto de validación es más fácil que el de ajuste, así que 0,3957 no es una predicción
+### 3. [HIGH] The validation set is easier than the fit set, so 0.3957 is not a prediction
 
-En **las cuatro** configs, validación puntúa por encima de ajuste (entre +0,5 y +2,3 pp). Es una
-propiedad de esos 3 partidos, no del modelo. Citar 0,3957 como "lo que esperamos en la competición"
-hereda ese sesgo favorable. A eso se suma que los 7 partidos son Bundesliga, con otro proveedor de
-tracking y otra cámara que el partido de la competición: **ninguno de estos números es una
-predicción para la entrega**, sólo evidencia de que el margen sobre el mínimo 0,2433 es amplio
-(el peor partido, 0,3227, lo supera en +33 %).
+In **all four** configs, validation scores above fit (between +0.5 and +2.3 pp). It is a
+property of those 3 matches, not of the model. Quoting 0.3957 as "what we expect in the competition"
+inherits that favorable bias. On top of that, the 7 matches are Bundesliga, with a different tracking
+provider and a different camera than the competition match: **none of these numbers is a
+prediction for the submission**, only evidence that the margin over the 0.2433 minimum is wide
+(the worst match, 0.3227, exceeds it by +33%).
 
-### 4. [MEDIA] Sí hay sesgo de agregación en las categorías con pocos fotogramas
+### 4. [MEDIUM] There is aggregation bias in categories with few frames
 
-`error_por_racha_sin_balon`, que es la tabla donde más "mejora" se ve:
+`error_por_racha_sin_balon`, which is the table where the most "improvement" shows:
 
-| categoría | n | peso | error actual | recalibrado | Δ pp | fotogramas salvados |
+| category | n | weight | current error | recalibrated | Δ pp | frames saved |
 |---|---|---|---|---|---|---|
-| 1-25 fr | 512 | 0,05 % | 11,52 % | 4,10 % | −7,42 | **38** |
-| 26-125 fr | 854 | 0,09 % | 20,73 % | 19,56 % | −1,17 | 10 |
-| 126-500 fr | 131.727 | 13,1 % | 26,58 % | 26,23 % | −0,35 | 461 |
-| >500 fr | 276.897 | 27,6 % | 27,69 % | 27,39 % | −0,30 | 831 |
-| balón visible | 592.654 | 59,1 % | 15,27 % | 14,27 % | −1,00 | 5.927 |
+| 1-25 fr | 512 | 0.05% | 11.52% | 4.10% | −7.42 | **38** |
+| 26-125 fr | 854 | 0.09% | 20.73% | 19.56% | −1.17 | 10 |
+| 126-500 fr | 131,727 | 13.1% | 26.58% | 26.23% | −0.35 | 461 |
+| >500 fr | 276,897 | 27.6% | 27.69% | 27.39% | −0.30 | 831 |
+| ball visible | 592,654 | 59.1% | 15.27% | 14.27% | −1.00 | 5,927 |
 
-El bin de 1-25 fr es el 0,05 % de los datos: su −7,42 pp son **38 fotogramas**, ruido puro. Dibujado
-como cinco barras del mismo tamaño, el gráfico sugiere una mejora media de −2,05 pp; ponderando por
-fotogramas la mejora real es **−0,72 pp**. Casi todo el efecto (82 %) viene del bin "balón visible".
+The 1-25 fr bin is 0.05% of the data: its −7.42 pp is **38 frames**, pure noise. Drawn
+as five equal-size bars, the chart suggests an average improvement of −2.05 pp; weighting by
+frames the real improvement is **−0.72 pp**. Almost all of the effect (82%) comes from the "ball visible" bin.
 
-→ En el dashboard, los dos bins pequeños van etiquetados con su `n` y marcados como no fiables.
+→ In the dashboard, the two small bins are labeled with their `n` and marked as unreliable.
 
-Mismo aviso en sentido contrario: en `error_por_distancia_a_transicion`, el bin más grande (>250 fr,
-291.549 fotogramas, 29 % del total) **empeora** 7,22 % → 7,48 %. No está en el resumen del paquete.
+Same warning in the opposite direction: in `error_por_distancia_a_transicion`, the largest bin (>250 fr,
+291,549 frames, 29% of the total) **gets worse** 7.22% → 7.48%. It is not in the package summary.
 
-### 5. [MEDIA] La ganancia es casi toda precisión, y el recall tiene techo
+### 5. [MEDIUM] The gain is almost all precision, and recall has a ceiling
 
-Descomponiendo spellF1 desde la tabla de recall por duración y las posesiones predichas:
+Decomposing spellF1 from the recall-by-duration table and the predicted possessions:
 
-| config | aciertos | recall | precisión | F1 reconstruido |
+| config | hits | recall | precision | reconstructed F1 |
 |---|---|---|---|---|
-| actual | ~644 / 1.945 | 0,331 | 0,414 | 0,368 |
-| recalibrado | ~660 / 1.945 | 0,339 | 0,458 | 0,390 |
+| current | ~644 / 1,945 | 0.331 | 0.414 | 0.368 |
+| recalibrated | ~660 / 1,945 | 0.339 | 0.458 | 0.390 |
 
-(reconstruye 0,368 y 0,390 frente a los 0,3767 y 0,3927 oficiales — la diferencia es que el oficial
-promedia F1 por partido en vez de agrupar; coherente.)
+(it reconstructs 0.368 and 0.390 versus the official 0.3767 and 0.3927 — the difference is that the official one
+averages F1 per match instead of pooling; consistent.)
 
-El recall sube +0,8 pp y la precisión +4,4 pp: la recalibración no acierta más posesiones, emite
-menos (1.555 → 1.441 predichas, frente a 1.945 reales) y más largas (duración media 14,1 s → 15,2 s
-contra 11,8 s reales). Mejora la métrica alejándose de la estructura real del partido.
+Recall rises +0.8 pp and precision +4.4 pp: the recalibration does not hit more possessions, it
+emits fewer (1,555 → 1,441 predicted, versus 1,945 real) and longer ones (mean duration 14.1 s → 15.2 s
+versus 11.8 s real). It improves the metric by moving away from the real structure of the match.
 
-**El techo que eso impone:** con recall 0,339, incluso con precisión perfecta spellF1 ≈ **0,507**. Las
-posesiones de menos de 5 s son 764 de 1.945 (**39 %**) y se recuperan al 9 %. Mientras eso no cambie,
-seguir afinando umbrales rinde cada vez menos. Y el mecanismo es visible en la propia config:
-`min_duration_frames: 12` (0,48 s) y `switch_turnover: 40` (1,6 s) hacen estructuralmente imposible
-emitir las posesiones cortas. Ahí está la palanca grande, no en los centros.
+**The ceiling this imposes:** with recall 0.339, even with perfect precision spellF1 ≈ **0.507**. The
+possessions shorter than 5 s are 764 of 1,945 (**39%**) and are recovered at 9%. As long as that does not
+change, further tuning of thresholds yields less and less. And the mechanism is visible in the config itself:
+`min_duration_frames: 12` (0.48 s) and `switch_turnover: 40` (1.6 s) make it structurally impossible
+to emit the short possessions. That is the big lever, not the centers.
 
-### 6. [MEDIA] La recalibración no reduce la confusión H/A: la reequilibra hacia H
+### 6. [MEDIUM] The recalibration does not reduce H/A confusion: it rebalances it toward H
 
-| | actual | recalibrado |
+| | current | recalibrated |
 |---|---|---|
-| real H → pred H | 66,3 % | 72,8 % |
-| real A → pred A | 73,2 % | **67,9 %** |
-| H↔A sobre el total | 11,76 % | 10,90 % |
+| true H → pred H | 66.3% | 72.8% |
+| true A → pred A | 73.2% | **67.9%** |
+| H↔A over the total | 11.76% | 10.90% |
 
-Gana 6,5 pp en H y pierde 5,4 pp en A; neto −8.630 fotogramas (−0,9 pp). La causa es directa: los
-centros `control` y `shape` son el punto medio de las medianas **H y A medidas en los 4 partidos de
-ajuste** (verificado: 0,008298 y 0,975781 son exactamente esos puntos medios). Esa asimetría H/A
-queda horneada en la config. Si en el partido de la competición el reparto H/A es distinto, el sesgo
-va en contra. El paquete no incluye la dispersión de esas medianas, así que no se puede saber si las
-clases están bien separadas o solapan — con 20 % de confusión H/A, solapan mucho.
+It gains 6.5 pp on H and loses 5.4 pp on A; net −8,630 frames (−0.9 pp). The cause is direct: the
+`control` and `shape` centers are the midpoint of the **H and A medians measured on the 4 fit
+matches** (verified: 0.008298 and 0.975781 are exactly those midpoints). That H/A asymmetry
+gets baked into the config. If in the competition match the H/A split is different, the bias
+works against us. The package does not include the spread of those medians, so it cannot be known whether the
+classes are well separated or overlap — with 20% H/A confusion, they overlap a lot.
 
-### 7. [BAJA] Observaciones informativas, no accionables
+### 7. [LOW] Informational observations, not actionable
 
-- **Media de medias:** los agregados promedian spellF1 por partido sin ponderar. Ponderando por
-  posesiones reales la diferencia es ≤ 0,25 pp en todos los casos. Comprobado y sin impacto.
-- **`n_frames_o_posesiones` mezcla dos significados:** en tres tablas es el tamaño de la categoría
-  (idéntico entre configs, lo que hace justa la comparación); en la matriz de confusión es el conteo
-  de la celda, que sí varía. Las filas suman igual (292.078 / 261.027 / 449.539), así que es
-  coherente, pero conviene aclararlo en la leyenda.
-- **La ventana de 5 min no es representativa:** 19,6 % de D frente al 44,8 % de los partidos
-  Bundesliga. Son 5 min de juego seguido tras un saque. El acuerdo por fotograma ahí es 81,0 % y el
-  modelo infra-predice D (13,0 % vs 19,6 % real). No extrapolar de esa ventana.
-- **Las partes del partido completo duran 53 min cada una** (3.178 s y 3.175 s; 105,9 min en total,
-  frente a 95,5 min de media por partido en el set externo). Probablemente incluye relleno antes del
-  saque o del descanso, que se etiquetaría como D e infla el 44,8 % de D. Merece una comprobación de
-  si la ventana de entrega cubre esos minutos.
+- **Mean of means:** the aggregates average spellF1 per match unweighted. Weighting by
+  real possessions the difference is ≤ 0.25 pp in all cases. Checked and with no impact.
+- **`n_frames_o_posesiones` mixes two meanings:** in three tables it is the size of the category
+  (identical across configs, which makes the comparison fair); in the confusion matrix it is the count
+  of the cell, which does vary. The rows sum the same (292,078 / 261,027 / 449,539), so it is
+  consistent, but it should be clarified in the legend.
+- **The 5-min window is not representative:** 19.6% D versus 44.8% in the Bundesliga
+  matches. It is 5 min of continuous play after a restart. The per-frame agreement there is 81.0% and the
+  model under-predicts D (13.0% vs 19.6% real). Do not extrapolate from that window.
+- **The halves of the full match last 53 min each** (3,178 s and 3,175 s; 105.9 min in total,
+  versus 95.5 min average per match in the external set). It probably includes padding before the
+  kick-off or the break, which would be labeled D and inflates the 44.8% of D. It deserves a check of
+  whether the submission window covers those minutes.
 
 ---
 
-## Comprobaciones hechas, y su resultado
+## Checks done, and their result
 
-| comprobación | resultado |
+| check | result |
 |---|---|
-| Agregados del JSON = media de los CSV | ✅ exacto en los 6 casos (tune/hold/all × 2 configs) |
-| Filas de la matriz de confusión suman 100 % | ✅ (99,99–100,00 por redondeo) |
-| Totales de fotogramas coherentes entre tablas | ✅ 1.002.644 en las tres tablas de fotogramas |
-| Posesiones de la tabla de recall = suma de `posesiones_reales` | ✅ 1.945 |
-| `n` de categoría idéntico entre configs (comparación justa) | ✅ en las 3 tablas donde debe serlo |
-| Centros = punto medio de las medianas declaradas | ✅ control, shape y ball_speed |
-| spellF1 reconstruido desde precisión/recall | ✅ 0,368 / 0,390 vs 0,377 / 0,393 (coherente) |
-| Ventana pública: 7.500 filas a 25 fps = 300 s | ✅ |
-| Todos los partidos superan el mínimo 0,2433 | ✅ el peor es 0,3227 |
-| Media simple vs ponderada | ✅ diferencia ≤ 0,25 pp, inmaterial |
+| JSON aggregates = mean of the CSVs | ✅ exact in all 6 cases (tune/hold/all × 2 configs) |
+| Confusion matrix rows sum to 100% | ✅ (99.99–100.00 due to rounding) |
+| Frame totals consistent across tables | ✅ 1,002,644 in the three frame tables |
+| Possessions in the recall table = sum of `posesiones_reales` | ✅ 1,945 |
+| Category `n` identical across configs (fair comparison) | ✅ in the 3 tables where it must be |
+| Centers = midpoint of the declared medians | ✅ control, shape and ball_speed |
+| spellF1 reconstructed from precision/recall | ✅ 0.368 / 0.390 vs 0.377 / 0.393 (consistent) |
+| Public window: 7,500 rows at 25 fps = 300 s | ✅ |
+| All matches exceed the 0.2433 minimum | ✅ the worst is 0.3227 |
+| Simple vs weighted mean | ✅ difference ≤ 0.25 pp, immaterial |
 
 ---
 
-## Qué cambiar antes de compartirlo
+## What to change before sharing it
 
-1. **Sustituir "no se sobreajustó"** por el desglose del hallazgo 2 (+1,91 pp ajuste / +1,19 pp
-   validación, 1 de 3 en contra, IC [+0,002, +0,030]).
-2. **Añadir la fila `solo_centros`** a la tabla de resultados y decir cuál se lleva a la entrega.
-   Es la decisión de producto que sale de esta validación.
-3. **Dejar de citar 0,3957 como expectativa** para el partido de la competición: validación es más
-   fácil que ajuste en las cuatro configs, y además es otra liga y otro tracking.
-4. **Poner el `n` en todos los gráficos de diagnóstico** y marcar los bins de 512 y 854 fotogramas.
-5. **Mencionar el techo de 0,507** y el 39 % de posesiones cortas como el límite de seguir ajustando.
+1. **Replace "it did not overfit"** with the breakdown from finding 2 (+1.91 pp fit / +1.19 pp
+   validation, 1 of 3 against, CI [+0.002, +0.030]).
+2. **Add the `solo_centros` row** to the results table and say which one goes into the submission.
+   It is the product decision that comes out of this validation.
+3. **Stop quoting 0.3957 as an expectation** for the competition match: validation is easier
+   than fit in all four configs, and on top of that it is another league and another tracking.
+4. **Put the `n` on all diagnostic charts** and flag the bins of 512 and 854 frames.
+5. **Mention the 0.507 ceiling** and the 39% of short possessions as the limit to further tuning.
 
-## Lo que no se pudo evaluar con este paquete
+## What could not be evaluated with this package
 
-- **No hay ground truth del partido de la competición** (es privado), así que no hay forma de medir
-  ahí: todo lo anterior es transferencia desde Bundesliga.
-- **`ventana_publica_5min.csv` y `partido_completo_1hz.csv` sólo traen `modelo_actual`.** No hay
-  columna recalibrada, así que las vistas temporales no se pueden comparar entre configs.
-- **No hay dispersión** (IQR/desviación) de las medianas por clase, sólo el punto medio: no se puede
-  juzgar la separabilidad H/A.
-- **No hay intervalos por partido** (una sola evaluación por partido y config), así que no se puede
-  separar varianza del método de varianza entre partidos.
-- No se re-ejecutó el modelo ni se verificó el código del scorer: se auditaron sus salidas.
+- **There is no ground truth for the competition match** (it is private), so there is no way to measure
+  there: everything above is transfer from Bundesliga.
+- **`ventana_publica_5min.csv` and `partido_completo_1hz.csv` only carry `modelo_actual`.** There is no
+  recalibrated column, so the time views cannot be compared across configs.
+- **There is no spread** (IQR/deviation) of the per-class medians, only the midpoint: H/A separability
+  cannot be judged.
+- **There are no per-match intervals** (a single evaluation per match and config), so the variance of the method
+  cannot be separated from the variance between matches.
+- The model was not re-run and the scorer's code was not verified: its outputs were audited.

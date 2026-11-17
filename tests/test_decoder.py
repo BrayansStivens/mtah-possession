@@ -1,4 +1,4 @@
-"""El decodificador. Incluye una regresion contra numeros medidos con el scorer oficial."""
+"""The decoder. Includes a regression against numbers measured with the official scorer."""
 
 import gzip
 import os
@@ -67,18 +67,18 @@ def test_transicion_asimetrica_es_una_matriz_valida():
     ("baseline_smooth125", 0.4242, 0.5812),
 ])
 def test_reproduce_la_tabla_oficial(name, spell, macro):
-    """El scorer vendorizado da los mismos numeros que publica el repo oficial."""
+    """The vendored scorer gives the same numbers the official repo publishes."""
     result = evaluate.headline(baseline(name))
     assert result["spellF1"] == pytest.approx(spell, abs=1e-4)
     assert result["macroF1"] == pytest.approx(macro, abs=1e-4)
 
 
 def test_viterbi_domina_al_voto_por_mayoria():
-    """Mismo input que el baseline, mejor decodificador -> mejor en las DOS metricas.
+    """Same input as the baseline, better decoder -> better on BOTH metrics.
 
-    Numeros medidos sobre la ventana publica. No es el valor de switch_cost a usar en el
-    partido completo (eso seria ajustar contra los 5 minutos, el error que EVALUATION.md
-    demuestra), pero el mecanismo si tiene que seguir sosteniendose.
+    Numbers measured on the public window. This is not the switch_cost value to use on the
+    full match (that would be tuning against the 5 minutes, the mistake EVALUATION.md
+    demonstrates), but the mechanism must still keep holding.
     """
     smooth50 = evaluate.headline(baseline("baseline_smooth50"))
     cost = viterbi.costs_from_hard_labels(baseline("baseline_raw"))

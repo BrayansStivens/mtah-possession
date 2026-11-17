@@ -1,8 +1,8 @@
-"""Las tres semillas de degradacion (huecos al azar) para el clasificador de equipo sin balon.
+"""The three degradation seeds (random gaps) for the ball-absent team classifier.
 
-Mismo protocolo que el detector: cada modelo se entrena con la semilla 0 de los otros 6
-partidos y puntua las tres semillas del partido de fuera. Pesos fijados de antemano (los de
-exp.py): aqui no se elige nada. Uso: semillas.py modelos | decode
+Same protocol as the detector: each model is trained with seed 0 of the other 6 matches and
+scores the three seeds of the held-out match. Weights fixed in advance (those of exp.py):
+nothing is chosen here. Usage: semillas.py modelos | decode
 """
 
 import json
@@ -57,7 +57,7 @@ def run_modelos():
         for s in C.SEEDS:
             out["b|%s|%d" % (held, s)] = M.predict("b", model, data[s][held])
         assert np.allclose(out["b|%s|0" % held], cached_b["b_%s" % held], atol=1e-4)
-        print("fuera %s  %.0fs" % (held, time.time() - started), flush=True)
+        print("held out %s  %.0fs" % (held, time.time() - started), flush=True)
     np.savez_compressed(pred_path(), **out)
 
 
@@ -95,7 +95,7 @@ def run_decode():
     with multiprocessing.get_context("fork").Pool(9) as pool:
         results = dict(pool.imap_unordered(run, jobs, chunksize=2))
     summary = {}
-    print("%-30s | spellF1 por semilla        | delta pp por semilla (mejor/peor de 7)            | media  | macroF1 | pos pred/real" % "variante")
+    print("%-30s | spellF1 per seed           | delta pp per seed (better/worse of 7)             | mean   | macroF1 | pos pred/real" % "variant")
     for v in VARIANTS:
         spell, delta, wins = [], [], []
         for s in C.SEEDS:

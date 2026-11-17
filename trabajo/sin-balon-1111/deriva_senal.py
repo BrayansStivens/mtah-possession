@@ -1,8 +1,8 @@
-"""Que senales de equipo derivan entre el ATD y el IDSSE degradado. Sin etiquetas, agregados.
+"""Which team signals drift between the ATD and the degraded IDSSE. No labels, aggregates.
 
-Por senal (sus columnas de las tres ventanas, las dos perspectivas): AUC de un clasificador
-de dominio ATD contra IDSSE, y la referencia de un partido del IDSSE contra el resto.
-Guarda tambien el array de equipo del ATD en la cache para no recalcularlo.
+Per signal (its columns from the three windows, both perspectives): AUC of an ATD-versus-IDSSE
+domain classifier, and the reference of one IDSSE match against the rest.
+Also saves the ATD team array in the cache so it is not recomputed.
 """
 
 import json
@@ -39,7 +39,7 @@ def atd_team():
 
 
 def one_signal(team, perspective):
-    """(n, 12): la senal propia, la del rival, la diferencia y la suma, en las tres ventanas."""
+    """(n, 12): the own signal, the opponent's, the difference and the sum, in the three windows."""
     p, q = team[perspective, 0], team[1 - perspective, 0]
     return np.concatenate([p.T, q.T, (p - q).T, (p + q).T], axis=1)
 
@@ -50,7 +50,7 @@ def main():
     seens = [np.load(os.path.join(cache_dir(), "sinbalon_realista_%s_s0.npz" % m))["ball_seen"]
              for m in C.MATCHES]
     out = {}
-    print("%-6s | visto: ATD-IDSSE  referencia | sin balon: ATD-IDSSE  referencia" % "senal")
+    print("%-6s | seen:  ATD-IDSSE  reference  | no ball:   ATD-IDSSE  reference" % "signal")
     for i, signal in enumerate(F.TEAM_SIGNALS):
         row = {}
         for region, keep in (("visto", True), ("sin balon", False)):

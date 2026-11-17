@@ -1,7 +1,7 @@
-"""Utilidades comunes de los experimentos "sin balon" del 11-11-2026.
+"""Common utilities for the "sin balon" (ball-absent) experiments of Nov 11, 2026.
 
-No es codigo de entrega: nada de aqui se importa desde src/. Todo se mide en los 7
-partidos del IDSSE degradados; ninguna etiqueta del partido del reto entra en nada.
+It is not submission code: nothing here is imported from src/. Everything is measured on
+the 7 degraded IDSSE matches; no label from the challenge match goes into anything.
 """
 
 import os
@@ -18,22 +18,22 @@ MATCHES = sorted(idsse.MATCHES)
 SEEDS = (0, 1, 2)
 pm = ev.pm
 
-# Config de la entrega para el detector: lo que usa pipeline.py.
+# Submission config for the detector: what pipeline.py uses.
 DISCOUNT = DEFAULT["boundary_discount_weight"]
 SCALE = DEFAULT["boundary_switch_scale"]
 
 
 def base(seed=0):
-    """{partido: datos preparados} con la misma cache que training/boundaries.py."""
+    """{match: prepared data} with the same cache as training/boundaries.py."""
     spec = harness.real_spec()
     return {m: B.prepare(m, spec, seed, DEFAULT) for m in MATCHES}
 
 
 def oof_scores(data_by_seed):
-    """{semilla: {partido: score del detector}} fuera de muestra.
+    """{seed: {match: detector score}} out of sample.
 
-    Mismo protocolo que el LOMO de Simon: el detector se entrena con la semilla 0 de los
-    otros 6 partidos y puntua las tres semillas del partido de fuera.
+    Same protocol as Simon's LOMO: the detector is trained on seed 0 of the other 6 matches
+    and scores the three seeds of the held-out match.
     """
     path = os.path.join(cache_dir(), "sinbalon_oofscore.npz")
     if os.path.exists(path):
@@ -49,7 +49,7 @@ def oof_scores(data_by_seed):
 
 
 def dirty(match, seed=0):
-    """(limpio, degradado, etiquetas armonizadas). Determinista: igual que la cache de base()."""
+    """(clean, degraded, harmonized labels). Deterministic: same as the cache of base()."""
     clean, labels = idsse.load(match)
     labels, _ = convention.harmonise(labels)
     d = degrade.apply(clean, harness.real_spec(), rng=np.random.default_rng(seed))
@@ -57,7 +57,7 @@ def dirty(match, seed=0):
 
 
 def gap_lengths(seen):
-    """(n,) longitud del hueco sin balon al que pertenece cada frame (0 si se ve)."""
+    """(n,) length of the ball-absent gap each frame belongs to (0 if the ball is seen)."""
     edges = np.diff(np.concatenate(([0], (~seen).astype(np.int8), [0])))
     starts, stops = np.flatnonzero(edges == 1), np.flatnonzero(edges == -1)
     out = np.zeros(len(seen), dtype=np.int32)
@@ -67,7 +67,7 @@ def gap_lengths(seen):
 
 
 def no_ball_in_window(seen, half_width=50):
-    """(n,) True donde no hay ni un frame con balon a +-half_width: ahi el control es NaN."""
+    """(n,) True where no frame within +-half_width has the ball: there the control is NaN."""
     c = np.concatenate(([0], np.cumsum(seen.astype(np.int64))))
     i = np.arange(len(seen))
     lo, hi = np.maximum(0, i - half_width), np.minimum(len(seen), i + half_width + 1)

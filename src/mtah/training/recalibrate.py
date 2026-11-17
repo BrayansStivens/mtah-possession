@@ -1,25 +1,26 @@
-"""Re-derivacion de los hiperparametros sobre partidos EXTERNOS, sin tocar la ventana publica.
+"""Re-derivation of the hyperparameters on EXTERNAL matches, without touching the public window.
 
-**Por que existe.** Desde el 22-10-2026 RULES.md dice que los 5 minutos publicos *no son
-conjunto de ajuste* ("a rule, not just advice"). Dieciseis valores de `config.DEFAULT`
-se habian derivado de ahi: medianas por clase, pesos por AUC, ventanas de suavizado, costes
-de transicion y duracion minima. Aqui se vuelven a derivar con dos fuentes permitidas:
+**Why it exists.** Since Oct 22, 2026 RULES.md says the 5 public minutes *are not a
+tuning set* ("a rule, not just advice"). Sixteen values of `config.DEFAULT` had been
+derived from there: per-class medians, AUC weights, smoothing windows, transition costs
+and minimum duration. Here they are derived again from two permitted sources:
 
-1. **Medianas por clase** medidas sobre los partidos del IDSSE *degradados* como el ATD
-   (training/degrade.py), con las etiquetas llevadas al convenio del reto
-   (training/convention.py). Otros partidos, etiquetas reales, misma distribucion que el ATD.
-2. **Busqueda por coordenadas** del resto de valores maximizando el spellF1 medio sobre un
-   subconjunto de partidos de AJUSTE, y comprobacion en otros de VALIDACION que no se han
-   tocado, para saber si el arnes se ha sobreajustado a si mismo.
+1. **Per-class medians** measured on the IDSSE matches *degraded* like the ATD
+   (training/degrade.py), with the labels brought to the challenge's convention
+   (training/convention.py). Other matches, real labels, same distribution as the ATD.
+2. **Coordinate descent** over the remaining values, maximizing the mean spellF1 over a
+   subset of FIT matches, and checking on other VALIDATION matches that have not been
+   touched, to know whether the harness has overfitted to itself.
 
-Los partidos de ajuste y de validacion estan fijados aqui, no se eligen por resultado.
+The fit and validation matches are fixed here, not chosen by outcome.
 
-**Que no hace.** No toca `activity_scale_ms` ni `ball_speed_scale_ms` (IQR del ATD, sin
-etiquetas: limpios), ni `control_tau_m`, `count_radii_m` o `prob_floor` (fisicos o
-arbitrarios). Y no toca el pipeline de produccion: el resultado es un JSON en `out/` que
-alguien transcribe a `config.py` con su procedencia al lado, como pide ese fichero.
+**What it does not do.** It does not touch `activity_scale_ms` or `ball_speed_scale_ms`
+(ATD IQR, no labels: clean), nor `control_tau_m`, `count_radii_m` or `prob_floor`
+(physical or arbitrary). And it does not touch the production pipeline: the result is a
+JSON in `out/` that someone transcribes into `config.py` with its provenance alongside, as
+that file asks.
 
-Uso:  python -m mtah.training.recalibrate   (necesita requirements-train.txt y el ATD)
+Usage:  python -m mtah.training.recalibrate   (needs requirements-train.txt and the ATD)
 """
 
 import json
@@ -38,16 +39,16 @@ from ..models import emissions
 from ..paths import REPO_ROOT, cache_dir
 from . import convention, degrade, harness, idsse
 
-TUNE = ("J03WMX", "J03WN1", "J03WOH", "J03WOY")   # 4 partidos: se ajusta aqui
-HOLD = ("J03WPY", "J03WQQ", "J03WR9")             # 3 partidos: solo se mira al final
+TUNE = ("J03WMX", "J03WN1", "J03WOH", "J03WOY")   # 4 matches: tuning happens here
+HOLD = ("J03WPY", "J03WQQ", "J03WR9")             # 3 matches: only looked at the end
 
-# Features crudos que no dependen de ningun hiperparametro barrido. Todo lo que si depende
-# (suavizado, emisiones, decodificacion) se recalcula por configuracion, que es barato.
+# Raw features that do not depend on any swept hyperparameter. Everything that does depend
+# (smoothing, emissions, decoding) is recomputed per configuration, which is cheap.
 RAW_KEYS = ("activity", "ball_speed", "ball_seen", "ball_out",
             "control_home", "control_away", "spread_ratio_x")
 
-# Rejillas. El orden importa en descenso por coordenadas: primero lo que el diagnostico
-# (figura 3) senala como causa probable de perder las posesiones cortas.
+# Grids. Order matters in coordinate descent: first what the diagnosis (figure 3) points to
+# as the probable cause of losing the short possessions.
 GRID = [
     ("activity_smooth",     [6, 12, 25, 50, 100]),
     ("control_smooth",      [6, 12, 25, 50, 100]),
@@ -71,7 +72,7 @@ def log(msg):
 
 
 def prepare(match_id, spec, seed=0):
-    """(features crudos, etiquetas) de un partido degradado, cacheado en out/cache."""
+    """(raw features, labels) of a degraded match, cached in out/cache."""
     path = os.path.join(cache_dir(), "recal_{}_s{}.npz".format(match_id, seed))
     if os.path.exists(path):
         blob = np.load(path, allow_pickle=False)
@@ -86,7 +87,7 @@ def prepare(match_id, spec, seed=0):
 
 
 def _smooth(raw, cfg):
-    """Lo mismo que hace features.build_all con las ventanas, sobre los crudos cacheados."""
+    """Same as features.build_all does with the windows, on the cached raw features."""
     diff = np.where(raw["ball_seen"], raw["control_home"] - raw["control_away"],
                     np.nan).astype(np.float32)
     return {
@@ -128,11 +129,11 @@ def mean_score(matches, cfg):
 
 
 def class_centres(matches):
-    """Cruce de medianas por clase sobre los partidos de ajuste, pooled. Mismo estimador que
-    usaba config.py, pero sobre otros partidos degradados como el ATD."""
+    """Crossing point of the per-class medians over the fit matches, pooled. Same estimator
+    config.py used, but on other matches degraded like the ATD."""
     bs_alive, bs_dead, c_h, c_a, s_h, s_a = [], [], [], [], [], []
     for m in matches:
-        gt = ev.pm.label_codes  # noqa: F841  (solo para dejar claro de donde vienen las clases)
+        gt = ev.pm.label_codes  # noqa: F841  (only to make clear where the classes come from)
         lab = np.load(os.path.join(cache_dir(), "recal_{}_s0.npz".format(m.id)))["gt"]
         raw = m.raw
         alive = lab != "D"
@@ -162,9 +163,9 @@ def class_centres(matches):
 def coordinate_descent(matches, start, passes=2):
     best = dict(start)
     best_s, best_m = mean_score(matches, best)
-    log("inicio: spellF1 %.4f  macroF1 %.4f" % (best_s, best_m))
+    log("start: spellF1 %.4f  macroF1 %.4f" % (best_s, best_m))
     for p in range(1, passes + 1):
-        log("--- pasada %d ---" % p)
+        log("--- pass %d ---" % p)
         improved_any = False
         for name, values in GRID:
             t0 = time.time()
@@ -178,13 +179,13 @@ def coordinate_descent(matches, start, passes=2):
             s, mm, v = max(results, key=lambda r: (round(r[0], 4), round(r[1], 4)))
             tag = ""
             if v != best[name] and s > best_s + 1e-9:
-                tag = "  <- cambia de %s a %s" % (best[name], v)
+                tag = "  <- changes from %s to %s" % (best[name], v)
                 best[name] = v; best_s, best_m = s, mm; improved_any = True
-            log("%-20s %s  -> mejor %.4f%s  (%.0fs)" % (
+            log("%-20s %s  -> best %.4f%s  (%.0fs)" % (
                 name, " ".join("%s:%.4f" % (r[2], r[0]) for r in results), best_s, tag,
                 time.time() - t0))
         if not improved_any:
-            log("sin mejoras en la pasada %d, paro" % p)
+            log("no improvements in pass %d, stopping" % p)
             break
     return best, best_s, best_m
 
@@ -193,7 +194,7 @@ def report(name, cfg, tune, hold):
     ts, tm = mean_score(tune, cfg)
     hs, hm = mean_score(hold, cfg)
     als, alm = mean_score(tune + hold, cfg)
-    log("%-32s ajuste(4) %.4f/%.4f   validacion(3) %.4f/%.4f   todos(7) %.4f/%.4f"
+    log("%-32s fit(4) %.4f/%.4f   validation(3) %.4f/%.4f   all(7) %.4f/%.4f"
         % (name, ts, tm, hs, hm, als, alm))
     return {"tune": [ts, tm], "hold": [hs, hm], "all": [als, alm]}
 
@@ -201,37 +202,37 @@ def report(name, cfg, tune, hold):
 def main():
     t0 = time.time()
     spec = harness.real_spec()
-    log("spec del ATD (sin etiquetas): %s" % {k: round(v, 2) for k, v in spec.summary().items()})
+    log("ATD spec (no labels): %s" % {k: round(v, 2) for k, v in spec.summary().items()})
     tune = [Match(m, *prepare(m, spec)) for m in TUNE]
     hold = [Match(m, *prepare(m, spec)) for m in HOLD]
-    log("partidos preparados en %.0fs" % (time.time() - t0))
+    log("matches prepared in %.0fs" % (time.time() - t0))
 
     centres, detail = class_centres(tune)
-    log("medianas por clase (ajuste, degradado): %s" % {k: round(v, 3) for k, v in detail.items()})
-    log("centros re-derivados: %s" % {k: round(v, 3) for k, v in centres.items()})
-    log("centros anteriores  : %s" % {k: DEFAULT[k] for k in centres})
+    log("per-class medians (fit, degraded): %s" % {k: round(v, 3) for k, v in detail.items()})
+    log("re-derived centers: %s" % {k: round(v, 3) for k, v in centres.items()})
+    log("previous centers  : %s" % {k: DEFAULT[k] for k in centres})
 
     start = merged(**centres)
     best, best_s, best_m = coordinate_descent(tune, start, passes=2)
 
     log("=" * 78)
     out = {"config": best, "centres_detail": detail, "tune": list(TUNE), "hold": list(HOLD)}
-    original = merged(activity_center_ms=1.75)      # como estaba antes del 24-10
+    original = merged(activity_center_ms=1.75)      # as it was before Oct 24
     out["scores"] = {
-        "original_pre_sesion": report("original (centro 1.75)", original, tune, hold),
-        "actual_config_py":    report("config.py actual", DEFAULT, tune, hold),
-        "solo_centros":        report("solo centros re-derivados", start, tune, hold),
-        "recalibrado":         report("RECALIBRADO", merged(**best), tune, hold),
+        "original_pre_sesion": report("original (center 1.75)", original, tune, hold),
+        "actual_config_py":    report("current config.py", DEFAULT, tune, hold),
+        "solo_centros":        report("only re-derived centers", start, tune, hold),
+        "recalibrado":         report("RECALIBRATED", merged(**best), tune, hold),
     }
     log("=" * 78)
     changed = {k: (DEFAULT[k], best[k]) for k in best if best[k] != DEFAULT[k]}
-    log("valores que cambian respecto a config.py:")
+    log("values that change relative to config.py:")
     for k, (a, b) in changed.items():
         log("   %-22s %s -> %s" % (k, a, b))
     path = os.path.join(REPO_ROOT, "out", "recalibrated.json")
     with open(path, "w") as fh:
         json.dump(out, fh, indent=2, default=float)
-    log("guardado %s   (%.0f min)" % (path, (time.time() - t0) / 60))
+    log("saved %s   (%.0f min)" % (path, (time.time() - t0) / 60))
 
 
 if __name__ == "__main__":

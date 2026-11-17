@@ -1,4 +1,4 @@
-"""Lectura del Smart Tagging por codigo: los DEFENDING nombran al equipo sin balon."""
+"""Reading Smart Tagging by code: DEFENDING phases name the team without the ball."""
 
 import numpy as np
 
@@ -30,9 +30,9 @@ def test_codigos_que_no_dicen_quien_tiene_el_balon_no_votan():
 
 
 def test_par_espejo_no_se_cancela():
-    """BUILD UP local y DEFENDING del visitante sobre el mismo tramo: los dos dicen H.
+    """Home BUILD UP and away DEFENDING over the same stretch: both say H.
 
-    La lectura anterior sumaba +1 y -1 aqui y el frame quedaba en cero.
+    The previous reading added +1 and -1 here and the frame ended up at zero.
     """
     phases = [phase("BUILD UP", 0, 10, HOME_TEAM),
               phase("DEFENDING IN ATTACKING THIRD", 0, 10, AWAY_TEAM)]

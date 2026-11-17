@@ -1,11 +1,11 @@
-"""Compara los dos brazos de splits.py: rejilla original vs rejilla ampliada.
+"""Compares the two arms of splits.py: original grid vs extended grid.
 
-Los dos brazos corren el MISMO descenso desde el MISMO punto de partida sobre los MISMOS 35
-splits; lo unico que cambia es la lista de valores de siete parametros. Eso permite comparar
-por pares: para cada split, cuanto mas (o menos) consigue la rejilla ampliada en los mismos
-3 partidos de validacion que el descenso no vio.
+Both arms run the SAME descent from the SAME starting point over the SAME 35 splits; the
+only thing that changes is the list of values of seven parameters. That allows a paired
+comparison: for each split, how much more (or less) the extended grid achieves on the same
+3 validation matches that the descent did not see.
 
-Uso:  .venv/bin/python -I handoff-plugin-data/compara_rejillas.py
+Usage:  .venv/bin/python -I handoff-plugin-data/compara_rejillas.py
 """
 
 import json
@@ -20,20 +20,20 @@ from mtah.training.recalibrate import GRID                      # noqa: E402
 BASE = "/Users/bultoesal/Documents/Hackaton/handoff-plugin-data/datos/splits_cruzados%s.json"
 R = json.load(open(BASE % ""))
 A = json.load(open(BASE % "_ampliada"))
-assert not A.get("_en_curso"), "el brazo ampliado aun esta corriendo"
+assert not A.get("_en_curso"), "the extended arm is still running"
 assert len(R["splits"]) == len(A["splits"]) == 35
 
 
 def alineado(d):
-    """Filas indexadas por el split, para comparar peras con peras."""
+    """Rows indexed by split, to compare apples with apples."""
     return {tuple(sorted(f["tune"])): f for f in d["splits"]}
 
 
 fr, fa = alineado(R), alineado(A)
-assert set(fr) == set(fa), "los dos brazos no cubren los mismos splits"
+assert set(fr) == set(fa), "the two arms do not cover the same splits"
 claves = sorted(fr)
 
-# El punto de partida es el mismo en los dos brazos: comprobado, no supuesto.
+# The starting point is the same in both arms: checked, not assumed.
 for k in claves:
     for campo in ("tune_inicio", "hold_inicio", "s1_inicio", "s2_inicio"):
         assert abs(fr[k][campo] - fa[k][campo]) < 1e-12, (k, campo)
@@ -47,14 +47,14 @@ def col(filas, campo):
 
 
 print("=" * 88)
-print("REJILLA ORIGINAL (%d valores) vs AMPLIADA (%d valores), %d splits pareados"
+print("ORIGINAL GRID (%d values) vs EXTENDED (%d values), %d paired splits"
       % (sum(len(v) for _, v in GRID),
          sum(len(A["rejilla"][nm]) for nm, _ in GRID), n))
 print("=" * 88)
 print()
 
-print("GANANCIA DEL PROCEDIMIENTO sobre el punto de partida (pp de spellF1)")
-print("%-34s %-26s %-26s" % ("", "rejilla original", "ampliada"))
+print("PROCEDURE GAIN over the starting point (spellF1 pp)")
+print("%-34s %-26s %-26s" % ("", "original grid", "ampliada"))
 ejes = [("en su propio ajuste (4 partidos)", "tune_inicio", "tune_elegido"),
         ("en su propia validacion (3)", "hold_inicio", "hold_elegido"),
         ("semilla 1, los 7 partidos", "s1_inicio", "s1_elegido"),
@@ -70,11 +70,11 @@ for etiqueta, ini, fin in ejes:
 
 tr = resumen["en su propia validacion (3)"][0].mean() / resumen["en su propio ajuste (4 partidos)"][0].mean()
 ta = resumen["en su propia validacion (3)"][1].mean() / resumen["en su propio ajuste (4 partidos)"][1].mean()
-print("%-34s %6.0f %%              %6.0f %%" % ("transferencia validacion/ajuste", 100 * tr, 100 * ta))
+print("%-34s %6.0f%%               %6.0f%%" % ("transfer validation/fit", 100 * tr, 100 * ta))
 print()
 
-print("DIFERENCIA PAREADA (ampliada - original), split a split")
-print("%-34s %9s %18s %10s %s" % ("", "media", "IC 95 %", "gana en", "rango"))
+print("PAIRED DIFFERENCE (extended - original), split by split")
+print("%-34s %9s %18s %10s %s" % ("", "media", "CI 95%", "wins in", "rango"))
 for etiqueta, ini, fin in ejes:
     dr, da = resumen[etiqueta]
     d = 100 * (da - dr)
@@ -82,15 +82,15 @@ for etiqueta, ini, fin in ejes:
           % (etiqueta, d.mean(), d.mean() - ic(d), d.mean() + ic(d),
              (d > 1e-9).sum(), n, d.min(), d.max()))
 print()
-print("El eje que decide es 'en su propia validacion': son los 3 partidos que el descenso de")
-print("ese split no vio. Los dos brazos parten del mismo sitio en los mismos partidos, asi que")
-print("la diferencia pareada es exactamente lo que anade poder buscar mas lejos.")
+print("The deciding axis is 'en su propia validacion': the 3 matches that the descent of")
+print("that split did not see. Both arms start from the same place on the same matches, so")
+print("the paired difference is exactly what being able to search farther adds.")
 print()
 
 print("=" * 88)
-print("QUE ELIGE AHORA EN LOS SIETE PARAMETROS AMPLIADOS")
+print("WHAT IT NOW CHOOSES FOR THE SEVEN EXTENDED PARAMETERS")
 print("=" * 88)
-print("%-22s %-10s %-30s %s" % ("parametro", "config.py", "antes (reparto)", "ahora (reparto)"))
+print("%-22s %-10s %-30s %s" % ("parametro", "config.py", "before (breakdown)", "now (breakdown)"))
 ampliados = [nm for nm, vals in GRID if A["rejilla"][nm] != list(vals)]
 for nm in ampliados:
     er, ea = R["estabilidad"][nm], A["estabilidad"][nm]
@@ -98,7 +98,7 @@ for nm in ampliados:
     print("%-22s %-10s %-30s %s" % (nm, DEFAULT[nm], corto(er), corto(ea)))
 print()
 
-print("bordes: que parametros siguen clavados en un extremo de su lista")
+print("edges: which parameters are still stuck at one end of their list")
 sigue = []
 for nm, vals in GRID:
     valores = A["rejilla"][nm]
@@ -108,22 +108,22 @@ for nm, vals in GRID:
         sigue.append(nm)
         print("   %-22s moda %-7s borde %-5s %2d/%d splits en un borde   %s"
               % (nm, ea["moda"], lado, ea["n_en_borde"], n,
-                 "(ampliado y vuelve a topar)" if nm in ampliados else "(no se amplio)"))
+                 "(extended and hits the edge again)" if nm in ampliados else "(not extended)"))
 if not sigue:
-    print("   ninguno")
+    print("   none")
 print()
 
 print("=" * 88)
-print("EL SPLIT ORIGINAL (el de config.py), para situarlo")
+print("THE ORIGINAL SPLIT (the one of config.py), to put it in context")
 print("=" * 88)
 k0 = [k for k in claves if fr[k]["es_split_original"]][0]
-for nombre, f in (("rejilla original", fr[k0]), ("ampliada", fa[k0])):
-    print("  %-18s ajuste %.4f -> %.4f (%+.2f pp)   validacion %.4f -> %.4f (%+.2f pp)"
+for nombre, f in (("original grid", fr[k0]), ("ampliada", fa[k0])):
+    print("  %-18s fit %.4f -> %.4f (%+.2f pp)   validation %.4f -> %.4f (%+.2f pp)"
           % (nombre, f["tune_inicio"], f["tune_elegido"],
              100 * (f["tune_elegido"] - f["tune_inicio"]),
              f["hold_inicio"], f["hold_elegido"],
              100 * (f["hold_elegido"] - f["hold_inicio"])))
-print("  lo que cambia entre los dos puntos de llegada:")
+print("  what changes between the two arrival points:")
 for nm, _ in GRID:
     a, b = fr[k0]["elegido"][nm], fa[k0]["elegido"][nm]
     if float(a) != float(b):
@@ -132,5 +132,5 @@ print()
 
 nc_r = np.array([len(fr[k]["cambios"]) for k in claves])
 nc_a = np.array([len(fa[k]["cambios"]) for k in claves])
-print("cambios por descenso: original %.1f de 14, ampliada %.1f de 14"
+print("changes per descent: original %.1f of 14, extended %.1f of 14"
       % (nc_r.mean(), nc_a.mean()))

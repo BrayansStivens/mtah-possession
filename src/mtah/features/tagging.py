@@ -1,57 +1,58 @@
-"""Smart Tagging convertido a features por frame.
+"""Smart Tagging turned into per-frame features.
 
-Es la informacion gratis mas grande del bundle y la mas facil de usar mal. Lo que es:
-638 fases tacticas detectadas automaticamente, 602 con tag de equipo, y 59 saques, cada
-uno de los cuales marca un **reinicio**, es decir el final de una racha de balon parado.
+It is the biggest piece of free information in the bundle and the easiest to misuse. What
+it is: 638 tactical phases detected automatically, 602 with a team tag, and 59 set pieces,
+each of which marks a **restart**, that is, the end of a dead-ball run.
 
-Lo que NO es, y DATA.md lo dice explicitamente:
+What it is NOT, and DATA.md says so explicitly:
 
-- **No es ground truth.** Metrica lo genera del mismo video y tracking que tenemos, sin
-  revision manual. Tiene falsos positivos y negativos.
-- **`Team` no siempre es un equipo.** 36 instancias van con `N/A`, y entre ellas estan
-  *los 26 saques de banda*, justo donde saber el lado valdria mas.
-- **Los intervalos son fases, no posesiones.** Un Build Up puede cubrir una posesion,
-  quedarse corto o abarcar dos. Copiar un intervalo como etiqueta importa sus errores.
+- **It is not ground truth.** Metrica generates it from the same video and tracking we
+  have, with no manual review. It has false positives and negatives.
+- **`Team` is not always a team.** 36 instances come with `N/A`, and among them are
+  *the 26 throw-ins*, exactly where knowing the side would be worth the most.
+- **The intervals are phases, not possessions.** A Build Up can cover one possession,
+  fall short or span two. Copying an interval as a label imports its errors.
 
-De ahi que todo lo de aqui entre al modelo como *evidencia con peso medido*, nunca como
-respuesta. Los tags de saque, por ejemplo, cubren una ventana de unos 5 s alrededor del
-reinicio y no el instante: verificado contra los dos saques iniciales, cuyos tags
-(11097-11222 y 113660-113785) contienen los frames reales 11185 y 113742.
+Hence everything here goes into the model as *evidence with a measured weight*, never as
+an answer. The set-piece tags, for example, cover a window of about 5 s around the
+restart and not the instant itself: checked against the two initial restarts, whose tags
+(11097-11222 and 113660-113785) contain the actual frames 11185 and 113742.
 
-**El `Team` de una fase no siempre es el equipo con el balon.** Depende del codigo, y
-leerlo mal invierte la evidencia. Medido el 07-11 sobre BAR-ATH, fraccion de frames vivos
-de cada fase en que la entrega actual predice el equipo tagueado (sin etiquetas: es
-nuestro modelo contra el tag, solo para leer la semantica del codigo):
+**The `Team` of a phase is not always the team with the ball.** It depends on the code,
+and reading it wrong inverts the evidence. Measured on Nov 7 on BAR-ATH, the fraction of
+live frames of each phase in which the current submission predicts the tagged team (no
+labels: it is our model against the tag, only to read the semantics of the code):
 
     BUILD UP .84   PROGRESSION .84   CREATING CHANCES .74   LONG BALL .66
     DEFENDING IN ATTACKING THIRD .16   ... MIDDLE THIRD .16   ... DEFENSIVE THIRD .26
 
-Los `DEFENDING IN *` nombran al equipo SIN balon. Y son espejo de los otros: cubren los
-mismos intervalos que BUILD UP / PROGRESSION / CREATING CHANCES con el equipo contrario
-(mismos recuentos de frames, al frame). Los demas codigos con equipo no entran: BALL IN
-FINAL THIRD / BALL IN THE BOX / PLAYERS IN THE BOX nombran al atacante pero acuerdan solo
-.65-.72, y ATTACKING / DEFENSIVE TRANSITION acuerdan .55 / .45 -- su intervalo cabalga el
-cambio de posesion, asi que no dicen de quien es el balon (si quiza donde cambia).
-La lectura por codigo viene de DeteccionPosesionBalon/tactical_tagging.py.
+The `DEFENDING IN *` codes name the team WITHOUT the ball. And they mirror the others:
+they cover the same intervals as BUILD UP / PROGRESSION / CREATING CHANCES with the
+opposite team (same frame counts, to the frame). The other codes with a team are left out:
+BALL IN FINAL THIRD / BALL IN THE BOX / PLAYERS IN THE BOX name the attacker but agree
+only .65-.72, and ATTACKING / DEFENSIVE TRANSITION agree .55 / .45 -- their interval
+straddles the change of possession, so they do not say whose ball it is (perhaps where it
+changes).
+The per-code reading comes from DeteccionPosesionBalon/tactical_tagging.py.
 """
 
 import numpy as np
 
 from ..constants import N_FRAMES
 
-# Codigos cuyo `Team` es el equipo con el balon.
+# Codes whose `Team` is the team with the ball.
 CODES_NAMING_TEAM_IN_POSSESSION = frozenset({
     "build up", "progression", "creating chances", "long ball"})
-# Codigos cuyo `Team` es el equipo SIN balon: el voto va al rival.
+# Codes whose `Team` is the team WITHOUT the ball: the vote goes to the opponent.
 CODES_NAMING_TEAM_OUT_OF_POSSESSION = frozenset({
     "defending in attacking third", "defending in middle third",
     "defending in defensive third"})
 
 
 def possession_team(phase):
-    """'H', 'A' o None: el equipo con el balon segun la fase, leyendo su codigo.
+    """'H', 'A' or None: the team with the ball according to the phase, reading its code.
 
-    None si la fase no tiene equipo o si su codigo no dice quien tiene el balon.
+    None if the phase has no team or if its code does not say who has the ball.
     """
     tagged = phase.team_label
     if tagged is None:
@@ -65,11 +66,11 @@ def possession_team(phase):
 
 
 def team_votes(phases, n_frames=N_FRAMES):
-    """(home_votes, away_votes), cada uno (n,) int16: fases que dan el balon a cada equipo.
+    """(home_votes, away_votes), each (n,) int16: phases that give the ball to each team.
 
-    Como los DEFENDING son espejo de las fases de posesion, un frame cubierto por un par
-    espejo cuenta dos votos para el mismo equipo. Es la misma evidencia dos veces: los
-    recuentos dicen cuantas fases hablan, no cuanta informacion independiente hay.
+    Since the DEFENDING phases mirror the possession phases, a frame covered by a mirror
+    pair counts two votes for the same team. It is the same evidence twice: the counts say
+    how many phases speak, not how much independent information there is.
     """
     home_votes = np.zeros(n_frames, dtype=np.int16)
     away_votes = np.zeros(n_frames, dtype=np.int16)
@@ -85,30 +86,31 @@ def team_votes(phases, n_frames=N_FRAMES):
 
 
 def team_logit(phases, n_frames=N_FRAMES):
-    """(n,) votos al local menos votos al visitante, leyendo cada codigo (ver arriba).
+    """(n,) votes for the home team minus votes for the away team, reading each code.
 
-    Se suma en lugar de tomar la ultima porque las fases se solapan. Que coincidan fases
-    de equipos distintos es una contradiccion y se cancela.
+    See above. They are summed instead of taking the last one because the phases overlap. Phases of
+    different teams coinciding is a contradiction and it cancels out.
     """
     home_votes, away_votes = team_votes(phases, n_frames)
     return (home_votes - away_votes).astype(np.float32)
 
 
 def team_tags(phases, n_frames=N_FRAMES):
-    """(n,) int8: +1 donde el tagging da el balon al local, -1 al visitante, 0 sin voto.
+    """(n,) int8: +1 where the tagging gives the ball to home, -1 to away, 0 with no vote.
 
-    El signo de `team_logit`: los pares espejo no cuentan doble y las contradicciones
-    empatadas se anulan. Es lo que entra al modelo (models/emissions.team_tag_logit).
+    The sign of `team_logit`: mirror pairs do not count double and tied contradictions
+    cancel out. It is what goes into the model (models/emissions.team_tag_logit).
     """
     return np.sign(team_logit(phases, n_frames)).astype(np.int8)
 
 
 def weak_labels(phases, n_frames=N_FRAMES):
-    """(n,) 'H', 'A' o '' por frame, y (n,) bool de conflicto.
+    """(n,) 'H', 'A' or '' per frame, and (n,) bool for conflict.
 
-    '' donde ninguna fase dice de quien es el balon y tambien donde se contradicen (el
-    conflicto se marca aparte). No es ground truth: son fases de ~18 s generadas por
-    Metrica del mismo video. Solo valen como diagnostico del modelo en este partido.
+    '' where no phase says whose ball it is and also where they contradict each other (the
+    conflict is flagged separately). It is not ground truth: they are ~18 s phases generated
+    by Metrica from the same video. They are only good as a diagnostic of the model on this
+    match.
     """
     home_votes, away_votes = team_votes(phases, n_frames)
     conflict = (home_votes > 0) & (away_votes > 0)
@@ -119,11 +121,11 @@ def weak_labels(phases, n_frames=N_FRAMES):
 
 
 def set_piece_window(phases, n_frames=N_FRAMES, pad=0):
-    """(n,) True dentro de un intervalo de saque, opcionalmente ensanchado `pad` frames.
+    """(n,) True inside a set-piece interval, optionally widened by `pad` frames.
 
-    Donde esto es True hay un reinicio cerca, asi que hay una transicion de balon parado a
-    balon vivo cerca. Es una pista sobre *donde* ocurre una transicion, no sobre que
-    etiqueta poner.
+    Where this is True there is a restart nearby, so there is a dead-ball to live-ball
+    transition nearby. It is a hint about *where* a transition happens, not about which
+    label to assign.
     """
     out = np.zeros(n_frames, dtype=bool)
     for phase in phases:
@@ -134,11 +136,11 @@ def set_piece_window(phases, n_frames=N_FRAMES, pad=0):
 
 
 def restart_team_logit(phases, n_frames=N_FRAMES):
-    """(n,) equipo que reinicia, solo dentro de ventanas de saque con tag de equipo.
+    """(n,) team that restarts play, only inside set-piece windows with a team tag.
 
-    Separado de team_logit porque en un reinicio el tag es mucho mas fiable: el equipo que
-    saca un saque de puerta o un corner tiene el balon por definicion. Los saques de banda
-    quedan fuera porque van todos con `N/A`.
+    Kept apart from team_logit because at a restart the tag is much more reliable: the team
+    taking a goal kick or a corner has the ball by definition. Throw-ins are left out
+    because they all come with `N/A`.
     """
     out = np.zeros(n_frames, dtype=np.float32)
     for phase in phases:

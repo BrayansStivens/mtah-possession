@@ -1,9 +1,9 @@
-"""Interfaz de linea de comandos.
+"""Command-line interface.
 
-    python -m mtah status            que assets hay y que falta
-    python -m mtah build             regenera la entrega en out/
-    python -m mtah evaluate <csv>    puntua con el scorer oficial (ventana publica)
-    python -m mtah validate <csv>    comprueba el contrato del fichero antes de subirlo
+    python -m mtah status            which assets are present and which are missing
+    python -m mtah build             regenerates the submission in out/
+    python -m mtah evaluate <csv>    scores with the official scorer (public window)
+    python -m mtah validate <csv>    checks the file against the contract before uploading it
 """
 
 import argparse
@@ -27,12 +27,12 @@ def cmd_status(args):
                 bytes_ = os.path.getsize(paths[name])
                 size = " ({:.1f} MB)".format(bytes_ / 1e6) if bytes_ > 1e6 \
                     else " ({:.0f} KB)".format(bytes_ / 1e3)
-            print("  {} {:<14}{}".format("ok  " if present else "FALTA", name, size))
+            print("  {} {:<14}{}".format("ok  " if present else "MISSING", name, size))
 
     if available("tactical")["atd_meta"]:
         team_of_slot, home, away = atd.read_metadata(asset_paths("tactical")["atd_meta"])
-        print("\nequipos: H = {}  |  A = {}".format(home, away))
-        print("track slots: {} ({} local / {} visitante)".format(
+        print("\nteams: H = {}  |  A = {}".format(home, away))
+        print("track slots: {} ({} home / {} away)".format(
             len(team_of_slot), int((team_of_slot == 0).sum()), int((team_of_slot == 1).sum())))
     return 0
 
@@ -43,14 +43,14 @@ def cmd_build(args):
 
     labels = pipeline.run(config=merged(), use_cache=not args.no_cache)
     path = submission.write(args.out, labels)
-    print("escrito {}".format(path))
-    print("reparto: {}".format(submission.counts(labels)))
+    print("written {}".format(path))
+    print("breakdown: {}".format(submission.counts(labels)))
 
     reason = submission.validate(path)
     if reason:
-        print("INVALIDO: {}".format(reason), file=sys.stderr)
+        print("INVALID: {}".format(reason), file=sys.stderr)
         return 1
-    print("contrato: ok")
+    print("contract: ok")
 
     from . import evaluate
     evaluate.report(labels, name=os.path.basename(path))
@@ -64,7 +64,7 @@ def cmd_evaluate(args):
     labels = pd.read_csv(args.csv)["label"].to_numpy(dtype="<U1")
     evaluate.report(labels, name=os.path.basename(args.csv), bootstrap=args.bootstrap)
     if args.bootstrap:
-        print("   (intervalo bootstrap sobre 17 posesiones: orientativo, no un ranking)")
+        print("   (bootstrap interval over 17 possessions: indicative, not a ranking)")
     return 0
 
 
@@ -72,9 +72,9 @@ def cmd_validate(args):
     from . import submission
     reason = submission.validate(args.csv)
     if reason:
-        print("INVALIDO: {}".format(reason), file=sys.stderr)
+        print("INVALID: {}".format(reason), file=sys.stderr)
         return 1
-    print("{}: contrato ok".format(args.csv))
+    print("{}: contract ok".format(args.csv))
     return 0
 
 
@@ -83,20 +83,20 @@ def main(argv=None):
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = parser.add_subparsers(dest="command", required=True)
 
-    sub.add_parser("status", help="que assets hay descargados").set_defaults(func=cmd_status)
+    sub.add_parser("status", help="which assets are downloaded").set_defaults(func=cmd_status)
 
-    build = sub.add_parser("build", help="regenera la entrega")
+    build = sub.add_parser("build", help="regenerate the submission")
     build.add_argument("--out", default=os.path.join("out", "submission.csv"))
     build.add_argument("--no-cache", action="store_true",
-                       help="reparsea el tracking en lugar de usar out/cache")
+                       help="re-parse the tracking instead of using out/cache")
     build.set_defaults(func=cmd_build)
 
-    ev = sub.add_parser("evaluate", help="puntua un csv con el scorer oficial")
+    ev = sub.add_parser("evaluate", help="score a csv with the official scorer")
     ev.add_argument("csv")
     ev.add_argument("--bootstrap", type=int, default=0)
     ev.set_defaults(func=cmd_evaluate)
 
-    va = sub.add_parser("validate", help="comprueba el contrato del fichero")
+    va = sub.add_parser("validate", help="check the file against the contract")
     va.add_argument("csv")
     va.set_defaults(func=cmd_validate)
 

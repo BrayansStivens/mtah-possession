@@ -1,6 +1,6 @@
-"""Perfil sin etiquetas del ATD: cuando desaparece el balon. Frente al IDSSE degradado.
+"""Label-free profile of the ATD: when the ball disappears. Compared with the degraded IDSSE.
 
-Del ATD solo se usan tracking y mascara de bloques puntuados; se imprimen agregados.
+From the ATD only the tracking and the graded-block mask are used; aggregates are printed.
 """
 
 import json
@@ -61,10 +61,10 @@ def main():
                    else [float(x) for x in np.mean([p[1][k] for p in parts], axis=0)]
                    for k in real_extra}
     p_dead = proxy["dead"] / np.maximum(proxy["n"], 1)
-    print("actividad (m/s)   | ATD: %frames  balon visto | IDSSE degradado: %frames  balon visto  P(muerto)")
+    print("activity (m/s)    | ATD: %frames  ball seen | degraded IDSSE: %frames  ball seen  P(dead)")
     for b in range(len(EDGES) - 1):
         print("  %.1f - %-4s      |      %5.1f%%      %5.1f%%   |                  %5.1f%%      %5.1f%%     %5.1f%%" % (
-            EDGES[b], "%.1f" % EDGES[b + 1] if EDGES[b + 1] < 99 else "mas",
+            EDGES[b], "%.1f" % EDGES[b + 1] if EDGES[b + 1] < 99 else "more",
             100 * real["n"][b] / real["n"].sum(), 100 * real["seen"][b] / max(real["n"][b], 1),
             100 * proxy["n"][b] / proxy["n"].sum(), 100 * proxy["seen"][b] / max(proxy["n"][b], 1),
             100 * p_dead[b]))
@@ -72,20 +72,20 @@ def main():
     est_unseen = float((unseen * p_dead).sum() / unseen.sum())
     est_seen = float((real["seen"] * p_dead).sum() / real["seen"].sum())
     est_all = float((real["n"] * p_dead).sum() / real["n"].sum())
-    print("cuartiles de actividad  ATD %s   IDSSE %s" % (
+    print("activity quartiles  ATD %s   IDSSE %s" % (
         ["%.2f" % q for q in real_extra["activity_quartiles"]],
         ["%.2f" % q for q in proxy_extra["activity_quartiles"]]))
-    print("jugadores trackeados (media)  ATD visto %.1f / sin balon %.1f   IDSSE visto %.1f / sin balon %.1f" % (
+    print("tracked players (mean)  ATD seen %.1f / ball-absent %.1f   IDSSE seen %.1f / ball-absent %.1f" % (
         real_extra["players_seen"], real_extra["players_unseen"],
         proxy_extra["players_seen"], proxy_extra["players_unseen"]))
-    print("frames con menos de 16 jugadores  ATD visto %.1f%% / sin balon %.1f%%   IDSSE %.1f%% / %.1f%%" % (
+    print("frames with fewer than 16 players  ATD seen %.1f%% / ball-absent %.1f%%   IDSSE %.1f%% / %.1f%%" % (
         100 * real_extra["few_players_seen"], 100 * real_extra["few_players_unseen"],
         100 * proxy_extra["few_players_seen"], 100 * proxy_extra["few_players_unseen"]))
-    print("P(muerto) en el IDSSE: %.1f%%  (visto %.1f%%, sin balon %.1f%%)" % (
+    print("P(dead) in the IDSSE: %.1f%%  (seen %.1f%%, ball-absent %.1f%%)" % (
         100 * proxy["dead"].sum() / proxy["n"].sum(),
         100 * proxy["dead_seen"].sum() / proxy["seen"].sum(),
         100 * proxy["dead_unseen"].sum() / (proxy["n"].sum() - proxy["seen"].sum())))
-    print("P(muerto) ESTIMADA en el ATD si P(muerto | actividad) transfiere: todo %.1f%%  visto %.1f%%  sin balon %.1f%%" % (
+    print("ESTIMATED P(dead) in the ATD if P(dead | activity) transfers: all %.1f%%  seen %.1f%%  ball-absent %.1f%%" % (
         100 * est_all, 100 * est_seen, 100 * est_unseen))
     with open(os.path.join(os.path.dirname(__file__), "perfil.json"), "w") as handle:
         json.dump({"edges": EDGES.tolist(), "atd": {k: v.tolist() for k, v in real.items()},

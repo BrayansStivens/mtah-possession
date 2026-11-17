@@ -1,8 +1,8 @@
-"""Pipeline extremo a extremo con tracking sintetico.
+"""End-to-end pipeline with synthetic tracking.
 
-Existe para que el dia que llegue el `atd.txt` el pipeline ya este probado: aqui se
-fabrica un partido falso con geometria conocida y se comprueba que las piezas hacen lo que
-dicen y que la salida cumple el contrato de entrega.
+It exists so that the day `atd.txt` arrives the pipeline is already tested: here a fake
+match with known geometry is built and we check that the pieces do what they say and that
+the output meets the submission contract.
 """
 
 import numpy as np
@@ -19,14 +19,14 @@ from mtah.models import emissions
 
 def make_tracking(n_frames, ball_x=0.25, activity=5.0, ball_visible=True,
                   slots=N_TRACK_SLOTS):
-    """Partido sintetico: los slots locales pegados al balon, los visitantes lejos."""
+    """Synthetic match: the home slots glued to the ball, the away ones far away."""
     team_of_slot = np.array([0] * (slots // 2) + [1] * (slots - slots // 2), dtype=np.int8)
 
     players_xy = np.empty((n_frames, slots, 2), dtype=np.float32)
     home = team_of_slot == 0
-    players_xy[:, home, 0] = ball_x          # local encima del balon
+    players_xy[:, home, 0] = ball_x          # home on top of the ball
     players_xy[:, home, 1] = 0.5
-    players_xy[:, ~home, 0] = 0.9            # visitante al otro lado
+    players_xy[:, ~home, 0] = 0.9            # away on the other side
     players_xy[:, ~home, 1] = 0.5
 
     ball_xy = np.full((n_frames, 2), np.nan, dtype=np.float32)
@@ -44,7 +44,7 @@ def make_tracking(n_frames, ball_x=0.25, activity=5.0, ball_visible=True,
 
 def test_distancias_en_metros_no_en_coordenadas_normalizadas():
     tracking = make_tracking(10, ball_x=0.0)
-    tracking.players_xy[:, 0, :] = [1.0, 0.5]        # mismo eje y, extremo opuesto en x
+    tracking.players_xy[:, 0, :] = [1.0, 0.5]        # same y axis, opposite end in x
     distances = geometry.ball_distances(tracking)
     assert distances[0, 0] == pytest.approx(PITCH[0], rel=1e-3)
 
@@ -65,11 +65,11 @@ def test_el_control_favorece_al_equipo_cercano():
 
 
 def test_sin_balon_la_opinion_de_equipo_es_debil():
-    """Sin balon no hay control, asi que solo queda la forma de equipo: senal flojita.
+    """Without the ball there is no control, so only team shape is left: a faint signal.
 
-    El sintetico pone los dos equipos en una linea vertical, asi que la dispersion en x es
-    identica y el sumando de forma se anula: el frame se abstiene del todo y manda el
-    decodificador. Eso es lo que se quiere en una oclusion dentro de una posesion.
+    The synthetic match puts both teams on a vertical line, so the spread in x is
+    identical and the shape term cancels out: the frame abstains entirely and the
+    decoder takes over. That is what is wanted in an occlusion inside a possession.
     """
     tracking = make_tracking(10, ball_visible=False)
     features = feature_set.build_all(tracking, merged())
@@ -85,17 +85,17 @@ def test_baja_actividad_implica_balon_parado():
 
 
 def test_la_velocidad_del_balon_se_deriva_de_la_posicion():
-    """La columna de velocidad del fichero es NaN en el 91.3% de los frames con balon."""
+    """The file's speed column is NaN in 91.3% of the frames with the ball."""
     tracking = make_tracking(10)
-    tracking.ball_xy[:, 0] = np.linspace(0.0, 0.1, 10)      # avanza 10.53 m en 9 frames
+    tracking.ball_xy[:, 0] = np.linspace(0.0, 0.1, 10)      # advances 10.53 m in 9 frames
     speed = ball.speed(tracking)
-    assert np.isnan(speed[0])                                # no hay t-1
+    assert np.isnan(speed[0])                                # there is no t-1
     expected = (0.1 / 9) * PITCH[0] * 25.0
     assert speed[5] == pytest.approx(expected, rel=1e-3)
 
 
 def test_el_suavizado_es_centrado_y_no_introduce_retraso():
-    """Un escalon suavizado tiene que quedar centrado en el escalon, no desplazado."""
+    """A smoothed step has to stay centered on the step, not shifted."""
     step = np.concatenate([np.zeros(200), np.ones(200)])
     smoothed = smoothing.box_mean(step, 25)
     assert smoothed[200] == pytest.approx(0.5, abs=0.02)
@@ -104,7 +104,7 @@ def test_el_suavizado_es_centrado_y_no_introduce_retraso():
 
 
 def test_box_nanmean_arrastra_a_los_vecinos_en_un_hueco():
-    """Donde el valor es desconocido, promediar los definidos, no rellenar con cero."""
+    """Where the value is unknown, average the defined ones, do not fill in with zero."""
     values = np.full(100, 5.0)
     values[40:60] = np.nan
     smoothed = smoothing.box_nanmean(values, 25)
@@ -128,7 +128,7 @@ def test_balon_fuera_del_campo_se_detecta():
 
 
 def test_extremo_a_extremo_produce_una_entrega_valida(tmp_path):
-    """El pipeline completo sobre un partido sintetico de longitud real."""
+    """The full pipeline on a synthetic match of real length."""
     tracking = make_tracking(N_FRAMES)
     labels = pipeline.labels_from_tracking(tracking, merged())
 
@@ -136,8 +136,8 @@ def test_extremo_a_extremo_produce_una_entrega_valida(tmp_path):
     path = submission.write(str(tmp_path / "sintetico.csv"), labels)
     assert submission.validate(path) is None
 
-    # El local esta encima del balon todo el partido y los jugadores corren:
-    # el pipeline tiene que decir H en los bloques puntuados.
+    # The home team is on top of the ball the whole match and the players run:
+    # the pipeline has to say H in the graded blocks.
     for start, stop in GRADED_BLOCKS:
         window = labels[start:stop]
         assert (window == "H").mean() > 0.9, (start, np.unique(window, return_counts=True))

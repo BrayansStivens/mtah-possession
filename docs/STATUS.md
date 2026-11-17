@@ -1,610 +1,610 @@
-# Estado del proyecto — 16 de noviembre de 2026
+# Project status — November 16, 2026
 
-Documento para el equipo. Este repositorio tiene dos partes:
+Document for the team. This repository has two parts:
 
-- **La entrega** (`src/`, `tests/`, `vendor/`, `scripts/`): el código que genera el CSV que se
-  puntúa. El repo es público en GitHub desde el 30-10 (hasta el 14-11 este fichero decía que
-  era privado, y no lo era; ver §5). Léase `README.md`.
-- **El trabajo** (`trabajo/`): análisis, documentos, scripts de medición y tablas de
-  resultados. Es el material con el que se tomaron las decisiones. Léase `trabajo/README.md`.
+- **The submission** (`src/`, `tests/`, `vendor/`, `scripts/`): the code that generates the CSV that
+  gets scored. The repo has been public on GitHub since Oct 30 (until Nov 14 this file said it
+  was private, and it was not; see §5). Read `README.md`.
+- **The analysis** (`trabajo/`): analysis, documents, measurement scripts and result tables.
+  It is the material the decisions were made with. Read `trabajo/README.md`.
 
-Todo lo que se afirma aquí está medido y el fichero que lo respalda se nombra al lado. Si algo
-no está medido, se dice.
+Everything claimed here is measured, and the file that backs it is named next to it. If something
+is not measured, it says so.
 
 ---
 
-## 1. En una pantalla
+## 1. At a glance
 
 | | |
 |---|---|
-| Qué se entrega el **17-11** | un CSV de 199.319 filas (H/A/D por frame), este repositorio en público y un documento técnico corto |
-| Métrica de ranking | **spellF1** (posesiones acertadas por solape temporal). Desempate: macroF1 por frame |
-| Mínimo oficial a superar | **0,2433** (`baseline_smooth50`) |
-| **Dónde estamos, medido** | **0,4073** de media en 7 partidos de Bundesliga degradados para parecerse a nuestros datos, dejando cada partido fuera del entrenamiento del detector (0,3965 sin el detector de fronteras). El Smart Tagging (8-11) suma **+0,5 a +0,9 pp estimados** con un tagging simulado: el IDSSE no tiene uno real, así que esa parte no es medible del todo (§2) |
-| **Con el clasificador de equipo** | **0,5712** en esos mismos 7 partidos con el **clasificador de equipo sin balón** (del 12-11, en `main` desde el 15-11), frente a 0,4111 del mismo modelo sin él: **+16,0 pp**, con el clasificador y su peso elegidos sin ver el partido que se puntúa. En tres semillas de degradación, +16,1 pp de media y mejor en las 21 ejecuciones. **Es una cota optimista**: con huecos colocados como en el partido real baja a +12,6 pp (§2). Quitando jugadores donde falta el balón como los pierde nuestro partido (16-11), **aguanta: +16,3 pp, 21 de 21** (§2) |
-| En los 5 minutos públicos | 0,4148 (0,4444 sin el tagging, 0,4903 sin el detector); con el clasificador de equipo, 0,6286 — **lectura, no criterio**: 17 posesiones, una fallada mueve 6 puntos |
-| Lo que genera `main` | Desde el 15-11, `config.py` tal cual está genera el CSV con el clasificador de equipo (sha256 `a43c52fb…`; pasa el validador oficial; 139 tests en verde desde el 16-11; **reproducido al byte el 16-11 desde un clon nuevo con un venv recién creado, en Windows y en Linux**, §2). **El CSV que se envíe tiene que ser el que genera `main`.** La entrega anterior, del 8-11 (`e7938350…`), sale con `team_classifier_weight = 0`. Con `smart_tagging_team_weight = 0` además sale la del 7-11 (`5d97eccc…`), y con `boundary_discount_weight = 0` además la del 31-10 (`73c361d5…`) |
-| Qué configuración lleva | la de `config.py`; cada valor tiene escrito al lado de dónde sale. **Ninguno viene ya de los 5 minutos públicos** (prohibido desde el 22-10) |
+| What is submitted on **Nov 17** | a CSV of 199,319 rows (H/A/D per frame), this repository, public, and a short technical document |
+| Ranking metric | **spellF1** (possessions matched by temporal overlap). Tiebreaker: per-frame macroF1 |
+| Official minimum to beat | **0.2433** (`baseline_smooth50`) |
+| **Where we stand, measured** | **0.4073** on average over 7 Bundesliga matches degraded to look like our data, leaving each match out of the detector's training (0.3965 without the boundary detector). Smart Tagging (Nov 8) adds **+0.5 to +0.9 pp estimated** with a simulated tagging: IDSSE has no real one, so that part is not fully measurable (§2) |
+| **With the team classifier** | **0.5712** on those same 7 matches with the **team classifier without the ball** (from Nov 12, in `main` since Nov 15), against 0.4111 for the same model without it: **+16.0 pp**, with the classifier and its weight chosen without seeing the match being scored. Over three degradation seeds, +16.1 pp on average and better in all 21 runs. **It is an optimistic bound**: with gaps placed as in the real match it drops to +12.6 pp (§2). Removing players where the ball is missing the way our match loses them (Nov 16), **it holds up: +16.3 pp, 21 of 21** (§2) |
+| In the 5 public minutes | 0.4148 (0.4444 without the tagging, 0.4903 without the detector); with the team classifier, 0.6286 — **a reading, not a criterion**: 17 possessions, one miss moves 6 points |
+| What `main` generates | Since Nov 15, `config.py` exactly as it stands generates the CSV with the team classifier (sha256 `a43c52fb…`; passes the official validator; 139 tests green since Nov 16; **reproduced byte for byte on Nov 16 from a fresh clone with a freshly created venv, on Windows and on Linux**, §2). **The CSV that gets sent has to be the one `main` generates.** The previous submission, from Nov 8 (`e7938350…`), comes out with `team_classifier_weight = 0`. With `smart_tagging_team_weight = 0` as well you get the Nov 7 one (`5d97eccc…`), and with `boundary_discount_weight = 0` as well, the Oct 31 one (`73c361d5…`) |
+| Which configuration it carries | the one in `config.py`; each value has its origin written next to it. **None comes from the 5 public minutes anymore** (forbidden since Oct 22) |
 
-Si todo se parase hoy, hay algo válido que entregar y está 15 puntos por encima del mínimo.
+If everything stopped today, there is something valid to submit and it is 15 points above the minimum.
 
 ---
 
-## 2. Qué está hecho
+## 2. What's done
 
-### El programa (`src/mtah/`)
+### The program (`src/mtah/`)
 
-- Lectura del tracking táctico (`io/atd.py`), homografía (`io/homography.py`) y Smart Tagging
-  (`io/smart_tagging.py`). El tracking y, desde el 8-11, el equipo de las fases del Smart
-  Tagging están conectados al pipeline; la homografía tiene el lector escrito y no se usa.
-- Features geométricas por frame (`features/geometry.py`): control del balón por equipo,
-  actividad de los jugadores, forma de equipo, velocidad del balón.
-- Modelo en dos mitades (`models/emissions.py`): *vivo/parado* sale de la cinemática de los
-  jugadores y no necesita el balón; *local/visitante* sale de la geometría balón-jugador. Se
-  separan porque el balón falta en el **41 %** de los frames puntuados y la primera mitad
-  sigue funcionando sin él.
-- Desde el 12-11 (en `main` desde el 15-11): señales de forma y movimiento de cada equipo
-  en su propio sentido de ataque (`features/team_signals.py`) y un clasificador entrenado en
-  el IDSSE que lee de ellas quién tiene la posesión, sin mirar el balón
-  (`models/team_classifier.{py,joblib,json}`). Suma al logit de local con
-  `team_classifier_weight`; con peso 0 no se carga y sale la entrega del 8-11 al byte.
-- Decodificación Viterbi offline (`decode/viterbi.py`) con costes de cambio y duración mínima.
-  Gana al voto por mayoría del baseline en las dos métricas a la vez (tabla en `README.md`).
-- Nunca se escribe `X` en un frame puntuado: en spellF1 da igual y en macroF1 se paga.
+- Reading of the tactical tracking (`io/atd.py`), homography (`io/homography.py`) and Smart Tagging
+  (`io/smart_tagging.py`). The tracking and, since Nov 8, the team from the Smart Tagging phases
+  are wired into the pipeline; the homography has its reader written and is not used.
+- Geometric per-frame features (`features/geometry.py`): ball control per team, player
+  activity, team shape, ball speed.
+- Two-halves model (`models/emissions.py`): *live/dead* comes from player kinematics and does not
+  need the ball; *home/away* comes from ball-player geometry. They are separated because the ball
+  is missing in **41%** of the scored frames and the first half keeps working without it.
+- Since Nov 12 (in `main` since Nov 15): shape and movement signals of each team in its own
+  attacking direction (`features/team_signals.py`) and a classifier trained on IDSSE that reads
+  from them who has possession, without looking at the ball
+  (`models/team_classifier.{py,joblib,json}`). It adds to the home logit with
+  `team_classifier_weight`; with weight 0 it is not loaded and the Nov 8 submission comes out
+  to the byte.
+- Offline Viterbi decoding (`decode/viterbi.py`) with switch costs and minimum duration.
+  It beats the baseline's majority vote on both metrics at once (table in `README.md`).
+- `X` is never written on a scored frame: in spellF1 it makes no difference and in macroF1 it costs.
 - CLI: `python -m mtah status | build | validate | evaluate`.
-- Scorer oficial vendorizado (`vendor/evaluation`, MIT) con un test de regresión que reproduce
-  los números publicados de los cuatro baselines oficiales.
+- Vendored official scorer (`vendor/evaluation`, MIT) with a regression test that reproduces
+  the published numbers of the four official baselines.
 
-### El arnés de medición (`src/mtah/training/`, fuera de la ruta de reproducción)
+### The measurement harness (`src/mtah/training/`, outside the reproduction path)
 
-Es la pieza que convirtió "no podemos medir" en "podemos medir en siete partidos completos":
+It is the piece that turned "we can't measure" into "we can measure on seven full matches":
 
-- `idsse.py`: descarga y adapta el dataset IDSSE/Bundesliga (Bassek et al., *Sci Data* 2025,
-  CC-BY 4.0): 7 partidos con posesión y estado del balón etiquetados por frame a 25 Hz.
-- `convention.py`: lleva su convenio de posesión (cambia en cada toque) al del reto (cambia
-  solo con posesión controlada).
-- `degrade.py`: estropea el tracking limpio hasta que se parece al nuestro (balón ausente el
-  41 %, identidades mezcladas, ruido). Tres semillas (`out/cache/recal_*_s{0,1,2}.npz`).
-- `harness.py`: puntúa el pipeline sobre un partido completo con etiquetas reales.
-- `recalibrate.py`: re-deriva los hiperparámetros sobre esos partidos (medianas por clase +
-  descenso por coordenadas en 4 partidos de ajuste, comprobación en 3 de validación).
-- `team_classifier.py` (12-11): el leave-one-match-out anidado del clasificador de equipo y,
-  con `export`, el modelo guardado. Misma estructura que `boundaries.py` para el detector.
-- `missing_players.py` (16-11): la prueba de estrés del clasificador con jugadores perdidos
-  donde falta el balón (`degrade.thin_where_ball_unseen`), con su regla de decisión en el
-  docstring. Mide el ATD, así que necesita `MTAH_DATA_DIR`.
+- `idsse.py`: downloads and adapts the IDSSE/Bundesliga dataset (Bassek et al., *Sci Data* 2025,
+  CC-BY 4.0): 7 matches with possession and ball status labeled per frame at 25 Hz.
+- `convention.py`: brings its possession convention (it changes at every touch) to the challenge's
+  (it changes only with controlled possession).
+- `degrade.py`: spoils the clean tracking until it resembles ours (ball absent 41%, mixed-up
+  identities, noise). Three seeds (`out/cache/recal_*_s{0,1,2}.npz`).
+- `harness.py`: scores the pipeline over a full match with real labels.
+- `recalibrate.py`: re-derives the hyperparameters on those matches (per-class medians +
+  coordinate descent on 4 fit matches, check on 3 validation matches).
+- `team_classifier.py` (Nov 12): the nested leave-one-match-out of the team classifier and,
+  with `export`, the saved model. Same structure as `boundaries.py` for the detector.
+- `missing_players.py` (Nov 16): the stress test of the classifier with missing players
+  where the ball is absent (`degrade.thin_where_ball_unseen`), with its decision rule in the
+  docstring. It measures the ATD, so it needs `MTAH_DATA_DIR`.
 
-### Las decisiones medidas (cronología)
+### The measured decisions (chronology)
 
-| Fecha | Qué | Resultado | Dónde |
+| Date | What | Result | Where |
 |---|---|---|---|
-| 22-23 oct | Las reglas cambian: los 5 min públicos no son conjunto de ajuste; nada de etiquetado manual | 16 valores de `config.py` quedaban inadmisibles | `trabajo/analisis-y-propuesta.md` §1 |
-| 28 oct | Recalibración completa sobre IDSSE, sin ventana pública | cambiaron 7 valores; +1,2 pp en los 3 partidos de validación | `trabajo/handoff-plugin-data/datos/recalibracion.json` |
-| 29 oct | Auditoría del análisis | "no se sobreajustó" **no se sostenía**; la validación es más fácil que el ajuste | `trabajo/handoff-plugin-data/VALIDACION.md` |
-| 29-30 oct | Validación cruzada: el procedimiento entero, sobre las **35 particiones** posibles de 4 ajuste / 3 validación | **+1,71 pp** fuera del ajuste (IC 95 % [+1,37, +2,05], 32/35) y +3,27 pp dentro → transfiere, y **la mitad de la ganancia es sobreajuste** | `VALIDACION-CRUZADA.md`, `datos/splits_cruzados.json` |
-| 31 oct | Rejilla ampliada (64 → 82 valores), mismas 35 particiones, comparación por pares | +0,62 pp en ajuste, **−0,13 pp en validación** (14/35): descartada | `datos/splits_cruzados_ampliada.json`, `compara_rejillas.py` |
-| 31 oct | `activity_smooth` 12 → 50 | +1,11 pp en validación, positivo en las 3 semillas, neutro en ajuste; tasa de balón parado 44,9 % como el IDSSE | `datos/activity_smooth.json` |
-| 31 oct | Tres números mal citados en `config.py` corregidos; convención de redondeo de los centros | el fichero produce exactamente lo que dice | `config.py` docstring, commits `0e1560e`, `d805776` |
-| 2 nov | Datos del dashboard regenerados con el `config.py` de hoy | reproducen los del 28-10 en todo lo que no depende de la config | `regenera_datos.py` |
-| 7 nov | Portado lo útil de `DeteccionPosesionBalon` (ver abajo). **La entrega no cambia**: CSV idéntico byte a byte antes y después (sha256 `73c361d5…`) | 73 tests en verde (55 + 18) | `io/atd.py`, `features/tagging.py`, `decode/viterbi.py`, `training/weak_labels.py` |
-| 7 nov | **Detector de fronteras** entrenado en el IDSSE, medido con leave-one-match-out anidado y tres brazos (ver abajo) | **+1,17 pp** spellF1 y +1,12 pp macroF1 sobre el modelo anterior (21 ejecuciones, 16 mejoran); **+1,07 pp sobre encarecer los cambios sin detector, positivo en los 7 partidos** | `training/boundaries.py`, `datos/fronteras_lomo_anidado.json` |
-| 7 nov | **El detector entra en la entrega.** Entrenado con los 7 partidos; peso 0,95 y escala 2,0 elegidos con el mismo procedimiento, fuera de muestra | reexportar da el mismo modelo byte a byte; la entrega cambia en el 3,8 % de los frames puntuados (369 → 333 segmentos) | `models/boundary_detector.{joblib,json}`, `config.py` |
-| 7 nov | Curva de visibilidad del balón (Paso cero de `plan-detector-balon.md`) | **no es plana**: de 59 % a 70 / 80 / 90 % de balón visible da +2,2 / +3,5 / +6,3 pp recuperando primero lo fácil, en los 7 partidos | `training/visibility.py`, `datos/curva_visibilidad.json` |
-| 11-12 nov | Diagnóstico de los frames sin balón, y nueve señales de equipo que no lo miran | acierto por frame 87,5 % con el balón visto y 74,5 % sin él; de las posesiones con 75-100 % de frames sin balón se recupera el 15,0 %; sin balón el fallo dominante es el equipo cambiado (13,3 % de esos frames) | `trabajo/sin-balon-1111/RESUMEN.md`, `diag.json` |
-| 12 nov | **Clasificador de equipo sin balón**, integrado como candidato en la rama `equipo-sin-balon` (ver abajo). **La entrega no cambia** | **+16,11 pp** spellF1 y +6,46 pp macroF1 sobre el modelo sin él, LOMO anidado, 7 partidos × 3 semillas, **21 de 21 mejoran** (de +10,9 a +20,1 pp); +12,6 pp con huecos colocados como en el partido real (semilla 0, 7 de 7) | `features/team_signals.py`, `models/team_classifier.{py,joblib,json}`, `training/team_classifier.py`, `datos/equipo_sin_balon_lomo.json` |
-| 15 nov | La rama `equipo-sin-balon` se mergea en `main`: el clasificador de equipo entra en lo que genera `config.py` | `main` genera `a43c52fb…` (pasa el validador, 120 tests); con `team_classifier_weight = 0` sale `e7938350…` al byte. No se midió nada nuevo: valen los números y los límites del 12-11 | `config.py` |
-| 15 nov | Dashboard regenerado con la entrega de hoy: las tablas llevan ahora «con detector» y «hoy (con clasificador)», cada partido puntuado con modelos que no lo vieron | los 14 partidos-config reproducen exactamente `equipo_sin_balon_lomo.json`; por posesiones, el recall pasa de 0,33 a 0,50 y el techo de spellF1 de 0,50 a 0,67; las posesiones de menos de 5 s recuperadas, de una de cada doce a una de cada cinco | `regenera_equipo.py`, `datos/clasificador_equipo*.json`, `datos/lectura_publica.json` |
-| 15 nov | **Reproducción en una segunda máquina** (Simon, Windows 11): `main` en `f49dc9c`, Python 3.12.2 con las versiones exactas de `requirements.txt`, datos leídos del Drive de la organización y la caché del tracking apartada para parsear el `_atd.txt` desde cero | `build` da **`a43c52fb…` al byte** y pasa el validador; con `team_classifier_weight = 0`, `e7938350…` al byte; 120 tests en verde; los dos modelos cargan con su sha256. `scripts/reproduce.sh` **no arranca en Windows desde Git Bash** (ver §7) | `config.py`, `scripts/reproduce.sh` |
-| 16 nov | **`reproduce.sh` y `env.sh` arreglados para Windows** (Git Bash): con `cygpath` pasan `PYTHONPATH` en formato Windows y con `;`; en Linux y macOS no cambia nada. `reproduce.sh` se para si el Python es < 3.12 y acepta `PYTHON=...` | con Python 3.11 se para con el aviso; con el venv da `a43c52fb…` | `scripts/reproduce.sh`, `scripts/env.sh` |
-| 16 nov | **Reproducción limpia en dos sistemas**, como la harían los organizadores: `git clone` de GitHub (rama `medicion-jugadores-sin-balon`, `68fb042`), venv recién creado, `pip install -r requirements-dev.txt` (numpy 2.5.4, pandas 3.0.6, scikit-learn 1.8.0, pytest 9.0.1), `./scripts/reproduce.sh FC_Medallo` sin caché previa. (1) Windows 11, Python 3.12.2, Git Bash, datos leídos del Drive. (2) Linux, Ubuntu 24.04 en WSL2, Python 3.12.3, clon en el sistema de ficheros de Linux, los cuatro ficheros tácticos copiados del Drive (sin vídeo) | **los dos dan `a43c52fb…` al byte**, pasan el validador y **139 tests en verde**. 46 s en Windows y 17 s en Linux. En Ubuntu `python3.12-venv` no venía instalado; se hizo el venv con `--without-pip` y `get-pip.py` (sin sudo). Falta una máquina que no sea la de Simon | `scripts/reproduce.sh` |
-| 15-16 nov | **Prueba de estrés del clasificador de equipo con jugadores perdidos sin balón** (ver abajo). Mismos modelos que se entregaron y peso 2,0 fijo; regla de decisión escrita y commiteada antes de correr. **No cambia nada de la entrega** | **+16,28 pp** spellF1 con los mismos jugadores ausentes toda la racha sin balón, **21 de 21 mejoran** (de +12,5 a +19,9 pp); +15,84 pp si se sortean en cada frame; la degradación de siempre reproduce la tabla del 12-11 al decimal (+16,11 pp). Decisión: **se mantiene `a43c52fb…`** | `training/missing_players.py`, `degrade.thin_where_ball_unseen`, `datos/equipo_sin_balon_jugadores.json` |
+| Oct 22-23 | The rules change: the 5 public min are not a fit set; no manual labeling | 16 values of `config.py` became inadmissible | `docs/analysis-and-proposal.md` §1 |
+| Oct 28 | Full recalibration on IDSSE, without the public window | 7 values changed; +1.2 pp on the 3 validation matches | `trabajo/handoff-plugin-data/datos/recalibracion.json` |
+| Oct 29 | Audit of the analysis | "it did not overfit" **did not hold up**; validation is easier than the fit | `trabajo/handoff-plugin-data/VALIDATION.md` |
+| Oct 29-30 | Cross-validation: the whole procedure, over the **35 possible partitions** of 4 fit / 3 validation | **+1.71 pp** outside the fit set (95% CI [+1.37, +2.05], 32/35) and +3.27 pp inside → it transfers, and **half of the gain is overfitting** | `CROSS-VALIDATION.md`, `datos/splits_cruzados.json` |
+| Oct 31 | Expanded grid (64 → 82 values), same 35 partitions, paired comparison | +0.62 pp on fit, **−0.13 pp on validation** (14/35): discarded | `datos/splits_cruzados_ampliada.json`, `compara_rejillas.py` |
+| Oct 31 | `activity_smooth` 12 → 50 | +1.11 pp on validation, positive in all 3 seeds, neutral on fit; dead-ball rate 44.9% like IDSSE | `datos/activity_smooth.json` |
+| Oct 31 | Three wrongly quoted numbers in `config.py` fixed; rounding convention for the centers | the file produces exactly what it says | `config.py` docstring, commits `0e1560e`, `d805776` |
+| Nov 2 | Dashboard data regenerated with today's `config.py` | they reproduce those of Oct 28 in everything that does not depend on the config | `regenera_datos.py` |
+| Nov 7 | Ported the useful parts of `DeteccionPosesionBalon` (see below). **The submission does not change**: CSV identical byte for byte before and after (sha256 `73c361d5…`) | 73 tests green (55 + 18) | `io/atd.py`, `features/tagging.py`, `decode/viterbi.py`, `training/weak_labels.py` |
+| Nov 7 | **Boundary detector** trained on IDSSE, measured with nested leave-one-match-out and three arms (see below) | **+1.17 pp** spellF1 and +1.12 pp macroF1 over the previous model (21 runs, 16 improve); **+1.07 pp over making changes more expensive without a detector, positive in all 7 matches** | `training/boundaries.py`, `datos/fronteras_lomo_anidado.json` |
+| Nov 7 | **The detector goes into the submission.** Trained with the 7 matches; weight 0.95 and scale 2.0 chosen with the same procedure, out of sample | re-exporting gives the same model byte for byte; the submission changes in 3.8% of the scored frames (369 → 333 segments) | `models/boundary_detector.{joblib,json}`, `config.py` |
+| Nov 7 | Ball visibility curve (Step zero of `plan-detector-balon.md`) | **it is not flat**: from 59% to 70 / 80 / 90% visible ball it gives +2.2 / +3.5 / +6.3 pp, recovering the easy ones first, in all 7 matches | `training/visibility.py`, `datos/curva_visibilidad.json` |
+| Nov 11-12 | Diagnosis of the ball-absent frames, and nine team signals that do not look at the ball | per-frame accuracy 87.5% with the ball seen and 74.5% without it; of the possessions with 75-100% of ball-absent frames, 15.0% are recovered; without the ball the dominant failure is the swapped team (13.3% of those frames) | `trabajo/sin-balon-1111/SUMMARY.md`, `diag.json` |
+| Nov 12 | **Team classifier without the ball**, integrated as a candidate in the `equipo-sin-balon` branch (see below). **The submission does not change** | **+16.11 pp** spellF1 and +6.46 pp macroF1 over the model without it, nested LOMO, 7 matches × 3 seeds, **21 of 21 improve** (from +10.9 to +20.1 pp); +12.6 pp with gaps placed as in the real match (seed 0, 7 of 7) | `features/team_signals.py`, `models/team_classifier.{py,joblib,json}`, `training/team_classifier.py`, `datos/equipo_sin_balon_lomo.json` |
+| Nov 15 | The `equipo-sin-balon` branch is merged into `main`: the team classifier enters what `config.py` generates | `main` generates `a43c52fb…` (passes the validator, 120 tests); with `team_classifier_weight = 0` it comes out `e7938350…` byte for byte. Nothing new was measured: the numbers and limits of Nov 12 hold | `config.py` |
+| Nov 15 | Dashboard regenerated with today's submission: the tables now carry "with detector" and "today (with classifier)", each match scored with models that did not see it | the 14 match-configs reproduce `equipo_sin_balon_lomo.json` exactly; by possessions, recall goes from 0.33 to 0.50 and the spellF1 ceiling from 0.50 to 0.67; the possessions under 5 s that are recovered, from one in twelve to one in five | `regenera_equipo.py`, `datos/clasificador_equipo*.json`, `datos/lectura_publica.json` |
+| Nov 15 | **Reproduction on a second machine** (Simon, Windows 11): `main` at `f49dc9c`, Python 3.12.2 with the exact versions of `requirements.txt`, data read from the organization's Drive and the tracking cache set aside to parse the `_atd.txt` from scratch | `build` gives **`a43c52fb…` byte for byte** and passes the validator; with `team_classifier_weight = 0`, `e7938350…` byte for byte; 120 tests green; the two models load with their sha256. `scripts/reproduce.sh` **does not start on Windows from Git Bash** (see §7) | `config.py`, `scripts/reproduce.sh` |
+| Nov 16 | **`reproduce.sh` and `env.sh` fixed for Windows** (Git Bash): with `cygpath` they pass `PYTHONPATH` in Windows format and with `;`; on Linux and macOS nothing changes. `reproduce.sh` stops if Python is < 3.12 and accepts `PYTHON=...` | with Python 3.11 it stops with the warning; with the venv it gives `a43c52fb…` | `scripts/reproduce.sh`, `scripts/env.sh` |
+| Nov 16 | **Clean reproduction on two systems**, as the organizers would do it: `git clone` from GitHub (branch `medicion-jugadores-sin-balon`, `68fb042`), freshly created venv, `pip install -r requirements-dev.txt` (numpy 2.5.4, pandas 3.0.6, scikit-learn 1.8.0, pytest 9.0.1), `./scripts/reproduce.sh FC_Medallo` with no previous cache. (1) Windows 11, Python 3.12.2, Git Bash, data read from the Drive. (2) Linux, Ubuntu 24.04 on WSL2, Python 3.12.3, clone on the Linux file system, the four tactical files copied from the Drive (no video) | **both give `a43c52fb…` byte for byte**, pass the validator and **139 tests green**. 46 s on Windows and 17 s on Linux. On Ubuntu `python3.12-venv` was not installed; the venv was made with `--without-pip` and `get-pip.py` (no sudo). A machine other than Simon's is still missing | `scripts/reproduce.sh` |
+| Nov 15-16 | **Stress test of the team classifier with missing players without the ball** (see below). The same models that were submitted and fixed weight 2.0; decision rule written and committed before running. **Nothing in the submission changes** | **+16.28 pp** spellF1 with the same players absent for the whole ball-absent run, **21 of 21 improve** (from +12.5 to +19.9 pp); +15.84 pp if they are drawn at every frame; the usual degradation reproduces the Nov 12 table to the decimal (+16.11 pp). Decision: **`a43c52fb…` is kept** | `training/missing_players.py`, `degrade.thin_where_ball_unseen`, `datos/equipo_sin_balon_jugadores.json` |
 
-**Qué entró el 7-11 desde `DeteccionPosesionBalon`** (la otra línea, hecha sin acceso a este repo):
+**What came in on Nov 7 from `DeteccionPosesionBalon`** (the other line, done without access to this repo):
 
-- **Unidades de velocidad, ahora con un fallo explícito.** `atd.load()` compara el canal de velocidad con la derivada de la
-  posición y falla si el cociente sale de [0,8, 1,25]. Medido en BAR-ATH: **0,992**, así que es m/s aunque el XML diga kph.
-  Si alguien divide por 3,6 fiándose del metadato, el pipeline falla en vez de predecir `D` en casi todo.
-- **El Smart Tagging se lee por código.** Los `DEFENDING IN *` nombran al equipo **sin** balón (la entrega acuerda con el
-  equipo tagueado un 16-26 % en esas fases, contra un 84 % en `BUILD UP`/`PROGRESSION`) y son espejo de las fases de
-  posesión. `features/tagging.py::team_logit` los sumaba como si fueran del equipo con balón; no estaba conectado, así
-  que no afectó a ninguna entrega, pero lo habría hecho al conectarlo.
-- **Primera medición de "de quién es" sobre el partido del reto** (`python -m mtah.training.weak_labels`), contra las
-  fases del Smart Tagging (63.682 frames puntuados, fases de ~18 s, no ground truth):
+- **Speed units, now with an explicit failure.** `atd.load()` compares the speed channel with the derivative of the
+  position and fails if the ratio falls outside [0.8, 1.25]. Measured on BAR-ATH: **0.992**, so it is m/s even though the XML says kph.
+  If someone divides by 3.6 trusting the metadata, the pipeline fails instead of predicting `D` almost everywhere.
+- **Smart Tagging is read by code.** The `DEFENDING IN *` phases name the team **without** the ball (the submission agrees with the
+  tagged team 16-26% of the time in those phases, against 84% in `BUILD UP`/`PROGRESSION`) and are mirror images of the
+  possession phases. `features/tagging.py::team_logit` was adding them up as if they belonged to the team with the ball; it was not
+  wired in, so it did not affect any submission, but it would have once wired in.
+- **First measurement of "whose ball it is" on the challenge match** (`python -m mtah.training.weak_labels`), against the
+  Smart Tagging phases (63,682 scored frames, phases of ~18 s, not ground truth):
 
-  | | acuerdo | clase mayoritaria en los mismos frames |
+  | | agreement | majority class on the same frames |
   |---|---|---|
-  | emisión por frame | **0,765** | 0,659 |
-  | emisión, balón visible | 0,755 | 0,674 |
-  | emisión, balón no visible | 0,812 | 0,592 |
-  | salida decodificada (frames vivos) | **0,791** | 0,676 |
+  | per-frame emission | **0.765** | 0.659 |
+  | emission, ball visible | 0.755 | 0.674 |
+  | emission, ball not visible | 0.812 | 0.592 |
+  | decoded output (live frames) | **0.791** | 0.676 |
 
-  Y sube con la confianza de la emisión: 0,60 → 0,76 → 0,84 → 0,86 por cuartiles. La señal del arnés se sostiene en
-  BAR-ATH. Es diagnóstico: **no se eligen pesos maximizando este acuerdo.**
-- **El hueco para el detector de fronteras.** `viterbi.decode(..., switch_discount=...)` multiplica los costes de cambio
-  de cada frame por `1 - descuento` donde un detector vea una transición. Fracción y no resta: los cambios cuestan muy
-  distinto (robo 40, reinicio 14) y una resta acotada por el más barato apenas movería un robo. Con ceros reproduce el
-  decodificador bit a bit (test); un descuento de 1 o más falla en vez de hacer gratis fragmentar.
+  And it rises with the emission's confidence: 0.60 → 0.76 → 0.84 → 0.86 by quartiles. The harness's signal holds on
+  BAR-ATH. It is a diagnostic: **weights are not chosen by maximizing this agreement.**
+- **The slot for the boundary detector.** `viterbi.decode(..., switch_discount=...)` multiplies each frame's switch costs
+  by `1 - discount` where a detector sees a transition. A fraction and not a subtraction: changes cost very different amounts
+  (steal 40, restart 14) and a subtraction bounded by the cheapest would barely move a steal. With zeros it reproduces the
+  decoder bit for bit (test); a discount of 1 or more fails instead of making fragmenting free.
 
-**El detector de fronteras, medido el 7-11** (`python -m mtah.training.boundaries`, 8 min con la caché):
+**The boundary detector, measured on Nov 7** (`python -m mtah.training.boundaries`, 8 min with the cache):
 
-- **Qué es.** Gradient boosting (`HistGradientBoostingClassifier`) sobre 109 features. Para 13 señales por frame
-  (control balón-jugador, distancia al más cercano por equipo, actividad, velocidad y dirección del balón, velocidad
-  de cada centroide, forma, y los dos logits de la emisión actual): la media en una ventana *después* del frame y su
-  diferencia con la de *antes*, a 0,24 / 0,48 / 1 / 2 s; más el tiempo desde y hasta la última vez que se vio el
-  balón. Objetivo: estar a ±12 frames de un cambio de etiqueta (en el convenio del reto). Fuera de muestra: AUC
-  0,90-0,92 y precisión media 0,55-0,61, con un 6 % de positivos.
-- **Cómo se midió.** Para cada partido de fuera, el detector se entrena con los otros 6, y el peso del descuento y la
-  escala de los costes de cambio se eligen sobre esos 6 con puntuaciones fuera de muestra. El de fuera no influye en
-  nada. Las semillas 1 y 2 de degradación usan el modelo y la elección ya fijados. El control reproduce exactamente
-  el 0,3965 de §3. Tres brazos con la misma elección anidada, porque encarecer los cambios podría mejorar por sí solo:
+- **What it is.** Gradient boosting (`HistGradientBoostingClassifier`) on 109 features. For 13 per-frame signals
+  (ball-player control, distance to the nearest one per team, activity, ball speed and direction, speed
+  of each centroid, shape, and the two logits of the current emission): the mean in a window *after* the frame and its
+  difference with the one from *before*, at 0.24 / 0.48 / 1 / 2 s; plus the time since and until the last time the
+  ball was seen. Target: being within ±12 frames of a label change (in the challenge's convention). Out of sample: AUC
+  0.90-0.92 and average precision 0.55-0.61, with 6% positives.
+- **How it was measured.** For each left-out match, the detector is trained on the other 6, and the discount weight and the
+  scale of the switch costs are chosen on those 6 with out-of-sample scores. The left-out one influences
+  nothing. Degradation seeds 1 and 2 use the model and the choice already fixed. The control reproduces exactly
+  the 0.3965 of §3. Three arms with the same nested choice, because making changes more expensive could improve things by itself:
 
-  | sobre 7 partidos × 3 semillas | media | ejecuciones que mejoran | partidos que mejoran (media de semillas) |
+  | over 7 matches × 3 seeds | mean | runs that improve | matches that improve (seed mean) |
   |---|---|---|---|
-  | solo encarecer los cambios | +0,10 pp | 12/21 | 4/7 |
-  | solo el descuento del detector | +0,48 pp | 15/21 | 4/7 |
-  | **los dos** | **+1,17 pp** | 16/21 | 5/7 |
-  | **los dos frente a solo encarecer** | **+1,07 pp** | 16/21 | **7/7** |
+  | only making changes more expensive | +0.10 pp | 12/21 | 4/7 |
+  | only the detector's discount | +0.48 pp | 15/21 | 4/7 |
+  | **both** | **+1.17 pp** | 16/21 | 5/7 |
+  | **both versus only making them more expensive** | **+1.07 pp** | 16/21 | **7/7** |
 
-  Semilla 0: 0,3965 → **0,4073**, y macroF1 sube a la vez (+1,12 pp). Encarecer por sí solo es ruido; el detector
-  rinde cuando el decodificador corta *solo* donde él ve frontera. Los dos partidos que pierden frente al control
-  (J03WOH, J03WOY) eligieron escala 2,0, el borde de la rejilla. No se amplía: el 31-10 ya se vio que ampliar
-  rejillas sobreajusta.
-- **Qué no dice.** Es Bundesliga degradada; en BAR-ATH no hay forma de medirlo (la ventana pública no es criterio).
-  Lo que sí se pudo comprobar, el 7-11, está en el punto siguiente.
-- **Las tres pruebas de que aporta** (`python -m mtah.training.evidence stress | tagging`; tablas en
-  `trabajo/handoff-plugin-data/datos/evidencia_*.json`). Con huecos al azar el recorrido reproduce al bit el LOMO
-  de arriba, y el script falla si no.
-  1. **Estrés: el balón se pierde donde duele.** El mismo detector, peso y escala de cada pliegue (entrenados y
-     elegidos con huecos al azar, como la entrega), pero el partido de fuera se degrada con los huecos centrados
-     donde hay gente a < 5 m del balón (`crowded`, sin etiquetas: así describe DATA.md el ATD) o, peor caso, junto
-     a los cambios de posesión reales (`transitions`). Misma longitud de racha y mismo 59 % visible; con las rachas
-     reales no se puede esconder mucho más del 57 % de los cambios. Media de semillas por partido:
+  Seed 0: 0.3965 → **0.4073**, and macroF1 rises at the same time (+1.12 pp). Making changes more expensive on its own is noise; the detector
+  pays off when the decoder cuts *only* where it sees a boundary. The two matches that lose against the control
+  (J03WOH, J03WOY) chose scale 2.0, the edge of the grid. It is not widened: on Oct 31 it was already seen that widening
+  grids overfits.
+- **What it does not say.** It is degraded Bundesliga; on BAR-ATH there is no way to measure it (the public window is not a criterion).
+  What could be checked, on Nov 7, is in the next point.
+- **The three tests showing it contributes** (`python -m mtah.training.evidence stress | tagging`; tables in
+  `trabajo/handoff-plugin-data/datos/evidencia_*.json`). With random gaps the run reproduces the LOMO above
+  bit for bit, and the script fails if it does not.
+  1. **Stress: the ball is lost where it hurts.** The same detector, weight and scale of each fold (trained and
+     chosen with random gaps, like the submission), but the left-out match is degraded with the gaps centered
+     where there are people < 5 m from the ball (`crowded`, label-free: this is how DATA.md describes the ATD) or, in the worst case, next
+     to the real possession changes (`transitions`). Same run length and same 59% visible; with the real
+     runs, much more than 57% of the changes cannot be hidden. Mean of seeds per match:
 
-     | huecos | cambios sin balón | AUC | los dos − control | los dos − solo encarecer |
+     | gaps | changes without ball | AUC | both − control | both − only making changes more expensive |
      |---|---|---|---|---|
-     | al azar | 41 % | 0,91 | +1,17 pp [+0,21, +2,07], 5/7 | +1,07 pp [+0,51, +1,55], 7/7 (p 0,008) |
-     | abarrotados | 49 % | 0,91 | +1,07 pp [−0,22, +2,20], 6/7 | +1,14 pp [+0,41, +1,86], 6/7 |
-     | junto a los cambios | 57 % | 0,90 | +0,41 pp [−0,16, +0,96], 4/7 | +0,81 pp [+0,40, +1,20], 6/7 |
+     | random | 41% | 0.91 | +1.17 pp [+0.21, +2.07], 5/7 | +1.07 pp [+0.51, +1.55], 7/7 (p 0.008) |
+     | crowded | 49% | 0.91 | +1.07 pp [−0.22, +2.20], 6/7 | +1.14 pp [+0.41, +1.86], 6/7 |
+     | next to the changes | 57% | 0.90 | +0.41 pp [−0.16, +0.96], 4/7 | +0.81 pp [+0.40, +1.20], 6/7 |
 
-     IC 95 % bootstrap sobre los 7 partidos. **Con los huecos donde los pone el ATD la ganancia se mantiene**; en
-     el peor caso se reduce a +0,4 pp y deja de ser distinguible de cero, pero no es negativa, y lo que aporta el
-     detector sobre encarecer los cambios sigue claro. No hay motivo para retirarlo; si alguna vez se retira, es
-     `boundary_discount_weight = 0`.
-  2. **Mecanismo: arregla lo que el diagnóstico decía.** Mismo recorrido, media de 7 partidos × 3 semillas, huecos
-     al azar (en las otras dos colocaciones el patrón es el mismo):
+     95% bootstrap CI over the 7 matches. **With the gaps where the ATD puts them the gain holds**; in
+     the worst case it shrinks to +0.4 pp and can no longer be distinguished from zero, but it is not negative, and what the
+     detector adds over making changes more expensive remains clear. There is no reason to withdraw it; if it is ever withdrawn, it
+     is `boundary_discount_weight = 0`.
+  2. **Mechanism: it fixes what the diagnosis said.** Same run, mean of 7 matches × 3 seeds, random gaps
+     (in the other two placements the pattern is the same):
 
-     | | control | solo encarecer | los dos |
+     | | control | only making them more expensive | both |
      |---|---|---|---|
-     | cambios: precisión / recall a ±0,5 s | 0,30 / 0,24 | 0,31 / 0,24 | **0,42 / 0,33** |
-     | cambios: F1 a ±1 s | 0,35 | 0,35 | **0,42** |
-     | error a ±12 frames de un cambio real | 48,6 % | 48,7 % | 46,9 % |
-     | error en el resto | 17,4 % | 17,1 % | 16,3 % |
-     | recall de posesiones < 2 s / 2-5 s / > 10 s | 1,8 / 13,3 / 59,6 % | 1,4 / 12,4 / 59,8 % | 3,1 / 14,0 / 59,5 % |
+     | changes: precision / recall at ±0.5 s | 0.30 / 0.24 | 0.31 / 0.24 | **0.42 / 0.33** |
+     | changes: F1 at ±1 s | 0.35 | 0.35 | **0.42** |
+     | error within ±12 frames of a real change | 48.6% | 48.7% | 46.9% |
+     | error elsewhere | 17.4% | 17.1% | 16.3% |
+     | recall of possessions < 2 s / 2-5 s / > 10 s | 1.8 / 13.3 / 59.6% | 1.4 / 12.4 / 59.8% | 3.1 / 14.0 / 59.5% |
 
-     La ganancia sale de **dónde** se corta (+0,10 de F1 de cambios con el mismo número de posesiones que solo
-     encarecer), no de cortar más o menos. Las posesiones cortas casi no se recuperan: el techo sigue ahí.
-  3. **BAR-ATH sin etiquetas: neutro.** Los saques (`SET PIECES`) y las transiciones (`ATTACKING / DEFENSIVE
-     TRANSITION`) del Smart Tagging, que el pipeline no usa, como ventanas ±1 s. De los cortes que el detector
-     añade (34) cae dentro el 44 %, y de los que quita (70) también el 44 %, frente a un 34 % al azar. Ventanas de
-     transición con algún corte: 21 → 19 de 24. Ni a favor ni en contra: el tagging es demasiado grueso (ventanas
-     de saque de 5 a 35 s) para distinguir este cambio. No se elige nada con esto.
-- **En la entrega desde el 7-11.** `python -m mtah.training.boundaries export` lo entrena con los 7 partidos y elige
-  peso y escala con el mismo procedimiento (cada partido puntuado por un detector que no lo vio): **peso 0,95, escala
-  2,0**, spellF1 fuera de muestra 0,4111 frente a 0,4089 con escala 1,5. Los dos valores son el borde de su rejilla,
-  igual que en los 2 pliegues que perdían; no se amplía (el 31-10 se vio que ampliar sobreajusta). El modelo va en el
-  repo (`models/boundary_detector.joblib`, 420 KB) con su sha256, la versión de scikit-learn y la config de features
-  con que se entrenó; si cualquiera de las tres no cuadra, `build` falla en vez de puntuar basura. Reexportar da el
-  mismo fichero byte a byte.
-- **Comprobaciones sin etiquetas en BAR-ATH**, que no eligen nada pero avisarían de un salto de dominio grosero: el
-  score medio en los frames puntuados es 0,063 (0,061-0,064 en el IDSSE) y el 2,2 % pasa de 0,5 (2,7 % en el IDSSE).
-  Cambia el 3,8 % de los frames puntuados y baja de 369 a 333 segmentos, la misma dirección que en el arnés. En la
-  ventana pública baja de 0,4903 a 0,4444 con macroF1 igual: predice 10 posesiones en vez de 14 (17 reales) y, a
-  IoU 0,5, acierta 6 en vez de 8 con 4 falsas en vez de 6 (contado el 11-11). Son dos posesiones de 17; la ventana
-  no es criterio, pero queda dicho.
+     The gain comes from **where** it cuts (+0.10 in changes F1 with the same number of possessions as only
+     making them more expensive), not from cutting more or less. Short possessions are barely recovered: the ceiling is still there.
+  3. **BAR-ATH without labels: neutral.** The set pieces (`SET PIECES`) and the transitions (`ATTACKING / DEFENSIVE
+     TRANSITION`) of the Smart Tagging, which the pipeline does not use, as ±1 s windows. Of the cuts the detector
+     adds (34), 44% fall inside them, and of those it removes (70) also 44%, versus 34% at random. Transition windows
+     with some cut: 21 → 19 of 24. Neither for nor against: the tagging is too coarse (set-piece windows
+     of 5 to 35 s) to tell this change apart. Nothing is chosen with this.
+- **In the submission since Nov 7.** `python -m mtah.training.boundaries export` trains it with the 7 matches and chooses
+  weight and scale with the same procedure (each match scored by a detector that did not see it): **weight 0.95, scale
+  2.0**, out-of-sample spellF1 0.4111 versus 0.4089 with scale 1.5. Both values are the edge of their grid,
+  as in the 2 folds that lost; it is not widened (on Oct 31 it was seen that widening overfits). The model lives in the
+  repo (`models/boundary_detector.joblib`, 420 KB) with its sha256, the scikit-learn version and the features config
+  it was trained with; if any of the three does not match, `build` fails instead of scoring garbage. Re-exporting gives the
+  same file byte for byte.
+- **Label-free checks on BAR-ATH**, which choose nothing but would warn of a gross domain jump: the mean
+  score on the scored frames is 0.063 (0.061-0.064 on IDSSE) and 2.2% exceeds 0.5 (2.7% on IDSSE).
+  It changes 3.8% of the scored frames and drops from 369 to 333 segments, the same direction as in the harness. On the
+  public window it drops from 0.4903 to 0.4444 with macroF1 equal: it predicts 10 possessions instead of 14 (17 real) and, at
+  IoU 0.5, gets 6 right instead of 8 with 4 false instead of 6 (counted on Nov 11). It is two possessions out of 17; the window
+  is not a criterion, but it is on record.
 
-**La curva de visibilidad, medida el 7-11** (`python -m mtah.training.visibility`, 1 min). Mismo modelo y mismas
-degradaciones, devolviendo huecos de balón enteros. spellF1 medio de los 7 partidos:
+**The visibility curve, measured on Nov 7** (`python -m mtah.training.visibility`, 1 min). Same model and same
+degradations, returning entire ball gaps. Mean spellF1 of the 7 matches:
 
-| balón visible | huecos al azar | primero los fáciles (balón lejos de todos) |
+| visible ball | random gaps | easy ones first (ball far from everyone) |
 |---|---|---|
-| 59 % (como el ATD) | 0,3965 | 0,3965 |
-| 70 % | 0,4255 | 0,4181 |
-| 80 % | 0,4460 | 0,4310 |
-| 90 % | 0,4747 | 0,4596 |
-| 100 % | 0,4977 | 0,4977 |
+| 59% (like the ATD) | 0.3965 | 0.3965 |
+| 70% | 0.4255 | 0.4181 |
+| 80% | 0.4460 | 0.4310 |
+| 90% | 0.4747 | 0.4596 |
+| 100% | 0.4977 | 0.4977 |
 
-Mejora en los 7 partidos en cada nivel. La columna que vale es la de la derecha: unos 2-3 pp por cada 10 puntos de
-visibilidad. La pendiente es lo fiable; el nivel está inflado porque la degradación reparte los huecos al azar.
+It improves in all 7 matches at every level. The column that counts is the right-hand one: about 2-3 pp for every 10 points of
+visibility. The slope is the reliable part; the level is inflated because the degradation spreads the gaps at random.
 
-**El Smart Tagging como evidencia de equipo, desde el 8-11** (`python -m mtah.training.team_tags` y `... robust`;
-tablas en `datos/smart_tagging_lomo.json` y `smart_tagging_robustez.json`).
+**Smart Tagging as team evidence, since Nov 8** (`python -m mtah.training.team_tags` and `... robust`;
+tables in `datos/smart_tagging_lomo.json` and `smart_tagging_robustez.json`).
 
-- **Por qué.** En el IDSSE, el 60 % de los frames fallados son local por visitante (71 % con el balón visible). Las
-  fases de Metrica con equipo (BUILD UP, PROGRESSION, CREATING CHANCES, LONG BALL y los DEFENDING IN * en espejo)
-  dicen de quién es el balón en el 40 % de los frames puntuados, en tramos de ~20 s.
-- **Cómo entra.** `features/tagging.team_tags` da +1/−1/0 por frame y `models/emissions.team_tag_logit` lo suma al
-  logit de local con `smart_tagging_team_weight`. Va *después* del detector de fronteras, que lee `home_logit` y se
-  entrenó sin tagging: sumarlo antes cambiaría sus entradas. Peso 0 = la entrega del 7-11 al byte.
-- **El problema: el IDSSE no tiene Smart Tagging.** Se simula sobre sus etiquetas, copiando lo que se mide del real
-  sin etiquetas: longitudes de tramo, cobertura, tramos separados (nunca un cambio directo de equipo) y equipo
-  mayoritario del tramo. Lo que no se sabe es cuánto acierta. Lo único medible es cuánto coincide con nuestra
-  emisión en BAR-ATH: **0,762**, y por cuartil de confianza 0,60 / 0,75 / 0,84 / 0,86. Un tagging simulado
-  *perfecto* coincide solo 0,706, así que el real coincide más que uno perfecto: o copia parte de nuestros errores
-  (Metrica etiqueta con el mismo tracking), o cae en los tramos fáciles, o nuestra emisión acierta más aquí.
-- **Qué se midió.** LOMO anidado sobre el pipeline entregado (detector incluido), 7 partidos × 3 semillas:
+- **Why.** In IDSSE, 60% of the missed frames are home mistaken for away (71% with the ball visible). The
+  Metrica phases with a team (BUILD UP, PROGRESSION, CREATING CHANCES, LONG BALL and the DEFENDING IN * as mirror images)
+  say whose ball it is in 40% of the scored frames, in stretches of ~20 s.
+- **How it comes in.** `features/tagging.team_tags` gives +1/−1/0 per frame and `models/emissions.team_tag_logit` adds it
+  to the home logit with `smart_tagging_team_weight`. It goes *after* the boundary detector, which reads `home_logit` and
+  was trained without tagging: adding it before would change its inputs. Weight 0 = the Nov 7 submission to the byte.
+- **The problem: IDSSE has no Smart Tagging.** It is simulated on its labels, copying what is measured on the real one
+  without labels: stretch lengths, coverage, separate stretches (never a direct change of team) and the
+  stretch's majority team. What is not known is how accurate it is. The only measurable thing is how much it agrees with our
+  emission on BAR-ATH: **0.762**, and by confidence quartile 0.60 / 0.75 / 0.84 / 0.86. A *perfect* simulated tagging
+  agrees only 0.706, so the real one agrees more than a perfect one: either it copies part of our errors
+  (Metrica labels with the same tracking), or it falls on the easy stretches, or our emission is more accurate here.
+- **What was measured.** Nested LOMO on the submitted pipeline (detector included), 7 matches × 3 seeds:
 
-  | escenario del tagging | ¿compatible con BAR-ATH? | peso 0,5 fijo | peso 1,0 fijo |
+  | tagging scenario | compatible with BAR-ATH? | fixed weight 0.5 | fixed weight 1.0 |
   |---|---|---|---|
-  | perfecto | no (acuerdo 0,706) | +1,89 pp | +2,64 pp |
-  | 10 % / 20 % de tramos invertidos | no | +1,24 / +0,67 | +1,56 / +0,48 |
-  | copia nuestro equipo en la mitad de los tramos | solo el acuerdo medio | +0,47 | +0,41 |
-  | cae donde nuestra emisión está segura | sí | +0,90 | +0,59 |
-  | **mejor ajuste a los cuatro cuartiles** (fácil + 20 % de copia) | **sí, el mejor** | **+0,61** [−0,15, +1,51], 5/7 | +0,10 |
-  | copia del todo nuestra emisión | no (daría 0,807) | −1,12 | −2,06 |
+  | perfect | no (agreement 0.706) | +1.89 pp | +2.64 pp |
+  | 10% / 20% of stretches inverted | no | +1.24 / +0.67 | +1.56 / +0.48 |
+  | copies our team in half of the stretches | only the mean agreement | +0.47 | +0.41 |
+  | falls where our emission is sure | yes | +0.90 | +0.59 |
+  | **best fit to the four quartiles** (easy + 20% copy) | **yes, the best** | **+0.61** [−0.15, +1.51], 5/7 | +0.10 |
+  | copies our emission entirely | no (it would give 0.807) | −1.12 | −2.06 |
 
-- **Decisión: 0,5.** Gana en todos los escenarios compatibles con lo medido y solo pierde en uno que el acuerdo
-  descarta. Se eligió entre dos pesos fijos por robustez, mirando estos resultados: es una elección hecha sobre
-  los partidos de evaluación y así hay que contarla. La elección automática por pliegue salía más ruidosa (+0,39
-  en el mejor ajuste; −0,20 en el de copia, donde casi siempre elegía 0).
-- **Qué no dice.** Es una simulación con un supuesto sobre los errores del tagging real, calibrado con un solo
-  número por cuartil. Ninguno de los intervalos del escenario que mejor ajusta excluye el cero. En BAR-ATH cambia el
-  2,1 % de los frames puntuados y baja de 334 a 316 segmentos. En la ventana pública baja de 0,4444 a 0,4148: las
-  mismas 10 posesiones predichas y las mismas 6 acertadas a IoU 0,5, con peor solape en una (contado el 11-11).
+- **Decision: 0.5.** It wins in every scenario compatible with what was measured and only loses in one that the agreement
+  rules out. It was chosen between two fixed weights for robustness, looking at these results: it is a choice made on
+  the evaluation matches and has to be reported that way. The automatic per-fold choice came out noisier (+0.39
+  in the best fit; −0.20 in the copy one, where it almost always chose 0).
+- **What it does not say.** It is a simulation with an assumption about the real tagging's errors, calibrated with a single
+  number per quartile. None of the intervals of the best-fitting scenario excludes zero. On BAR-ATH it changes
+  2.1% of the scored frames and drops from 334 to 316 segments. On the public window it drops from 0.4444 to 0.4148: the
+  same 10 predicted possessions and the same 6 hits at IoU 0.5, with worse overlap on one (counted on Nov 11).
 
-**El clasificador de equipo sin balón, del 12-11, en `main` desde el 15-11** (`python -m mtah.training.team_classifier` y
-`... export`; tabla en `datos/equipo_sin_balon_lomo.json`; la exploración previa, con lo que se descartó, en
-`trabajo/sin-balon-1111/RESUMEN.md`). Se integró como candidato en la rama `equipo-sin-balon` y el 15-11 se
-mergeó en `main`. Abajo, "la candidata" es la salida con el clasificador (`a43c52fb…`) y "la entrega" la del
-8-11 (`e7938350…`).
+**The team classifier without the ball, from Nov 12, in `main` since Nov 15** (`python -m mtah.training.team_classifier` and
+`... export`; table in `datos/equipo_sin_balon_lomo.json`; the earlier exploration, with what was discarded, in
+`trabajo/sin-balon-1111/SUMMARY.md`). It was integrated as a candidate in the `equipo-sin-balon` branch and on Nov 15 it was
+merged into `main`. Below, "the candidate" is the output with the classifier (`a43c52fb…`) and "the submission" is the
+Nov 8 one (`e7938350…`).
 
-- **Por qué.** El balón falta en el 41 % de los frames y ahí la geometría balón-jugador no tiene qué leer: la
-  emisión arrastra lo último que vio. En el IDSSE degradado el acierto por frame es 87,5 % con el balón visto y
-  74,5 % sin él, y de las posesiones que pasan sin balón el 75 % o más de sus frames solo se recupera el 15,0 %.
-  Sin balón el fallo dominante es el equipo cambiado (13,3 % de esos frames), por delante del muerto inventado
-  (8,2 %) y del muerto perdido (4,1 %) (`sin-balon-1111/diag.json`, semilla 0).
-- **Qué es.** Seis señales por equipo, medidas en el eje de ataque de cada uno: anchura, línea defensiva, línea de
-  ataque, velocidad media hacia la portería rival, velocidad media y fracción de jugadores en sprint, suavizadas
-  en ventanas de 1, 3 y 8 s (`features/team_signals.py`, 57 columnas). El sentido de ataque sale del propio
-  tracking, sin metadatos. Un gradient boosting las convierte en un logit de "la posesión es del local". Se entrena
-  con las dos perspectivas y se usa la mitad de la diferencia entre ellas: cambiar los equipos de nombre le cambia
-  el signo exacto, así que no puede aprender "el local suele tener el balón". Fuera de muestra separa al equipo
-  con AUC 0,919 a 0,963 según el partido (0,911 a 0,966 en los frames sin balón); la emisión
-  a mano, en frames sin balón a 2 s, 0,70.
-- **Cómo entra.** `models/team_classifier.home_logit` da el logit por frame y `emissions.costs` lo suma al de local
-  con `team_classifier_weight`, igual que el Smart Tagging: *después* del detector de fronteras, que lee
-  `home_logit` y se entrenó sin él. Peso 0 = la entrega del 8-11 al byte, sin cargar el modelo (hay un test).
-  El modelo comprueba al cargar su sha256, la versión de scikit-learn y que las señales son las del entrenamiento.
-- **Qué se midió.** LOMO anidado dentro del decodificador entregado, detector incluido y puntuando fuera de
-  muestra: para cada partido de fuera, clasificador entrenado con los otros 6 y peso elegido en esos 6 con
-  clasificadores que no vieron ni ese partido ni el de fuera. Modelo y peso se fijan en la semilla 0; las semillas
-  1 y 2 solo cambian el patrón de oclusión. El IDSSE no tiene Smart Tagging, así que el control es el modelo sin
+- **Why.** The ball is missing in 41% of the frames and there the ball-player geometry has nothing to read: the
+  emission drags along the last thing it saw. On degraded IDSSE the per-frame accuracy is 87.5% with the ball seen and
+  74.5% without it, and of the possessions that pass with 75% or more of their frames without the ball only 15.0% are
+  recovered. Without the ball the dominant failure is the swapped team (13.3% of those frames), ahead of the invented
+  dead ball (8.2%) and the missed dead ball (4.1%) (`sin-balon-1111/diag.json`, seed 0).
+- **What it is.** Six signals per team, measured on each one's attack axis: width, defensive line, attacking line,
+  mean speed toward the opposing goal, mean speed and fraction of players sprinting, smoothed
+  over windows of 1, 3 and 8 s (`features/team_signals.py`, 57 columns). The attacking direction comes from the
+  tracking itself, without metadata. A gradient boosting turns them into a logit of "possession is the home team's".
+  It is trained with both perspectives and half the difference between them is used: swapping the team names flips
+  its sign exactly, so it cannot learn "the home team usually has the ball". Out of sample it separates the teams
+  with AUC 0.919 to 0.963 depending on the match (0.911 to 0.966 on the ball-absent frames); the hand-made emission,
+  on ball-absent frames at 2 s, 0.70.
+- **How it comes in.** `models/team_classifier.home_logit` gives the per-frame logit and `emissions.costs` adds it to the
+  home one with `team_classifier_weight`, like the Smart Tagging: *after* the boundary detector, which reads
+  `home_logit` and was trained without it. Weight 0 = the Nov 8 submission to the byte, without loading the model (there is
+  a test). On loading, the model checks its sha256, the scikit-learn version and that the signals are those of the training.
+- **What was measured.** Nested LOMO inside the submitted decoder, detector included and scoring out of
+  sample: for each left-out match, classifier trained on the other 6 and weight chosen on those 6 with
+  classifiers that saw neither that match nor the left-out one. Model and weight are fixed on seed 0; seeds
+  1 and 2 only change the occlusion pattern. IDSSE has no Smart Tagging, so the control is the model without
   tagging.
 
-  | semilla | sin clasificador | con clasificador | diferencia | partidos mejor | macroF1 | peso 0,5 fijo | peso 1,0 fijo |
+  | seed | without classifier | with classifier | difference | matches better | macroF1 | fixed weight 0.5 | fixed weight 1.0 |
   |---|---|---|---|---|---|---|---|
-  | 0 | 0,4111 | 0,5712 | **+16,01 pp** | 7 de 7 | +6,32 pp | +11,41 | +13,77 |
-  | 1 | 0,4042 | 0,5755 | **+17,13 pp** | 7 de 7 | +6,75 pp | +12,02 | +14,97 |
-  | 2 | 0,4290 | 0,5808 | **+15,18 pp** | 7 de 7 | +6,32 pp | +10,91 | +13,33 |
-  | **media** | | | **+16,11 pp** | **21 de 21** | +6,46 pp | +11,45 | +14,02 |
+  | 0 | 0.4111 | 0.5712 | **+16.01 pp** | 7 of 7 | +6.32 pp | +11.41 | +13.77 |
+  | 1 | 0.4042 | 0.5755 | **+17.13 pp** | 7 of 7 | +6.75 pp | +12.02 | +14.97 |
+  | 2 | 0.4290 | 0.5808 | **+15.18 pp** | 7 of 7 | +6.32 pp | +10.91 | +13.33 |
+  | **mean** | | | **+16.11 pp** | **21 of 21** | +6.46 pp | +11.45 | +14.02 |
 
-  El peso elegido fue 2,0 en los 7 pliegues. La ejecución que menos gana, +10,9 pp; la que más, +20,1 pp.
-  Predice 206 posesiones de media por partido donde antes 179; las reales son 278. El macroF1
-  medio pasa de 0,793 a 0,858.
-- **Decisión: peso 2,0, y no se amplía la rejilla.** Es el borde (0,5 / 1,0 / 2,0) y la ganancia sigue creciendo
-  con el peso, pero la medida es optimista por lo de abajo y un peso mayor apostaría más a ella. El 31-10 ya se
-  vio que la mitad de cada ganancia de rejilla era sobreajuste.
-- **Por qué seis señales y no las nueve del experimento.** Un clasificador de dominio distingue las señales de
-  BAR-ATH de las del IDSSE con AUC 0,93 usando las nueve y 0,72 con estas seis (0,53 entre partidos del IDSSE). Las
-  tres que se quitan (centroide, longitud del bloque, jugadores en campo rival) no cuestan nada en validación
-  (+16,00 pp con nueve, +16,01 con seis, semilla 0). El subconjunto se eligió mirando la distribución sin
-  etiquetas del partido, no su nota.
-- **Qué no dice.** Tres cosas, por orden de importancia:
-  1. *El arnés conserva a los jugadores y BAR-ATH no.* En BAR-ATH hay 19,2 jugadores seguidos de media cuando
-     falta el balón y 21,4 cuando está, y el 14,3 % de los frames sin balón tienen menos de 16 (1,0 % con
-     balón). En el IDSSE degradado son 20,4 y 6,4 % en los dos casos. El clasificador se midió con equipos casi
-     completos justo donde aquí faltan jugadores. **Medido el 16-11 (bloque siguiente): no pierde nada.** Queda
-     abierto que en BAR-ATH faltan más de un equipo que de otro que en la prueba.
-  2. *Los huecos del arnés caen al azar.* BAR-ATH pierde el balón sobre todo con los jugadores parados (93,9 % de
-     frames sin balón en el tramo de menos actividad, 9,8 % en el de más). Recolocando los huecos según la
-     actividad la ganancia baja a **+12,55 pp** (7 de 7), solo en la semilla 0 y con una curva más suave que la
-     real (`sin-balon-1111/realista.json`).
-  3. *La deriva residual no es cero*: 0,72 frente a 0,53. Y contra las fases del Smart Tagging en frames sin
-     balón el clasificador de nueve señales da AUC 0,70 donde la emisión a mano da 0,85, y sumados 0,83
-     (`sin-balon-1111/atd_check.json`; con el balón visto es al revés, 0,91 frente a 0,80). Es un diagnóstico débil (fases de ~18 s, y Metrica etiqueta con el mismo
-     tracking), pero no es una confirmación.
-- **En BAR-ATH** (sin etiquetas, solo se describe): la candidata cambia el 10,1 % de los frames puntuados respecto
-  a la entrega y predice 190 posesiones donde la entrega 202. **Cambia más donde el balón se ve** (12,5 % de
-  esos frames) **que donde falta** (6,6 %): el 73,5 % de los frames que cambian tienen balón. Aquí la entrega ya
-  marca muerto el 84,2 % de los frames sin balón y el clasificador solo decide entre equipos, así que en este
-  partido actúa sobre todo como segunda opinión con el balón a la vista. De los cambios, el 73,5 % son de un
-  equipo al otro, el 19,5 % de muerto a equipo y el 7,0 % de equipo a muerto. Reparto H / A / D:
-  0,358 / 0,207 / 0,436, frente a 0,357 / 0,194 / 0,449. En la ventana pública lee 0,6286 de spellF1 (0,4148 la
-  entrega), macroF1 0,8643 (0,8003) y 11 posesiones predichas de 17 (10). **Lectura, no criterio**: en el mismo
-  experimento dos clasificadores más débiles subían en el IDSSE y bajaban a 0,3333 en esa ventana.
+  The chosen weight was 2.0 in all 7 folds. The run that gains least, +10.9 pp; the one that gains most, +20.1 pp.
+  It predicts 206 possessions on average per match where before 179; the real ones are 278. The mean macroF1
+  goes from 0.793 to 0.858.
+- **Decision: weight 2.0, and the grid is not widened.** It is the edge (0.5 / 1.0 / 2.0) and the gain keeps growing
+  with the weight, but the measurement is optimistic because of what is below and a larger weight would bet more on it. On
+  Oct 31 it was already seen that half of each grid gain was overfitting.
+- **Why six signals and not the nine of the experiment.** A domain classifier tells the BAR-ATH signals apart from
+  the IDSSE ones with AUC 0.93 using all nine and 0.72 with these six (0.53 between IDSSE matches). The three that are
+  dropped (centroid, block length, players in the opposing half) cost nothing on validation
+  (+16.00 pp with nine, +16.01 with six, seed 0). The subset was chosen by looking at the label-free distribution of
+  the match, not at its score.
+- **What it does not say.** Three things, in order of importance:
+  1. *The harness keeps the players and BAR-ATH does not.* On BAR-ATH there are 19.2 players tracked on average when
+     the ball is missing and 21.4 when it is there, and 14.3% of the ball-absent frames have fewer than 16 (1.0% with
+     the ball). On degraded IDSSE they are 20.4 and 6.4% in both cases. The classifier was measured with almost
+     complete teams exactly where players are missing here. **Measured on Nov 16 (next block): it loses nothing.** It
+     remains open that on BAR-ATH more players are missing from one team than from the other, more so than in the test.
+  2. *The harness gaps fall at random.* BAR-ATH loses the ball mostly while the players are standing still (93.9% of
+     ball-absent frames in the lowest-activity bracket, 9.8% in the highest). Relocating the gaps according to
+     activity the gain drops to **+12.55 pp** (7 of 7), on seed 0 only and with a smoother curve than the
+     real one (`sin-balon-1111/realista.json`).
+  3. *The residual drift is not zero*: 0.72 versus 0.53. And against the Smart Tagging phases on ball-absent frames
+     the nine-signal classifier gives AUC 0.70 where the hand-made emission gives 0.85, and added together 0.83
+     (`sin-balon-1111/atd_check.json`; with the ball seen it is the other way around, 0.91 versus 0.80). It is a weak
+     diagnostic (phases of ~18 s, and Metrica labels with the same tracking), but it is not a confirmation.
+- **On BAR-ATH** (label-free, only described): the candidate changes 10.1% of the scored frames with respect
+  to the submission and predicts 190 possessions where the submission 202. **It changes more where the ball is seen** (12.5% of
+  those frames) **than where it is missing** (6.6%): 73.5% of the frames that change have the ball. Here the submission already
+  marks 84.2% of the ball-absent frames as dead and the classifier only decides between teams, so in this
+  match it acts mainly as a second opinion with the ball in view. Of the changes, 73.5% are from one
+  team to the other, 19.5% from dead to team and 7.0% from team to dead. H / A / D split:
+  0.358 / 0.207 / 0.436, versus 0.357 / 0.194 / 0.449. On the public window it reads 0.6286 spellF1 (0.4148 the
+  submission), macroF1 0.8643 (0.8003) and 11 possessions predicted out of 17 (10). **A reading, not a criterion**: in the same
+  experiment two weaker classifiers went up on IDSSE and dropped to 0.3333 on that window.
 
-**La prueba de jugadores perdidos sin balón, 15-16 nov** (`python -m mtah.training.missing_players`, 7 min con
-las cachés hechas; tabla completa en `datos/equipo_sin_balon_jugadores.json`; rama `medicion-jugadores-sin-balon`).
-Cierra el punto 1 de "Qué no dice" de arriba. **La entrega no cambia.**
+**The test of missing players without the ball, Nov 15-16** (`python -m mtah.training.missing_players`, 7 min with
+the caches built; full table in `datos/equipo_sin_balon_jugadores.json`; branch `medicion-jugadores-sin-balon`).
+It closes point 1 of "What it does not say" above. **The submission does not change.**
 
-- **Qué se hizo.** `degrade.thin_where_ball_unseen` quita jugadores solo en los frames sin balón hasta el
-  histograma de objetos que tiene BAR-ATH sin balón, emparejando cuantiles. No toca el balón ni los frames con
-  balón, y la degradación de siempre no cambia (hay test). Dos brazos con el mismo histograma por frame:
-  `thinned`, que sortea en cada frame qué jugadores faltan (parpadean y las ventanas de 1 a 8 s de las señales
-  promedian el ruido: la versión fácil), y `persistent`, que sortea una vez por racha sin balón y los deja fuera
-  toda la racha, como un track perdido del ATD (tramos de ~2.700 frames de media). **Decide `persistent`.**
-- **Qué no se tocó.** Los modelos son los de la medición del 12-11 tal cual: para cada partido de fuera,
-  clasificador y detector entrenados con los otros 6 con la degradación de siempre (semilla 0). Peso 2,0 de
-  `config.py`, fijo. No se eligió nada.
-- **Regla de decisión, escrita y commiteada antes de correr** (`bc6e2c5`, `7a33004`). Sobre las 21 ejecuciones
-  de `persistent`: media ≥ +5 pp y ≥ 15 de 21 mejoran → se mantiene `a43c52fb…`; media ≤ +1 pp o < 11 de 21 →
-  se vuelve a `e7938350…`; en medio, se mantiene y se documenta. Si `thinned` ya dijera volver, bastaba.
-- **El arnés es el mismo.** La degradación de siempre, puntuada en la misma ejecución, reproduce
-  `datos/equipo_sin_balon_lomo.json` sin ninguna discrepancia (21 ejecuciones, control y peso 2,0).
-- **Los jugadores salen como en BAR-ATH** (frames puntuados del ATD contra los 7 partidos × 3 semillas):
+- **What was done.** `degrade.thin_where_ball_unseen` removes players only in the ball-absent frames down to the
+  histogram of objects that BAR-ATH has without the ball, matching quantiles. It does not touch the ball or the frames with
+  the ball, and the usual degradation does not change (there is a test). Two arms with the same per-frame histogram:
+  `thinned`, which draws at every frame which players are missing (they flicker and the 1 to 8 s windows of the signals
+  average out the noise: the easy version), and `persistent`, which draws once per ball-absent run and leaves them out for
+  the whole run, like a lost ATD track (stretches of ~2,700 frames on average). **`persistent` decides.**
+- **What was not touched.** The models are those of the Nov 12 measurement as they were: for each left-out match,
+  classifier and detector trained on the other 6 with the usual degradation (seed 0). Weight 2.0 from
+  `config.py`, fixed. Nothing was chosen.
+- **Decision rule, written and committed before running** (`bc6e2c5`, `7a33004`). Over the 21 runs
+  of `persistent`: mean ≥ +5 pp and ≥ 15 of 21 improve → `a43c52fb…` is kept; mean ≤ +1 pp or < 11 of 21 →
+  go back to `e7938350…`; in between, keep it and document it. If `thinned` already said to go back, that was enough.
+- **The harness is the same.** The usual degradation, scored in the same run, reproduces
+  `datos/equipo_sin_balon_lomo.json` without any discrepancy (21 runs, control and weight 2.0).
+- **The players come out as on BAR-ATH** (scored ATD frames against the 7 matches × 3 seeds):
 
-  | | objetos con balón | objetos sin balón | sin balón, < 16 | \|local − visitante\| sin balón |
+  | | objects with ball | objects without ball | without ball, < 16 | \|home − away\| without ball |
   |---|---|---|---|---|
-  | BAR-ATH (ATD, sin etiquetas) | 21,39 | 19,17 | 14,3 % | 1,34 |
-  | IDSSE degradado de siempre | ~20,4 | ~20,4 | ~6,4 % | |
-  | Prueba, `thinned` y `persistent` | 20,37 | 19,08 | 14,2 % | 0,86 y 0,87 |
+  | BAR-ATH (ATD, label-free) | 21.39 | 19.17 | 14.3% | 1.34 |
+  | IDSSE degraded as usual | ~20.4 | ~20.4 | ~6.4% | |
+  | Test, `thinned` and `persistent` | 20.37 | 19.08 | 14.2% | 0.86 and 0.87 |
 
-- **Resultado.** Diferencia de spellF1 con el clasificador (peso 2,0) contra sin él, partido de fuera:
+- **Result.** spellF1 difference with the classifier (weight 2.0) versus without it, left-out match:
 
-  | degradación | semilla 0 | semilla 1 | semilla 2 | media | mejoran | peor / mejor ejecución | macroF1 | spellF1 sin → con |
+  | degradation | seed 0 | seed 1 | seed 2 | mean | improve | worst / best run | macroF1 | spellF1 without → with |
   |---|---|---|---|---|---|---|---|---|
-  | de siempre (12-11) | +16,01 | +17,13 | +15,18 | +16,11 pp | 21 de 21 | +10,9 / +20,1 | +6,46 pp | 0,415 → 0,576 |
-  | `thinned` | +15,50 | +17,25 | +14,75 | +15,84 pp | 21 de 21 | +10,7 / +20,4 | +6,37 pp | 0,417 → 0,575 |
-  | **`persistent`** | **+16,36** | **+17,04** | **+15,44** | **+16,28 pp** | **21 de 21** | **+12,5 / +19,9** | +6,42 pp | 0,416 → 0,579 |
+  | as usual (Nov 12) | +16.01 | +17.13 | +15.18 | +16.11 pp | 21 of 21 | +10.9 / +20.1 | +6.46 pp | 0.415 → 0.576 |
+  | `thinned` | +15.50 | +17.25 | +14.75 | +15.84 pp | 21 of 21 | +10.7 / +20.4 | +6.37 pp | 0.417 → 0.575 |
+  | **`persistent`** | **+16.36** | **+17.04** | **+15.44** | **+16.28 pp** | **21 of 21** | **+12.5 / +19.9** | +6.42 pp | 0.416 → 0.579 |
 
-  Por partido (`persistent`, semillas 0 / 1 / 2): J03WMX +18,0 / +16,1 / +13,8; J03WN1 +12,8 / +15,0 / +13,5;
-  J03WOH +13,7 / +16,9 / +15,9; J03WOY +19,5 / +19,9 / +18,2; J03WPY +19,9 / +19,4 / +19,7; J03WQQ +13,9 / +12,9 /
-  +14,5; J03WR9 +16,7 / +19,1 / +12,5. El AUC de equipo en los frames sin balón apenas se mueve: 0,907 a 0,966
-  frente a 0,911 a 0,966. Predice 207 posesiones por partido (206 antes; 278 reales).
-- **Decisión: se mantiene `a43c52fb…`.** Perder 1 o 2 de ~20 jugadores casi no cambia la anchura, las líneas ni
-  las velocidades medias de un equipo en 1 a 8 s, que es lo que lee el clasificador.
-- **Qué sigue sin ver.** (1) En BAR-ATH las ausencias están más desequilibradas entre equipos: 1,34 jugadores de
-  diferencia media sin balón frente a 0,87 en la prueba, que quita sin mirar el equipo. Con el AUC tan estable no
-  parece que vaya a cambiar la decisión, pero no está medido. (2) Quién falta: aquí al azar; en el ATD
-  seguramente los lejanos a la cámara o los amontonados. (3) Los huecos sin balón siguen al azar; esta prueba no
-  se ha combinado con la de huecos colocados por actividad (+12,6 pp, solo semilla 0). (4) En los frames con
-  balón la prueba se queda en 20,4 objetos frente a 21,4 de BAR-ATH: solo se puede quitar, no inventar.
+  By match (`persistent`, seeds 0 / 1 / 2): J03WMX +18.0 / +16.1 / +13.8; J03WN1 +12.8 / +15.0 / +13.5;
+  J03WOH +13.7 / +16.9 / +15.9; J03WOY +19.5 / +19.9 / +18.2; J03WPY +19.9 / +19.4 / +19.7; J03WQQ +13.9 / +12.9 /
+  +14.5; J03WR9 +16.7 / +19.1 / +12.5. The team AUC on the ball-absent frames barely moves: 0.907 to 0.966
+  versus 0.911 to 0.966. It predicts 207 possessions per match (206 before; 278 real).
+- **Decision: `a43c52fb…` is kept.** Losing 1 or 2 of ~20 players barely changes a team's width, lines or
+  mean speeds over 1 to 8 s, which is what the classifier reads.
+- **What it still does not see.** (1) On BAR-ATH the absences are more unbalanced between teams: 1.34 players of
+  mean difference without the ball versus 0.87 in the test, which removes players without looking at the team. With the AUC so
+  stable it does not seem that it will change the decision, but it is not measured. (2) Who is missing: here at random; in
+  the ATD probably those far from the camera or the crowded ones. (3) The ball-absent gaps are still random; this test has not
+  been combined with the one of gaps placed by activity (+12.6 pp, seed 0 only). (4) On the frames with the
+  ball the test stays at 20.4 objects versus 21.4 on BAR-ATH: players can only be removed, not invented.
 
-### Los documentos (`trabajo/`)
+### The documents (`trabajo/`)
 
-- `resumen-simple.md` — el reto sin jerga. Empezar por aquí.
-- `analisis-y-propuesta.md` — análisis del reto, propuesta, qué se probó y qué no funcionó.
-- `datos-externos.md` — qué datasets externos existen, cuál usar (IDSSE) y cómo degradarlos.
-- `handoff-plugin-data/VALIDACION.md` y `VALIDACION-CRUZADA.md` — las auditorías. La segunda
-  corrige a la primera en lo del sobreajuste.
-- `handoff-plugin-data/datos/` — todas las tablas; `handoff-plugin-data/*.py` los scripts que
-  las producen.
-- `sin-balon-1111/RESUMEN.md` — el diagnóstico de los frames sin balón (11 y 12-11), lo que se
-  probó, lo que se descartó y las ideas que quedan; al lado, sus scripts y tablas de agregados.
-- Hay además un dashboard interactivo (artefacto privado de claude.ai, "Posesión FC Medallo")
-  alimentado con exactamente esas tablas. Pedidle el enlace a Brayan.
+- `plain-summary.md` — the challenge without jargon. Start here.
+- `analysis-and-proposal.md` — analysis of the challenge, proposal, what was tried and what did not work.
+- `external-data.md` — which external datasets exist, which one to use (IDSSE) and how to degrade them.
+- `handoff-plugin-data/VALIDATION.md` and `CROSS-VALIDATION.md` — the audits. The second
+  corrects the first on the overfitting point.
+- `handoff-plugin-data/datos/` — all the tables; `handoff-plugin-data/*.py` the scripts that
+  produce them.
+- `sin-balon-1111/SUMMARY.md` — the diagnosis of the ball-absent frames (Nov 11 and 12), what was
+  tried, what was discarded and the ideas that remain; next to it, its scripts and aggregate tables.
+- There is also an interactive dashboard (private claude.ai artifact, "Posesión FC Medallo")
+  fed with exactly those tables. Ask Brayan for the link.
 
 ---
 
-## 3. Los números, y cómo leerlos
+## 3. The numbers, and how to read them
 
-Semilla 0 de degradación, `config.py` del 31-10 (`trabajo/handoff-plugin-data/datos/scores_por_partido.csv`):
+Degradation seed 0, `config.py` of Oct 31 (`trabajo/handoff-plugin-data/datos/scores_por_partido.csv`):
 
-| partido | grupo | antes del 28-10 | hoy |
+| match | group | before Oct 28 | today |
 |---|---|---|---|
-| J03WMX | ajuste | 0,3434 | 0,3607 |
-| J03WN1 | ajuste | 0,3254 | 0,3435 |
-| J03WOH | ajuste | 0,4442 | 0,4678 |
-| J03WOY | ajuste | 0,3598 | 0,3790 |
-| J03WPY | validación | 0,3807 | 0,3889 |
-| J03WQQ | validación | 0,4209 | 0,4584 |
-| J03WR9 | validación | 0,3488 | 0,3771 |
-| **media de los 7** | | 0,3748 | **0,3965** |
+| J03WMX | fit | 0.3434 | 0.3607 |
+| J03WN1 | fit | 0.3254 | 0.3435 |
+| J03WOH | fit | 0.4442 | 0.4678 |
+| J03WOY | fit | 0.3598 | 0.3790 |
+| J03WPY | validation | 0.3807 | 0.3889 |
+| J03WQQ | validation | 0.4209 | 0.4584 |
+| J03WR9 | validation | 0.3488 | 0.3771 |
+| **mean of the 7** | | 0.3748 | **0.3965** |
 
-Cuatro avisos para no leerlos mal:
+Four warnings so as not to misread them:
 
-1. **Son partidos de otra liga con otro tracker, degradados a mano.** Miden diferencias
-   *relativas* entre versiones del modelo; el nivel absoluto en el partido de la competición
-   puede ser otro.
-2. **El grupo de validación es más fácil que el de ajuste** en todas las configuraciones
-   (0,41 frente a 0,39). El 0,41 no es una predicción de la nota.
-3. **La columna "antes del 28-10" es una reconstrucción.** Ese `config.py` no se conservó (el
-   repo no tuvo commits hasta el 31-10). La reconstrucción puntúa 0,3–0,7 pp por debajo de lo
-   que se midió aquel día (`datos/robustez_semillas.json`, `_procedencia`).
-4. **Una partición no distingue configuraciones.** Con las otras dos semillas, diferencias de
-   menos de un punto cambian de signo. Lo único que distingue es la validación cruzada sobre
-   las 35 particiones (§2).
+1. **They are matches from another league with another tracker, degraded by hand.** They measure
+   *relative* differences between versions of the model; the absolute level in the competition match
+   may be different.
+2. **The validation group is easier than the fit group** in all configurations
+   (0.41 versus 0.39). The 0.41 is not a prediction of the score.
+3. **The "before Oct 28" column is a reconstruction.** That `config.py` was not kept (the
+   repo had no commits until Oct 31). The reconstruction scores 0.3–0.7 pp below what was
+   measured that day (`datos/robustez_semillas.json`, `_procedencia`).
+4. **A single partition does not distinguish configurations.** With the other two seeds, differences of
+   less than a point change sign. The only thing that distinguishes them is cross-validation over
+   the 35 partitions (§2).
 
-Dónde falla el modelo hoy (`datos/diagnostico_errores.csv`, config de hoy):
+Where the model fails today (`datos/diagnostico_errores.csv`, today's config):
 
-- **Balón parado se detecta bien**: 92 % de los frames D acertados.
-- **De qué equipo es, regular**: real H → predicho H 74 %, real A → A 69 %. El error H/A es
-  ~20 % de los frames vivos, y la recalibración lo reequilibró hacia H, no lo eliminó.
-- **Las posesiones cortas se pierden**: las de menos de 5 s son el **39 %** de todas y se
-  recuperan ~8 % (3 % las de <2 s, 11 % las de 2-5 s). Con ese recall, aunque la precisión
-  fuese perfecta spellF1 no pasaría de ≈0,50. **Es el techo real del modelo actual.**
-- **El error se concentra junto a las transiciones**: a ±12 frames de un cambio real falla uno
-  de cada dos frames; a más de 250 frames, el 7 %.
-- **Cuando el balón lleva más de 5 s sin verse, el error sube al 27 %** (frente al 14 % con el
-  balón visible). El balón no se pierde en oclusiones cortas: se pierde en bloques de minutos.
+- **Dead ball is detected well**: 92% of the D frames correct.
+- **Which team has the ball, so-so**: real H → predicted H 74%, real A → A 69%. The H/A error is
+  ~20% of the live frames, and the recalibration rebalanced it toward H, it did not eliminate it.
+- **Short possessions are lost**: those under 5 s are **39%** of all of them and ~8% are
+  recovered (3% of those <2 s, 11% of those 2-5 s). With that recall, even if precision
+  were perfect spellF1 would not exceed ≈0.50. **It is the real ceiling of the current model.**
+- **The error is concentrated next to the transitions**: within ±12 frames of a real change one
+  frame in two fails; beyond 250 frames, 7%.
+- **When the ball has gone unseen for more than 5 s, the error rises to 27%** (versus 14% with the
+  ball visible). The ball is not lost in short occlusions: it is lost in blocks of minutes.
 
 ---
 
-## 4. Qué falta
+## 4. What's left
 
-### Plan hasta el 17 (acordado el 11-11, tras mergear `fronteras-deteccion` en `main`; el 12-11 se añade la cuarta candidata y el 15-11 se mergea en `main`)
+### Plan until the 17th (agreed on Nov 11, after merging `fronteras-deteccion` into `main`; on Nov 12 the fourth candidate is added and on Nov 15 it is merged into `main`)
 
-Quedan seis días. Lo que se hace, quién, y en qué orden:
+Six days left. What gets done, by whom, and in what order:
 
-| cuándo | qué | quién | cómo se sabe que está |
+| when | what | who | how we know it is done |
 |---|---|---|---|
-| hasta el 14 | **Los saques del Smart Tagging como equipo que saca** (córners y saques de puerta; los de banda van con `N/A`). Es lo que falta en los huecos largos: sin balón la emisión da P(H) = P(A) y el modelo vive de la inercia, dure 5 s o 266 s el hueco. A diferencia de las fases, esto **sí se mide de verdad**: el IDSSE trae los eventos de saque con equipo, no hay que simular nada | Simon | mismo LOMO anidado de §2; entra solo si gana en validación y se cuenta con su intervalo |
-| hasta el 14 | **Reproducción en máquina limpia**: clonar, `pip install -r requirements.txt`, `source scripts/env.sh`, `build`, y que salga el sha256 `a43c52fb…` en `main` (desde el merge del 15-11; antes `e7938350…`). La entrega depende ahora de dos pickles con versión exacta de scikit-learn y de Python ≥ 3.12; si falla, falla en manos de los organizadores. Ojo: `python -m mtah` necesita `PYTHONPATH=src` (lo pone `env.sh`) o instalar el paquete. **Hecho el 15-11 en la máquina de Simon: sale `a43c52fb…` al byte** (§2, cronología), y **el 16-11 en limpio**: clon nuevo de GitHub y venv recién creado, en Windows 11 y en Linux (Ubuntu 24.04, WSL2); los dos dan `a43c52fb…` al byte y 139 tests en verde | Brayan / Simon | el sha coincide en una máquina que no sea la nuestra ✅ |
-| **viernes 14** | **Decidir y congelar la entrega.** Cuatro candidatas, reproducibles con tres valores de `config.py`: la del 31-10 (`73c361d5…`, 0,3965 medido), con detector (`5d97eccc…`, 0,4073 medido fuera de muestra), con detector + tagging (`e7938350…`, +0,6 pp *estimados* encima, intervalo que incluye el cero) y, desde el 12-11, con el clasificador de equipo sin balón encima de todo (`a43c52fb…`, rama `equipo-sin-balon`, +16,1 pp medidos fuera de muestra en el IDSSE, +12,6 pp con huecos como los reales; cota optimista, §2). **El 15-11 la rama se mergeó en `main`**: `config.py` tal cual genera `a43c52fb…`. Volver a la del 8-11 es poner `team_classifier_weight = 0`. Después del 14 no se toca ningún hiperparámetro: el 31-10 se vio que la mitad de cada ganancia de rejilla era sobreajuste | todos | `config.py` congelado y el sha de la entrega escrito en §1 |
-| 14-16 | **El documento técnico corto** (2-3 páginas): qué hace el modelo, cómo se midió, qué no sabemos. Sale de este fichero | Brayan | PDF en `trabajo/` |
-| 16 | **Repo público: ya lo es desde el 30-10** (comprobado el 14-11). Queda: auditoría de `data/` (se hace en cada push), atribución a la DFL (ya está), `vendor/NOTICE.md`, decidir si `trabajo/` se queda | Brayan | el repo es público y el validador pasa sobre el CSV entregado |
-| 15-16 | **Prueba de jugadores perdidos sin balón** sobre la entrega, con la regla de decisión escrita antes de correr. **Hecha: se mantiene `a43c52fb…`** (+16,28 pp, 21 de 21; §2) | Simon | `datos/equipo_sin_balon_jugadores.json`; ESTADO al día ✅ |
-| — | **`detector-balon` se aparca** sin mergear. Lo único que se rescata es su sección de documentación (qué se probó y por qué no da más), para no repetir el experimento. Si se retoma, su siguiente paso está escrito: simular el relleno *con sus errores* en el IDSSE antes de tocar el pipeline | — | — |
+| until the 14th | **The Smart Tagging set pieces as the team taking the restart** (corners and goal kicks; throw-ins go with `N/A`). It is what is missing in the long gaps: without the ball the emission gives P(H) = P(A) and the model lives off inertia, whether the gap lasts 5 s or 266 s. Unlike the phases, this **is measured for real**: IDSSE brings the set-piece events with team, nothing has to be simulated | Simon | same nested LOMO as §2; it goes in only if it wins on validation and is reported with its interval |
+| until the 14th | **Reproduction on a clean machine**: clone, `pip install -r requirements.txt`, `source scripts/env.sh`, `build`, and the sha256 `a43c52fb…` has to come out on `main` (since the Nov 15 merge; before, `e7938350…`). The submission now depends on two pickles with an exact scikit-learn version and on Python ≥ 3.12; if it fails, it fails in the organizers' hands. Careful: `python -m mtah` needs `PYTHONPATH=src` (`env.sh` sets it) or installing the package. **Done on Nov 15 on Simon's machine: `a43c52fb…` comes out byte for byte** (§2, chronology), and **on Nov 16 clean**: fresh clone from GitHub and freshly created venv, on Windows 11 and on Linux (Ubuntu 24.04, WSL2); both give `a43c52fb…` byte for byte and 139 tests green | Brayan / Simon | the sha matches on a machine that is not ours ✅ |
+| **Friday 14** | **Decide and freeze the submission.** Four candidates, reproducible with three values of `config.py`: the Oct 31 one (`73c361d5…`, 0.3965 measured), with detector (`5d97eccc…`, 0.4073 measured out of sample), with detector + tagging (`e7938350…`, +0.6 pp *estimated* on top, interval that includes zero) and, since Nov 12, with the team classifier without the ball on top of everything (`a43c52fb…`, branch `equipo-sin-balon`, +16.1 pp measured out of sample on IDSSE, +12.6 pp with gaps like the real ones; optimistic bound, §2). **On Nov 15 the branch was merged into `main`**: `config.py` exactly as it stands generates `a43c52fb…`. Going back to the Nov 8 one means setting `team_classifier_weight = 0`. After the 14th no hyperparameter is touched: on Oct 31 it was seen that half of each grid gain was overfitting | everyone | `config.py` frozen and the submission's sha written in §1 |
+| 14-16 | **The short technical document** (2-3 pages): what the model does, how it was measured, what we do not know. It is drawn from this file | Brayan | PDF in `trabajo/` |
+| 16 | **Public repo: it has been public since Oct 30** (checked on Nov 14). What remains: audit of `data/` (done on every push), attribution to the DFL (already there), `vendor/NOTICE.md`, decide whether `trabajo/` stays | Brayan | the repo is public and the validator passes on the submitted CSV |
+| 15-16 | **Test of missing players without the ball** on the submission, with the decision rule written before running. **Done: `a43c52fb…` is kept** (+16.28 pp, 21 of 21; §2) | Simon | `datos/equipo_sin_balon_jugadores.json`; STATUS up to date ✅ |
+| — | **`detector-balon` is shelved** without merging. The only thing rescued is its documentation section (what was tried and why it does not give more), so as not to repeat the experiment. If it is resumed, its next step is written down: simulate the filling-in *with its errors* on IDSSE before touching the pipeline | — | — |
 
-Convenciones del equipo, para que el historial sea uniforme: commits en español y sin líneas
-`Co-Authored-By` ni marcas de herramienta.
+Team conventions, so that the history is uniform: commits in Spanish and without `Co-Authored-By`
+lines or tool marks.
 
-### Lo demás, por orden de lo que yo haría
+### The rest, in the order I would do it
 
-Nada de esto está empezado salvo que se diga.
+None of this has been started unless it says so.
 
-1. **El documento técnico final.** No existe como tal; el material está en `trabajo/`. La
-   frase sobre el sobreajuste que va en él es la del §2 (29-30 oct), no "no se sobreajustó".
-2. **Dejar el repositorio listo para hacerlo público.** Antes de publicar: comprobar otra vez
-   que no entra nada de `data/` (hoy: 0 ficheros, auditado en cada push), citar el paper del
-   IDSSE y acreditar a la DFL (**condición de la licencia CC-BY, no cortesía**), revisar
-   `vendor/NOTICE.md`, y probar la reproducción en una máquina limpia (**hecho el 16-11**:
-   clon nuevo y venv recién creado en Windows y en Linux, mismo sha256; ver §2).
-3. **Un detector de balón propio sobre el vídeo** (la línea de visión). La curva de visibilidad
-   (§2, 7-11) dice que merece la pena *si llega*: subir al 70 % de balón visible vale unos
-   +2 pp, y al 80 % unos +3,5 pp. Pero el plan lo estima en 7,5 días, quedan 10 hasta la
-   entrega, y su criterio de abandono (50 % de recall al 90 % de precisión a los tres días)
-   sigue en pie. No se ha empezado.
-4. **Los saques del Smart Tagging** como pista de reinicios. El equipo de las fases ya está
-   conectado (§2, 8-11). Los 59 saques no: sus ventanas son de 5 a 35 s, y el 7-11 los cortes
-   del detector caían en ellas igual que al azar, así que como pista de dónde cortar son
-   demasiado gruesos. Lo que sí podrían dar es el equipo que saca (saques de puerta y
-   córners; los de banda van con `N/A`).
-5. **Mejorar la degradación** para que las rachas sin balón caigan donde caen de verdad
-   (zonas abarrotadas, balones aéreos). Desde el 7-11 `degrade.apply(gap_weights=...)` las
-   coloca por peso y se usa como prueba de estrés del detector (§2); el entrenamiento y las
-   elecciones siguen con huecos al azar. Pasarlo todo a `crowded` es un cambio de arnés que
-   movería todos los números, y no se ha hecho.
-6. **Una emisión aprendida** sobre los partidos IDSSE degradados (fase C de
-   `datos-externos.md`). Prueba rápida del 7-11 con las features del detector (medio partido
-   para entrenar, medio para medir): acierto por frame 0,783, igual que el geométrico; mezclada
-   con él, cambios del mismo tamaño que el ruido. No es un atajo; si se hace, con el mismo LOMO
-   anidado.
-7. **Validar en otro dominio** (SkillCorner, fase D) para saber si nos hemos ajustado al IDSSE.
+1. **The final technical document.** It does not exist as such; the material is in `trabajo/`. The
+   sentence about overfitting that goes into it is the one from §2 (Oct 29-30), not "it did not overfit".
+2. **Getting the repository ready to be made public.** Before publishing: check once more
+   that nothing from `data/` gets in (today: 0 files, audited on every push), cite the
+   IDSSE paper and credit the DFL (**a condition of the CC-BY license, not a courtesy**), review
+   `vendor/NOTICE.md`, and test reproduction on a clean machine (**done on Nov 16**:
+   fresh clone and freshly created venv on Windows and on Linux, same sha256; see §2).
+3. **Our own ball detector on the video** (the vision line). The visibility curve
+   (§2, Nov 7) says it is worth it *if it arrives*: going up to 70% visible ball is worth about
+   +2 pp, and to 80% about +3.5 pp. But the plan estimates it at 7.5 days, 10 remain until the
+   submission, and its abandonment criterion (50% recall at 90% precision at three days)
+   still stands. It has not been started.
+4. **The Smart Tagging set pieces** as a clue for restarts. The phases' team is already
+   wired in (§2, Nov 8). The 59 set pieces are not: their windows are 5 to 35 s, and on Nov 7 the detector's
+   cuts fell in them just as they do at random, so as a clue for where to cut they are
+   too coarse. What they could give is the team taking the restart (goal kicks and
+   corners; throw-ins go with `N/A`).
+5. **Improve the degradation** so that the ball-absent runs fall where they really fall
+   (crowded zones, aerial balls). Since Nov 7 `degrade.apply(gap_weights=...)` places them
+   by weight and is used as the detector's stress test (§2); training and choices
+   continue with random gaps. Moving everything to `crowded` is a harness change that
+   would move all the numbers, and it has not been done.
+6. **A learned emission** on the degraded IDSSE matches (phase C of
+   `external-data.md`). Quick test on Nov 7 with the detector's features (half a match to
+   train, half to measure): per-frame accuracy 0.783, the same as the geometric one; mixed
+   with it, changes of the same size as the noise. It is not a shortcut; if it is done, with the same nested
+   LOMO.
+7. **Validate on another domain** (SkillCorner, phase D) to find out whether we have tuned to IDSSE.
 
-Lo que **ya no** merece la pena: seguir afinando hiperparámetros del modelo actual. Con 7
-partidos de ajuste no hay señal para distinguir más valores (lo demostró la rejilla ampliada:
-5 h 48 min de cómputo para −0,13 pp), y el techo de 0,50 lo pone el recall de las posesiones
-cortas, no los umbrales.
+What is **no longer** worth it: continuing to fine-tune the hyperparameters of the current model. With 7
+fit matches there is no signal to tell more values apart (the expanded grid showed it:
+5 h 48 min of compute for −0.13 pp), and the 0.50 ceiling is set by the recall of short
+possessions, not by the thresholds.
 
 ---
 
-## 5. Problemas que vimos
+## 5. Problems we ran into
 
-Lo que salió mal, cómo se detectó y en qué quedó. Está aquí para que nadie se lo vuelva a tragar.
+What went wrong, how it was detected and how it ended. It is here so that nobody falls for it again.
 
-| Problema | Cómo se vio | Qué se hizo |
+| Problem | How it was seen | What was done |
 |---|---|---|
-| 16 valores de `config.py` venían de los 5 minutos públicos, que desde el 22-10 no pueden usarse para ajustar | lectura de `RULES.md` tras el cambio | re-derivados el 28-10 desde IDSSE; `config.py` dice la procedencia de cada valor |
-| "La recalibración no se sobreajustó" | auditoría del 29-10: ganaba +1,9 en ajuste y +1,2 en validación con 1 de 3 partidos en contra | validación cruzada sobre 35 particiones: +3,3 / +1,7; la mitad es sobreajuste. Frase corregida en todos los documentos |
-| Una afirmación intermedia del 29-10 decía que el descenso "no transfiere nada" | era falsa; salió de mirar un solo split | retirada; la validación cruzada la sustituye |
-| `config.py` citaba tres números que el fichero no producía (validación 0,3957; tasa D 45,3 %; "300 y 450 ya bajan") | al re-medir el 31-10 | corregidos; convención: los centros de clase se escriben redondeados (los dieciséis dígitos del script son ruido de semilla) |
-| Siete hiperparámetros se clavaban en el borde de su rejilla | estabilidad por parámetro sobre los 35 splits | rejilla ampliada y medida: no mejora la validación. Diagnóstico correcto, implicación equivocada |
-| `activity_smooth` = 12 solo lo elegía 1 de 35 particiones | mismo análisis | vuelto a 50, justificado con las tres semillas (+1,1 pp validación) |
-| La configuración anterior al 28-10 no se conservó | el repo no tenía commits | se reconstruyó; la reconstrucción va 0,3–0,7 pp por debajo y así se etiqueta donde aparece |
-| El conjunto de validación es más fácil que el de ajuste | en las cuatro configuraciones | no se cita el 0,41 como expectativa |
-| Sesgo de agregación en dos categorías de 512 y 854 frames (0,14 % de los datos) | `VALIDACION.md` hallazgo 4 | se muestran con su `n` y marcadas; no se concluye nada de ellas |
-| La recalibración mejora spellF1 emitiendo **menos** posesiones y más largas (~1.540 → ~1.390 predichas frente a 1.945 reales) | `VALIDACION.md` hallazgo 5 | se sabe y se dice: mejora la métrica alejándose de la estructura real; el techo de 0,50 viene de ahí |
-| Estimé 50 min para la rejilla ampliada; tardó 348 | las ventanas grandes multiplican la caché por partido | documentado para la próxima vez |
-| Este fichero decía que el repo era privado y que se publicaría el día de la entrega. Es público desde el 30-10 | al subir la rama `equipo-sin-balon` el 14-11 se comprobó la visibilidad en GitHub: la página abre sin credenciales | corregido aquí. No hay datos del partido versionados (se revisó el índice: ni vídeo, ni tracking, ni homografía, ni Smart Tagging). El enfoque y `trabajo/` han estado a la vista desde entonces |
-| Un comando de ejemplo con un marcador (`USUARIO`) se ejecutó tal cual e invitó al repo (que se creía privado) a un usuario ajeno de GitHub | se vio en la salida | invitación revocada en el acto; verificado 0 pendientes y un solo colaborador. Nunca llegó a tener acceso (las invitaciones requieren aceptación) |
+| 16 values of `config.py` came from the 5 public minutes, which since Oct 22 cannot be used for tuning | reading `RULES.md` after the change | re-derived on Oct 28 from IDSSE; `config.py` states the provenance of each value |
+| "The recalibration did not overfit" | audit of Oct 29: it gained +1.9 on fit and +1.2 on validation with 1 of 3 matches against | cross-validation over 35 partitions: +3.3 / +1.7; half of it is overfitting. Sentence corrected in all the documents |
+| An intermediate claim of Oct 29 said the descent "transfers nothing" | it was false; it came from looking at a single split | withdrawn; the cross-validation replaces it |
+| `config.py` quoted three numbers that the file did not produce (validation 0.3957; D rate 45.3%; "300 and 450 already go down") | when re-measuring on Oct 31 | corrected; convention: the class centers are written rounded (the sixteen digits of the script are seed noise) |
+| Seven hyperparameters were pinned to the edge of their grid | per-parameter stability over the 35 splits | expanded grid and measured: it does not improve validation. Correct diagnosis, wrong implication |
+| `activity_smooth` = 12 was chosen by only 1 of 35 partitions | same analysis | put back to 50, justified with the three seeds (+1.1 pp validation) |
+| The configuration from before Oct 28 was not kept | the repo had no commits | it was reconstructed; the reconstruction runs 0.3–0.7 pp lower and is labeled as such wherever it appears |
+| The validation set is easier than the fit set | in all four configurations | the 0.41 is not quoted as an expectation |
+| Aggregation bias in two categories of 512 and 854 frames (0.14% of the data) | `VALIDATION.md` finding 4 | they are shown with their `n` and flagged; nothing is concluded from them |
+| The recalibration improves spellF1 by emitting **fewer** and longer possessions (~1,540 → ~1,390 predicted versus 1,945 real) | `VALIDATION.md` finding 5 | it is known and said: it improves the metric by moving away from the real structure; the 0.50 ceiling comes from there |
+| I estimated 50 min for the expanded grid; it took 348 | large windows multiply the cache per match | documented for next time |
+| This file said the repo was private and that it would be made public on submission day. It has been public since Oct 30 | when pushing the `equipo-sin-balon` branch on Nov 14, the visibility on GitHub was checked: the page opens without credentials | corrected here. No match data is versioned (the index was reviewed: no video, no tracking, no homography, no Smart Tagging). The approach and `trabajo/` have been in plain view since then |
+| An example command with a placeholder (`USUARIO`) was run as is and invited an unrelated GitHub user to the repo (believed to be private) | seen in the output | invitation revoked on the spot; verified 0 pending and a single collaborator. They never got access (invitations require acceptance) |
 
-Pregunta abierta, contestada en parte el 8-11: el pipeline usa el tracking táctico y el equipo
-de las fases del Smart Tagging. La homografía y el tracking del broadcast se leen pero no se
-usan, por los motivos del `README.md` (no separan jugada de parada; otra línea de tiempo).
-
----
-
-## 6. Lo que no vemos (cobertura no evaluada)
-
-- **No hay ground truth del partido de la competición.** Todo lo medido es transferencia desde
-  Bundesliga: otra liga, otra cámara, otro tracker. Nadie sabe cuánto se pierde en el salto.
-- **Siete partidos son pocos.** Las semillas varían el ruido de degradación, no los partidos.
-- **La degradación es un modelo nuestro del ATD.** Si el ATD real pierde el balón de otra forma,
-  el arnés es optimista o pesimista y no sabemos cuál.
-- **No se ha medido la dispersión de los centros de clase** (solo la mediana), así que no se
-  puede juzgar cuán separables son H y A por esas señales.
-- **No hay intervalos por partido**: una evaluación por partido y configuración.
-- **La reproducción limpia está hecha, pero en un solo ordenador.** El 16-11, desde un clon
-  nuevo de GitHub y un venv recién creado, `./scripts/reproduce.sh` da `a43c52fb…` al byte en
-  Windows 11 (Python 3.12.2) y en Linux (Ubuntu 24.04 en WSL2, Python 3.12.3), con 139 tests
-  en verde (§2). Los dos sistemas corren en la máquina de Simon; no se ha probado en macOS ni
-  en otra máquina física. En Linux faltaba `python3.12-venv` y se resolvió sin sudo (§7).
-- **No se ha ejecutado SAST, linting en CI ni pruebas de carga**; los tests son unitarios y de
-  contrato.
-- **No consta que se haya probado el lector con los datos de muestra de Metrica** (fase E de
-  `datos-externos.md`).
-- **La vía supervisada solo está medida en el arnés**: el detector de fronteras gana +1,1 pp
-  en Bundesliga degradada y +0,4 a +1,1 pp con los huecos colocados de forma adversa; si
-  transfiere a BAR-ATH no se puede comprobar (el Smart Tagging sale neutro).
-- **El clasificador de equipo (en `main` desde el 15-11) está medido en Bundesliga degradada, no aquí.**
-  La falta de jugadores sin balón ya está medida (16-11): con el histograma de BAR-ATH y los mismos
-  jugadores ausentes toda la racha gana +16,28 pp, igual que sin quitarlos (§2). Sigue sin medirse: el
-  desequilibrio entre equipos de esas ausencias (1,34 jugadores en BAR-ATH, 0,87 en la prueba), los
-  huecos colocados por actividad en las semillas 1 y 2 (y combinados con los jugadores perdidos), el
-  clasificador junto al Smart Tagging (el IDSSE no lo trae) y los costes de cambio reajustados con el
-  clasificador puesto. Los +16 pp siguen siendo una cota superior; con huecos realistas fueron +12,6.
-- **El peso del Smart Tagging sale de un tagging simulado**, no del real: cuánto acierta el de
-  Metrica no se puede medir sin etiquetas, solo acotar por su acuerdo con nuestra emisión.
+Open question, partly answered on Nov 8: the pipeline uses the tactical tracking and the team
+from the Smart Tagging phases. The homography and the broadcast tracking are read but not
+used, for the reasons in `README.md` (they do not separate play from stoppages; a different timeline).
 
 ---
 
-## 7. Cómo revisarlo y reproducirlo
+## 6. What we don't see (untested coverage)
+
+- **There is no ground truth for the competition match.** Everything measured is transfer from
+  Bundesliga: another league, another camera, another tracker. Nobody knows how much is lost in the jump.
+- **Seven matches are few.** The seeds vary the degradation noise, not the matches.
+- **The degradation is our own model of the ATD.** If the real ATD loses the ball some other way,
+  the harness is optimistic or pessimistic and we do not know which.
+- **The dispersion of the class centers has not been measured** (only the median), so one
+  cannot judge how separable H and A are by those signals.
+- **There are no per-match intervals**: one evaluation per match and configuration.
+- **Clean reproduction is done, but on a single computer.** On Nov 16, from a fresh clone
+  from GitHub and a freshly created venv, `./scripts/reproduce.sh` gives `a43c52fb…` byte for byte on
+  Windows 11 (Python 3.12.2) and on Linux (Ubuntu 24.04 on WSL2, Python 3.12.3), with 139 tests
+  green (§2). Both systems run on Simon's machine; it has not been tried on macOS or on
+  another physical machine. On Linux `python3.12-venv` was missing and it was solved without sudo (§7).
+- **SAST, linting in CI and load tests have not been run**; the tests are unit and
+  contract tests.
+- **There is no record of the reader having been tested with Metrica's sample data** (phase E of
+  `external-data.md`).
+- **The supervised route is only measured in the harness**: the boundary detector wins +1.1 pp
+  on degraded Bundesliga and +0.4 to +1.1 pp with the gaps placed adversarially; whether it
+  transfers to BAR-ATH cannot be checked (the Smart Tagging comes out neutral).
+- **The team classifier (in `main` since Nov 15) is measured on degraded Bundesliga, not here.**
+  The lack of players without the ball is already measured (Nov 16): with BAR-ATH's histogram and the same
+  players absent for the whole run it gains +16.28 pp, the same as without removing them (§2). Still not measured: the
+  imbalance between teams in those absences (1.34 players on BAR-ATH, 0.87 in the test), the
+  gaps placed by activity on seeds 1 and 2 (and combined with the missing players), the
+  classifier alongside the Smart Tagging (IDSSE does not have it) and the switch costs readjusted with the
+  classifier in place. The +16 pp are still an upper bound; with realistic gaps it was +12.6.
+- **The Smart Tagging weight comes from a simulated tagging**, not the real one: how accurate the
+  Metrica one is cannot be measured without labels, only bounded by its agreement with our emission.
+
+---
+
+## 7. How to review and reproduce it
 
 ```bash
-python3.12 -m venv .venv && source .venv/bin/activate   # numpy 2.5.4 pide Python >= 3.12
+python3.12 -m venv .venv && source .venv/bin/activate   # numpy 2.5.4 requires Python >= 3.12
 pip install -r requirements-dev.txt
 python -m pytest -q                      # 139 tests
 ```
 
-Para regenerar la entrega hacen falta los datos del partido (no están en el repo, no pueden
-estar: 5 GB y no redistribuibles). Descargarlos del Drive de la organización y:
+To regenerate the submission you need the match data (they are not in the repo, they cannot be:
+5 GB and not redistributable). Download them from the organization's Drive and:
 
 ```bash
-source scripts/env.sh                    # MTAH_DATA_DIR, por defecto ~/Documents/Hackaton/data
+source scripts/env.sh                    # MTAH_DATA_DIR, defaults to ~/Documents/Hackaton/data
 python -m mtah status
 ./scripts/reproduce.sh FC_Medallo        # -> out/FC_Medallo.csv
 ```
 
-`reproduce.sh` funciona en Linux, macOS y Windows con Git Bash (desde el 16-11; antes fallaba
-en Windows con `No module named mtah`). Se para si el Python es < 3.12; `PYTHON=...` elige el
-intérprete. Lo que se corrió el 16-11 para la reproducción limpia:
+`reproduce.sh` works on Linux, macOS and Windows with Git Bash (since Nov 16; before, it failed
+on Windows with `No module named mtah`). It stops if Python is < 3.12; `PYTHON=...` picks the
+interpreter. What was run on Nov 16 for the clean reproduction:
 
 ```bash
-# Windows, Git Bash (el 'python' del sistema puede no ser 3.12: se usa el del venv)
+# Windows, Git Bash (the system 'python' may not be 3.12: the venv's is used)
 git clone https://github.com/BrayansStivens/mtah-possession.git && cd mtah-possession
 py -3.12 -m venv .venv && .venv/Scripts/python.exe -m pip install -r requirements-dev.txt
-export MTAH_DATA_DIR='<carpeta del Drive que contiene tactical/>'
+export MTAH_DATA_DIR='<Drive folder that contains tactical/>'
 PYTHON=.venv/Scripts/python.exe ./scripts/reproduce.sh FC_Medallo   # ~45 s
 sha256sum out/FC_Medallo.csv                                         # a43c52fb…
 
-# Linux (Ubuntu 24.04). Si falta python3.12-venv y no hay sudo:
+# Linux (Ubuntu 24.04). If python3.12-venv is missing and there is no sudo:
 #   python3.12 -m venv --without-pip .venv && curl -sS https://bootstrap.pypa.io/get-pip.py | .venv/bin/python
 python3.12 -m venv .venv && source .venv/bin/activate && pip install -r requirements-dev.txt
-export MTAH_DATA_DIR=<carpeta con tactical/>    # basta atd.xml, atd.txt y smart_tagging.xml
+export MTAH_DATA_DIR=<folder with tactical/>    # atd.xml, atd.txt and smart_tagging.xml are enough
 ./scripts/reproduce.sh FC_Medallo                                    # ~20 s
 sha256sum out/FC_Medallo.csv                                         # a43c52fb…
 ```
 
-Para rehacer las mediciones del arnés hace falta además `pip install -r requirements-train.txt`
-(kloppy, para descargar el IDSSE). La primera llamada a `idsse.load` descarga cada partido (~2 min
-cada uno) y lo deja en `out/cache/`; después `python -m mtah.training.boundaries`,
-`python -m mtah.training.visibility`, `python -m mtah.training.team_classifier` y
-`python -m mtah.training.missing_players` (este con `MTAH_DATA_DIR`; ~4 min de preparación y 3 de
-evaluación en la máquina de Simon) corren en minutos. Los
-scripts de `trabajo/handoff-plugin-data/` se escribieron para correr desde la carpeta de
-trabajo original (`~/Documents/Hackaton/`) con rutas absolutas; cada uno dice arriba qué hace
-y qué fichero produce.
+To redo the harness measurements you also need `pip install -r requirements-train.txt`
+(kloppy, to download IDSSE). The first call to `idsse.load` downloads each match (~2 min
+each) and leaves it in `out/cache/`; after that `python -m mtah.training.boundaries`,
+`python -m mtah.training.visibility`, `python -m mtah.training.team_classifier` and
+`python -m mtah.training.missing_players` (this one with `MTAH_DATA_DIR`; ~4 min of preparation and 3 of
+evaluation on Simon's machine) run in minutes. The
+scripts in `trabajo/handoff-plugin-data/` were written to run from the original working
+folder (`~/Documents/Hackaton/`) with absolute paths; each one says at the top what it does
+and what file it produces.
 
 ---
 
-## 8. Reglas que no se pueden romper
+## 8. Rules that cannot be broken
 
-- **Los datos del partido no se redistribuyen** (vídeo, tracking, homografía, Smart Tagging).
-  `.gitignore` los excluye; no des-ignorarlos. Cada push se audita.
-- **No se sube ningún extracto del partido a un LLM en la nube.** Salidas de nuestro modelo,
-  el ground truth público y agregados sobre partidos públicos sí.
-- **Los 5 minutos públicos no son conjunto de ajuste ni de selección.** Se miran, no se usan
-  para elegir.
-- **Sin etiquetado manual.**
-- **El repo público tiene que regenerar el CSV entregado exactamente**, por eso
-  `requirements.txt` solo lleva numpy y pandas pinneados y `training/` queda fuera de la ruta.
+- **The match data is not redistributed** (video, tracking, homography, Smart Tagging).
+  `.gitignore` excludes it; do not un-ignore it. Every push is audited.
+- **No excerpt of the match is uploaded to a cloud LLM.** Outputs of our model,
+  the public ground truth and aggregates over public matches are fine.
+- **The 5 public minutes are neither a fit set nor a selection set.** They are looked at, not used
+  to choose.
+- **No manual labeling.**
+- **The public repo has to regenerate the submitted CSV exactly**, which is why
+  `requirements.txt` only carries numpy and pandas pinned and `training/` stays off the path.

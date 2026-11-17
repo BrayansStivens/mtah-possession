@@ -1,7 +1,8 @@
-"""Re-evaluacion de configuraciones sobre los 7 partidos del IDSSE, desde la cache.
+"""Re-evaluation of configurations on the 7 IDSSE matches, from the cache.
 
-No toca el ATD ni la ventana publica: solo lee out/cache/recal_<id>_s0.npz, que son los
-features crudos de los partidos externos degradados, y puntua configuraciones arbitrarias.
+It touches neither the ATD nor the public window: it only reads out/cache/recal_<id>_s0.npz,
+which are the raw features of the degraded external matches, and scores arbitrary
+configurations.
 """
 import json, os, sys
 import numpy as np
@@ -25,7 +26,7 @@ REF = json.load(open("/Users/bultoesal/Documents/Hackaton/handoff-plugin-data/da
 CENTROS = {k: REF["config"][k] for k in
            ("ball_speed_center_ms", "control_center", "shape_center")}
 
-# Config anterior al 28-10, reconstruida desde la procedencia documentada en config.py.
+# Config from before Oct 28, reconstructed from the provenance documented in config.py.
 ANTES = dict(DEFAULT)
 ANTES.update(activity_smooth=50, ball_speed_smooth=50, control_smooth=50, shape_smooth=50,
              ball_speed_center_ms=4.10, control_center=0.096, shape_center=0.975,
@@ -37,22 +38,22 @@ def fila(nombre, cfg):
     ts, tm = mean_score(tune, cfg)
     hs, hm = mean_score(hold, cfg)
     als, alm = mean_score(tune + hold, cfg)
-    print("%-26s ajuste %.4f  validacion %.4f  todos %.4f   | macro %.4f %.4f %.4f"
+    print("%-26s fit %.4f  validation %.4f  all %.4f   | macro %.4f %.4f %.4f"
           % (nombre, ts, hs, als, tm, hm, alm), flush=True)
     return {"tune": ts, "hold": hs, "all": als, "macro_all": alm}
 
-print("referencia del JSON (spellF1 ajuste / validacion / todos):")
+print("reference from the JSON (spellF1 fit / validation / all):")
 for k, v in REF["scores"].items():
     print("   %-22s %.4f  %.4f  %.4f" % (k, v["tune"][0], v["hold"][0], v["all"][0]))
 print()
-print("medido ahora desde la cache:")
+print("measured now from the cache:")
 got = {}
-got["antes_28oct"] = fila("antes del 28-10", merged(**ANTES))
+got["antes_28oct"] = fila("before Oct 28", merged(**ANTES))
 got["solo_centros"] = fila("solo_centros", SOLO_CENTROS)
 got["recalibrado"] = fila("recalibrado (config.py)", DEFAULT)
 
 print()
-print("por partido (spellF1):")
+print("per match (spellF1):")
 print("%-8s %-6s %9s %9s %9s" % ("partido", "grupo", "antes", "centros", "recal"))
 for grupo, ms in (("ajuste", tune), ("valid.", hold)):
     for m in ms:

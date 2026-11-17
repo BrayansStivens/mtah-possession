@@ -1,9 +1,9 @@
-"""Candidatos fijados en el IDSSE, aplicados al partido del reto. Solo lectura.
+"""Candidates fixed on the IDSSE, applied to the challenge match. Read-only.
 
-Las variantes y sus pesos son los que eligio la seleccion anidada de exp.py (huecos al
-azar, semilla 0); aqui no se elige nada. Del partido real se imprimen agregados sin
-etiquetas y la **lectura** de la ventana publica (5 min, 17 posesiones), que no es criterio
-de nada: una posesion fallada mueve ~6 puntos.
+The variants and their weights are the ones chosen by the nested selection in exp.py (random
+gaps, seed 0); nothing is chosen here. For the real match we print label-free aggregates and
+the **reading** of the public window (5 min, 17 possessions), which is not a criterion for
+anything: one missed possession moves ~6 points.
 """
 
 import json
@@ -39,7 +39,7 @@ CANDIDATES = {
 
 
 def atd_logits(tracking, features):
-    """Logits (a, b, c) en el ATD con modelos entrenados en los 7 partidos del IDSSE."""
+    """Logits (a, b, c) on the ATD from models trained on the 7 IDSSE matches."""
     path = os.path.join(cache_dir(), "sinbalon_atd_logits.npz")
     if os.path.exists(path):
         return dict(np.load(path))
@@ -57,7 +57,7 @@ def atd_logits(tracking, features):
 
 
 def spells(labels, graded):
-    """(n posesiones H/A, duracion media en s, reparto H/A/D) dentro de los bloques puntuados."""
+    """(number of H/A possessions, mean duration in s, H/A/D split) within the graded blocks."""
     count, frames = 0, 0
     for a, b in GRADED_BLOCKS:
         w = labels[a:b]
@@ -91,7 +91,7 @@ def main():
     seen = tracking.ball_seen
 
     out = {}
-    print("%-28s | ventana publica (LECTURA): spellF1 macroF1  pos | partido entero sin etiquetas: pos  dur(s)   %%H   %%A   %%D | igual que entrega  visto  sin balon | acuerdo fases" % "candidato")
+    print("%-28s | public window (READING): spellF1 macroF1  pos | full match, label-free: pos  dur(s)   %%H   %%A   %%D | same as submission  seen  ball-absent | phase agreement" % "candidate")
     for name, variant in CANDIDATES.items():
         home, dead = hand_home.copy(), hand_dead.copy()
         for part in variant:
@@ -107,7 +107,7 @@ def main():
         labels = submission.build(viterbi.to_labels(codes))
         if name == "entrega":
             same = bool((labels == delivered).all())
-            print("   control reproduce out/submission.csv frame a frame: %s" % same)
+            print("   check: reproduces out/submission.csv frame by frame: %s" % same)
             assert same
         r = ev.score(labels)
         count, duration, share = spells(labels, graded)

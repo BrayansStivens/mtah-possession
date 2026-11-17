@@ -1,8 +1,8 @@
-"""Carga de datos externos etiquetados, para entrenar o calibrar el modelo.
+"""Loading of labeled external data, for training or calibrating the model.
 
-**Este paquete no esta en la ruta de reproduccion.** RULES.md exige que ejecutar el repo
-contra los datos del partido reproduzca el CSV entregado, no aproximadamente sino el mismo
-fichero, y por eso `requirements.txt` solo tiene numpy y pandas pinneados. Las dependencias
-de entrenamiento (kloppy) viven en `requirements-train.txt` y se importan unicamente desde
-aqui. `python -m mtah build` no toca nada de este paquete.
+**This package is not on the reproduction path.** RULES.md requires that running the repo
+against the match data reproduces the submitted CSV, not approximately but as the very same
+file, and that is why `requirements.txt` only has numpy and pandas pinned. The training
+dependencies (kloppy) live in `requirements-train.txt` and are imported only from here.
+`python -m mtah build` touches nothing in this package.
 """

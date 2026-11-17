@@ -1,57 +1,58 @@
-"""Prueba de estres: el clasificador de equipo cuando faltan jugadores donde falta el balon.
+"""Stress test: the team classifier when players are missing where the ball is missing.
 
-**Que comprueba.** El +16,1 pp del clasificador de equipo (training/team_classifier.py) se
-midio con el IDSSE degradado, que conserva a los jugadores cuando falta el balon: 20,4
-objetos de media con y sin balon. En el ATD del reto no es asi: 21,4 con balon, 19,2 sin
-el, y el 14,3 % de los frames sin balon tienen menos de 16 (ESTADO.md §6). Es justo donde
-el clasificador tiene que trabajar. Aqui se repite la evaluacion del partido de fuera con
-el histograma de objetos del ATD *sin balon* impuesto en los frames sin balon
-(`degrade.thin_where_ball_unseen`), y nada mas cambia: mismo balon, mismos jugadores en
-los frames con balon, mismas semillas.
+**What it checks.** The +16.1 pp of the team classifier (training/team_classifier.py) was
+measured with the degraded IDSSE, which keeps the players when the ball is missing: 20.4
+objects on average with and without the ball. In the challenge's ATD that is not so: 21.4
+with the ball, 19.2 without it, and 14.3% of the ball-absent frames have fewer than 16
+(STATUS.md §6). That is exactly where the classifier has to work. Here the held-out-match
+evaluation is repeated with the ATD's object histogram *without the ball* imposed on the
+ball-absent frames (`degrade.thin_where_ball_unseen`), and nothing else changes: same ball,
+same players in the frames with the ball, same seeds.
 
-Dos brazos con el mismo histograma por frame:
+Two arms with the same per-frame histogram:
 
-- `thinned`: los jugadores que se quitan se sortean en cada frame. Parpadean, y las
-  ventanas de 1 a 8 s de las senales promedian buena parte de ese ruido: es la version
-  facil.
-- `persistent`: se sortean una vez por racha sin balon y faltan durante toda la racha,
-  como un track perdido del ATD. **La decision sale de este brazo.**
+- `thinned`: the players that are removed are drawn in each frame. They flicker, and the
+  1 to 8 s windows of the signals average out a good part of that noise: it is the easy
+  version.
+- `persistent`: they are drawn once per ball-absent run and are missing for the whole run,
+  like a lost ATD track. **The decision comes from this arm.**
 
-**Que no se toca.** Los modelos son los de la medicion del 12-11 *tal cual se
-entregaron*: para cada partido de fuera, el clasificador y el detector de fronteras se
-entrenan con los otros 6 degradados de la forma de siempre (semilla 0). El peso es el de
-config.py (`team_classifier_weight`), fijo; no se elige nada aqui. La pregunta es si lo que
-se entrego aguanta este dato, no que configuracion lo aguantaria mejor.
+**What is not touched.** The models are those of the Nov 12 measurement *exactly as they
+were submitted*: for each held-out match, the classifier and the boundary detector are
+trained on the other 6, degraded the usual way (seed 0). The weight is the one in
+config.py (`team_classifier_weight`), fixed; nothing is chosen here. The question is
+whether what was submitted holds up against this data, not which configuration would hold
+up better.
 
-**Comprobacion de que el arnes es el mismo.** La misma ejecucion puntua tambien la
-degradacion de siempre (`standard`), que tiene que reproducir
-`datos/equipo_sin_balon_lomo.json` (el peso elegido fue 2,0 en los 7 pliegues). Las
-diferencias de los brazos son pareadas contra su propio control con los mismos modelos,
-asi que un desajuste pequeno (otra maquina reentrenando el boosting) no las invalida, pero
-se informa.
+**Check that the harness is the same.** The same run also scores the usual degradation
+(`standard`), which has to reproduce `datos/equipo_sin_balon_lomo.json` (the chosen weight
+was 2.0 in all 7 folds). The arms' differences are paired against their own control with
+the same models, so a small mismatch (another machine retraining the boosting) does not
+invalidate them, but it is reported.
 
-**Regla de decision, escrita el 15-11 antes de ver ningun resultado.** Sobre las 21
-ejecuciones del brazo `persistent` (7 partidos x 3 semillas), diferencia de spellF1 con el
-peso de config.py contra peso 0:
+**Decision rule, written on Nov 15 before seeing any result.** Over the 21 runs of the
+`persistent` arm (7 matches x 3 seeds), difference in spellF1 with the config.py weight
+against weight 0:
 
-- media >= +5 pp y al menos 15 de 21 mejoran: **se mantiene** la entrega `a43c52fb...`;
-- media <= +1 pp, o menos de 11 de 21 mejoran: **se vuelve** a `e7938350...`
+- mean >= +5 pp and at least 15 of 21 improve: the `a43c52fb...` submission **is kept**;
+- mean <= +1 pp, or fewer than 11 of 21 improve: **revert** to `e7938350...`
   (`team_classifier_weight = 0`);
-- entre medias: se mantiene, y ESTADO.md cuenta la ganancia reducida.
+- in between: it is kept, and STATUS.md reports the reduced gain.
 
-Si `thinned` (la version facil) ya da "volver", eso basta para volver. Con esto no se
-reajusta nada: ni el peso, ni los costes de cambio, ni las senales.
+If `thinned` (the easy version) already says "revert", that is enough to revert. Nothing is
+retuned with this: not the weight, not the switch costs, not the signals.
 
-**Lo que sigue sin ver.** Que jugadores faltan: aqui se eligen al azar y sin mirar el
-equipo; en el ATD probablemente faltan los lejanos a la camara o los amontonados, y puede
-faltar mas de un equipo que de otro (se compara sin etiquetas el desequilibrio local -
-visitante del ATD con el de aqui y se informa). En los frames con balon el IDSSE degradado
-se queda en ~20,4 objetos frente a 21,4 del ATD (solo se puede quitar, no inventar). Los
-huecos sin balon siguen al azar (la prueba de huecos colocados por actividad es otra,
-`trabajo/sin-balon-1111/realista.py`). No es una cota del peor caso.
+**What we still don't see.** Which players are missing: here they are chosen at random
+without looking at the team; in the ATD it is probably the ones far from the camera or the
+bunched-up ones that are missing, and more may be missing from one team than from the other
+(the home - away imbalance of the ATD is compared, without labels, with the one here and
+reported). In the frames with the ball the degraded IDSSE stays at ~20.4 objects against
+21.4 in the ATD (one can only remove, not invent). The ball-absent gaps are still random
+(the test with gaps placed by activity is another one,
+`trabajo/sin-balon-1111/realista.py`). It is not a worst-case bound.
 
-Uso:  python -m mtah.training.missing_players      -> out/missing_players.json
-      (necesita MTAH_DATA_DIR para medir el ATD, requirements-train.txt y scikit-learn)
+Usage:  python -m mtah.training.missing_players      -> out/missing_players.json
+        (needs MTAH_DATA_DIR to measure the ATD, requirements-train.txt and scikit-learn)
 """
 
 import json
@@ -73,13 +74,13 @@ from . import boundaries, convention, degrade, harness, idsse
 from . import team_classifier as team_training
 from .boundaries import SEEDS, log
 
-# Brazo -> sortear los que faltan una vez por racha sin balon (True) o en cada frame.
+# Arm -> draw the missing ones once per ball-absent run (True) or in each frame.
 ARMS = {"thinned": False, "persistent": True}
 DECISION_ARM = "persistent"
 
 THINNED_KEYS = boundaries.PREPARED_KEYS + ("stack", "n_tracked", "n_home")
 
-# Umbrales de la regla de decision del docstring. No se cambian despues de ver el resultado.
+# Thresholds of the decision rule in the docstring. They are not changed after seeing the result.
 KEEP_MIN_PP, KEEP_MIN_BETTER = 5.0, 15
 REVERT_MAX_PP, REVERT_MIN_BETTER = 1.0, 11
 
@@ -89,22 +90,22 @@ LOMO_TABLE = os.path.join(REPO_ROOT, "trabajo", "handoff-plugin-data", "datos",
                           "equipo_sin_balon_lomo.json")
 
 
-# --------------------------------------------------------------------------- datos
+# --------------------------------------------------------------------------- data
 
 def _thinning_rng(seed):
-    """Generador propio del adelgazado, distinto del de `degrade.apply` con esa semilla."""
+    """The thinning's own generator, distinct from that of `degrade.apply` with that seed."""
     return np.random.default_rng([seed, 7])
 
 
 def _tracked(tracking):
-    """(objetos por frame, objetos del local por frame)."""
+    """(objects per frame, home team's objects per frame)."""
     live = np.isfinite(tracking.players_xy[:, :, 0])
     home = live[:, tracking.team_of_slot == geometry.HOME_CODE]
     return live.sum(axis=1).astype(np.int16), home.sum(axis=1).astype(np.int16)
 
 
 def prepare_thinned(match_id, spec, seed, config, persistent):
-    """Lo de `boundaries.prepare` y `team_classifier.prepare` sobre el tracking adelgazado."""
+    """What `boundaries.prepare` and `team_classifier.prepare` do, on the thinned tracking."""
     name = "thinned_persistent" if persistent else "thinned"
     path = os.path.join(cache_dir(), "{}_{}_s{}.npz".format(name, match_id, seed))
     if os.path.exists(path):
@@ -131,9 +132,10 @@ def prepare_thinned(match_id, spec, seed, config, persistent):
 
 
 def player_counts(n_tracked, n_home, ball_seen):
-    """Objetos con y sin balon, frames sin balon con menos de 16, y desequilibrio entre equipos.
+    """Objects with and without the ball, ball-absent frames with fewer than 16, and the
+    imbalance between teams.
 
-    `team_gap_unseen` es la media de |local - visitante| en objetos seguidos, sin balon.
+    `team_gap_unseen` is the mean of |home - away| in tracked objects, without the ball.
     """
     unseen = ~ball_seen
     n_tracked, n_home = n_tracked.astype(np.int64), n_home.astype(np.int64)
@@ -146,7 +148,7 @@ def player_counts(n_tracked, n_home, ball_seen):
 
 
 def atd_player_counts():
-    """Lo mismo medido en los frames puntuados del ATD del reto, sin etiquetas."""
+    """The same measured on the graded frames of the challenge's ATD, without labels."""
     tracking = atd.load()
     graded = np.zeros(tracking.n_frames, dtype=bool)
     for start, end in GRADED_BLOCKS:
@@ -155,10 +157,10 @@ def atd_player_counts():
     return player_counts(n_tracked[graded], n_home[graded], tracking.ball_seen[graded])
 
 
-# --------------------------------------------------------------------------- evaluacion
+# --------------------------------------------------------------------------- evaluation
 
 def evaluate(base, team, arms, config):
-    """Por partido de fuera y semilla: control y peso de config en cada degradacion."""
+    """Per held-out match and seed: control and config weight on each degradation."""
     weight = config["team_classifier_weight"]
     matches = sorted(team[SEEDS[0]])
     folds = []
@@ -189,40 +191,40 @@ def evaluate(base, team, arms, config):
                                                          data["ball_seen"])
             fold["seeds"][seed] = row
             log("%s s%d  " % (held_out, seed) + "  ".join(
-                "%s %+.2f pp (AUC sin balon %.3f)" % (
+                "%s %+.2f pp (AUC ball-absent %.3f)" % (
                     name, row[name]["delta_spell_f1_pp"], row[name]["team"]["auc_ball_unseen"])
                 for name in ("standard",) + tuple(ARMS)))
-        log("   %s en %.0fs" % (held_out, time.time() - started))
+        log("   %s in %.0fs" % (held_out, time.time() - started))
         folds.append(fold)
     return folds
 
 
 def check_reproduces_lomo(folds, weight, path=LOMO_TABLE, tolerance=1e-9):
-    """Lista de discrepancias de la degradacion normal contra la tabla del 12-11 (vacia = ok)."""
+    """List of discrepancies of the usual degradation against the Nov 12 table (empty = ok)."""
     if not os.path.exists(path):
-        return ["no esta {}".format(path)]
+        return ["not found: {}".format(path)]
     with open(path, encoding="utf-8") as handle:
         reference = {f["held_out"]: f for f in json.load(handle)["folds"]}
     problems = []
     for fold in folds:
         ref = reference.get(fold["held_out"])
         if ref is None:
-            problems.append("%s no esta en la tabla" % fold["held_out"])
+            problems.append("%s is not in the table" % fold["held_out"])
             continue
         for seed, row in fold["seeds"].items():
             ref_row = ref["seeds"][str(seed)]
             pairs = (("control", row["standard"]["control"], ref_row["control"]),
-                     ("peso %g" % weight, row["standard"]["weighted"],
+                     ("weight %g" % weight, row["standard"]["weighted"],
                       ref_row["by_weight"]["%g" % weight]))
             for name, mine, theirs in pairs:
                 if abs(mine["spell_f1"] - theirs["spell_f1"]) > tolerance:
-                    problems.append("%s s%s %s: %.6f aqui, %.6f en la tabla" % (
+                    problems.append("%s s%s %s: %.6f here, %.6f in the table" % (
                         fold["held_out"], seed, name, mine["spell_f1"], theirs["spell_f1"]))
     return problems
 
 
 def decide(deltas_pp):
-    """La regla del docstring sobre las diferencias de spellF1 (pp) de las 21 ejecuciones."""
+    """The rule in the docstring over the spellF1 differences (pp) of the 21 runs."""
     deltas_pp = np.asarray(deltas_pp, dtype=np.float64)
     mean, better = float(deltas_pp.mean()), int((deltas_pp > 0).sum())
     if mean >= KEEP_MIN_PP and better >= KEEP_MIN_BETTER:
@@ -236,7 +238,7 @@ def decide(deltas_pp):
 
 
 def final_verdict(summary):
-    """La del brazo persistente, salvo que el facil ya diga volver."""
+    """The persistent arm's, unless the easy one already says revert."""
     if summary["thinned"]["verdict"] == "volver a peso 0":
         return "volver a peso 0"
     return summary[DECISION_ARM]["verdict"]
@@ -250,7 +252,7 @@ def summarise(folds):
                     for s in SEEDS}
         out[name] = dict(decide(deltas), per_seed_mean_pp=per_seed,
                          min_pp=float(np.min(deltas)), max_pp=float(np.max(deltas)))
-        log("%-10s %+.2f pp de media (%d de %d mejoran; de %+.2f a %+.2f)  por semilla %s" % (
+        log("%-10s %+.2f pp on average (%d of %d improve; from %+.2f to %+.2f)  per seed %s" % (
             name, out[name]["mean_pp"], out[name]["better"], out[name]["runs"],
             out[name]["min_pp"], out[name]["max_pp"],
             "  ".join("%+.2f" % v for v in per_seed.values())))
@@ -262,8 +264,8 @@ def main(config=None):
     started = time.time()
     spec = harness.real_spec()
     real_counts = atd_player_counts()
-    log("ATD del reto: %s" % json.dumps(spec.summary()))
-    log("ATD del reto, objetos: %s" % json.dumps(real_counts))
+    log("challenge ATD: %s" % json.dumps(spec.summary()))
+    log("challenge ATD, objects: %s" % json.dumps(real_counts))
     base, team = team_training.load_matches(spec, SEEDS, config)
     arms = {arm: {seed: {} for seed in SEEDS} for arm in ARMS}
     for arm, persistent in ARMS.items():
@@ -271,17 +273,17 @@ def main(config=None):
             for match_id in sorted(idsse.MATCHES):
                 data = prepare_thinned(match_id, spec, seed, config, persistent)
                 if not np.array_equal(data["ball_seen"], base[seed][match_id]["ball_seen"]):
-                    raise ValueError("el brazo {0} de {1} s{2} no sale de la misma degradacion "
-                                     "que boundary_{1}_s{2}.npz; borra las caches y vuelve a "
-                                     "correr".format(arm, match_id, seed))
+                    raise ValueError("arm {0} of {1} s{2} does not come from the same degradation "
+                                     "as boundary_{1}_s{2}.npz; delete the caches and run "
+                                     "again".format(arm, match_id, seed))
                 arms[arm][seed][match_id] = data
-    log("partidos preparados (%.0fs)" % (time.time() - started))
+    log("matches prepared (%.0fs)" % (time.time() - started))
 
     folds = evaluate(base, team, arms, config)
     log("=" * 78)
     problems = check_reproduces_lomo(folds, config["team_classifier_weight"])
     for problem in problems:
-        log("NO REPRODUCE: " + problem)
+        log("DOES NOT REPRODUCE: " + problem)
     summary = summarise(folds)
     simulated = {arm: player_counts(
         np.concatenate([arms[arm][s][m]["n_tracked"] for s in SEEDS for m in arms[arm][s]]),
@@ -289,11 +291,11 @@ def main(config=None):
         np.concatenate([arms[arm][s][m]["ball_seen"] for s in SEEDS for m in arms[arm][s]]))
         for arm in ARMS}
     for arm, counts in simulated.items():
-        log("objetos en %-10s %s" % (arm, json.dumps(counts)))
+        log("objects in %-10s %s" % (arm, json.dumps(counts)))
     verdict = final_verdict(summary)
-    log("reproduce la tabla del 12-11: %s" % ("si" if not problems else
-                                              "NO (%d discrepancias)" % len(problems)))
-    log("regla de decision (brazo %s): %s" % (DECISION_ARM, verdict.upper()))
+    log("reproduces the Nov 12 table: %s" % ("yes" if not problems else
+                                             "NO (%d discrepancies)" % len(problems)))
+    log("decision rule (arm %s): %s" % (DECISION_ARM, verdict.upper()))
 
     path = os.path.join(REPO_ROOT, "out", "missing_players.json")
     with open(path, "w", encoding="utf-8") as handle:
@@ -306,7 +308,7 @@ def main(config=None):
                                 "keep": [KEEP_MIN_PP, KEEP_MIN_BETTER],
                                 "revert": [REVERT_MAX_PP, REVERT_MIN_BETTER]}},
                   handle, indent=2, default=float)
-    log("guardado %s (%.0f min)" % (path, (time.time() - started) / 60))
+    log("saved %s (%.0f min)" % (path, (time.time() - started) / 60))
 
 
 if __name__ == "__main__":

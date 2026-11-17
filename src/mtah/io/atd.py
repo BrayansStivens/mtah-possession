@@ -1,22 +1,22 @@
-"""Lectura del Automatic Tracking Data (export FIFA/EPTS de Metrica).
+"""Reading of the Automatic Tracking Data (Metrica's FIFA/EPTS export).
 
-Dos ficheros: un XML de metadatos (equipos y a que equipo pertenece cada track slot) y
-un TXT crudo con una linea por frame:
+Two files: a metadata XML (teams and which team each track slot belongs to) and
+a raw TXT with one line per frame:
 
     <frame_id>:<x,y,s>;<x,y,s>;...:<x,y,s>
-                 jugadores (46 slots)       balon
+                 players (46 slots)         ball
 
-Las coordenadas estan normalizadas 0-1 sobre el campo y la velocidad va en m/s. Las
-observaciones ausentes son NaN, tanto en jugadores como en balon.
+Coordinates are normalized 0-1 over the pitch and the speed is in m/s. Missing
+observations are NaN, both for players and for the ball.
 
-Dos cosas que es facil equivocar y caro detectar:
+Two things that are easy to get wrong and expensive to detect:
 
-1. `frame_id` cuenta desde 1 y la submission desde 0  ->  video_frame = frame_id - 1.
-2. El campo no es cuadrado (105.3 x 68 m). Comparar distancias sin escalar los dos ejes
-   elige el jugador equivocado cerca de las bandas.
+1. `frame_id` counts from 1 and the submission from 0  ->  video_frame = frame_id - 1.
+2. The pitch is not square (105.3 x 68 m). Comparing distances without scaling both axes
+   picks the wrong player near the touchlines.
 
-El parseo del TXT cuesta decenas de segundos, asi que se cachea en out/cache/*.npz.
-Borra la cache si cambias el bundle.
+Parsing the TXT takes tens of seconds, so it is cached in out/cache/*.npz.
+Delete the cache if you change the bundle.
 """
 
 import os
@@ -30,24 +30,24 @@ from ..paths import cache_dir, require
 HOME_CODE, AWAY_CODE = 0, 1
 _TRANSLATE = str.maketrans({":": ",", ";": ","})
 
-# Banda aceptable para (velocidad del fichero / velocidad derivada de la posicion). En m/s
-# sale ~1.0 (medido 0.992 sobre BAR-ATH); en km/h saldria ~3.6 y en km/h dividido por 3.6
-# dos veces, ~0.28. La banda es ancha a proposito: separa unidades, no mide precision.
+# Acceptable band for (speed in the file / speed derived from position). In m/s it comes
+# out ~1.0 (measured 0.992 on BAR-ATH); in km/h it would be ~3.6 and in km/h divided by 3.6
+# twice, ~0.28. The band is wide on purpose: it separates units, it does not measure precision.
 SPEED_RATIO_ACCEPTED = (0.8, 1.25)
-# Por debajo de esta velocidad derivada el cociente lo domina el jitter del tracking.
+# Below this derived speed the ratio is dominated by tracking jitter.
 SPEED_RATIO_MIN_DERIVED_MS = 0.5
 
 
 class Tracking:
-    """Tracking de un partido, alineado al frame de video (indice 0..N_FRAMES-1).
+    """Tracking of a match, aligned to the video frame (index 0..N_FRAMES-1).
 
-    Atributos (todos float32, NaN donde no hay observacion):
-        ball_xy        (n, 2)      normalizado 0-1
+    Attributes (all float32, NaN where there is no observation):
+        ball_xy        (n, 2)      normalized 0-1
         ball_speed     (n,)        m/s
         players_xy     (n, slots, 2)
         players_speed  (n, slots)
-        team_of_slot   (slots,)    int8, 0 = local, 1 = visitante
-        ball_seen      (n,)        bool, True donde el tracker ve el balon
+        team_of_slot   (slots,)    int8, 0 = home, 1 = away
+        ball_seen      (n,)        bool, True where the tracker sees the ball
     """
 
     __slots__ = ("ball_xy", "ball_speed", "players_xy", "players_speed",
@@ -72,11 +72,11 @@ class Tracking:
         return ~np.isnan(self.ball_xy[:, 0])
 
     def xy_metres(self, xy):
-        """Convierte coordenadas normalizadas a metros, escalando cada eje."""
+        """Converts normalized coordinates to meters, scaling each axis."""
         return xy * np.asarray(PITCH, dtype=np.float32)
 
     def slots_of(self, team):
-        """Indices de los slots de un equipo (0 local, 1 visitante)."""
+        """Indices of a team's slots (0 home, 1 away)."""
         return np.flatnonzero(self.team_of_slot == team)
 
     def summary(self):
@@ -94,21 +94,21 @@ class Tracking:
 
 
 def read_metadata(meta_path):
-    """(team_of_slot, home_name, away_name) del XML de metadatos.
+    """(team_of_slot, home_name, away_name) from the metadata XML.
 
-    El primer <Team> del fichero es el local: es la convencion FIFA/EPTS y la que sigue
-    kloppy. Para este partido eso es Barcelona, que DATA.md confirma por separado.
+    The first <Team> in the file is the home team: that is the FIFA/EPTS convention and the one
+    kloppy follows. For this match that is Barcelona, which DATA.md confirms separately.
     """
     root = ET.parse(meta_path).getroot()
     teams = [(t.get("id"), t.findtext("Name")) for t in root.iter("Team")]
     if len(teams) != 2:
-        raise ValueError("{}: esperaba 2 equipos, hay {}".format(meta_path, len(teams)))
+        raise ValueError("{}: expected 2 teams, got {}".format(meta_path, len(teams)))
 
     home_id, home_name = teams[0]
     _, away_name = teams[1]
     slots = [p.get("teamId") for p in root.iter("Player")]
     if not slots:
-        raise ValueError("{}: ningun <Player>".format(meta_path))
+        raise ValueError("{}: no <Player>".format(meta_path))
 
     team_of_slot = np.array(
         [HOME_CODE if tid == home_id else AWAY_CODE for tid in slots], dtype=np.int8)
@@ -116,11 +116,11 @@ def read_metadata(meta_path):
 
 
 def speed_channel_ratio(tracking, min_derived_speed_ms=SPEED_RATIO_MIN_DERIVED_MS):
-    """Mediana de (velocidad de jugador del fichero / velocidad derivada de la posicion).
+    """Median of (player speed in the file / speed derived from position).
 
-    La derivada se calcula entre frames consecutivos en metros, asi que es NaN en cualquier
-    hueco y no cruza ninguna ausencia. Los cambios de identidad entre slots producen saltos
-    absurdos en la derivada, pero son pocos y la mediana no los ve.
+    The derivative is computed between consecutive frames in meters, so it is NaN in any
+    gap and does not cross any absence. Identity swaps between slots produce absurd jumps
+    in the derivative, but they are few and the median does not see them.
     """
     xy_metres = tracking.players_xy * np.asarray(PITCH, dtype=np.float32)
     step = xy_metres[1:] - xy_metres[:-1]
@@ -129,35 +129,35 @@ def speed_channel_ratio(tracking, min_derived_speed_ms=SPEED_RATIO_MIN_DERIVED_M
     comparable = (np.isfinite(derived_speed) & np.isfinite(declared_speed)
                   & (derived_speed > min_derived_speed_ms))
     if not comparable.any():
-        raise ValueError("ningun frame permite comparar la velocidad del fichero con la "
-                         "derivada de la posicion")
+        raise ValueError("no frame allows comparing the speed in the file with the "
+                         "speed derived from position")
     return float(np.median(declared_speed[comparable] / derived_speed[comparable]))
 
 
 def check_speed_channel_units(tracking):
-    """Falla si la velocidad de jugador del fichero no esta en m/s. Devuelve el cociente.
+    """Fails if the player speed in the file is not in m/s. Returns the ratio.
 
-    `atd.xml` declara `<Unit>kph</Unit>` y es falso: medido contra la posicion el canal
-    esta en m/s. El siguiente que lea el metadato lo "arreglara" dividiendo por 3.6, y como
-    la actividad de los jugadores -- el detector de balon parado -- sale de este canal, el
-    pipeline seguiria corriendo y prediciendo D en casi todo sin fallar en ningun sitio.
-    Esto lo convierte en un error explicito. (Portado de DeteccionPosesionBalon.)
+    `atd.xml` declares `<Unit>kph</Unit>` and that is false: measured against position the
+    channel is in m/s. The next person who reads the metadata will "fix" it by dividing by 3.6,
+    and since the players' activity -- the dead-ball detector -- comes from this channel, the
+    pipeline would keep running and predicting D almost everywhere without failing anywhere.
+    This turns it into an explicit error. (Ported from DeteccionPosesionBalon.)
     """
     ratio = speed_channel_ratio(tracking)
     low, high = SPEED_RATIO_ACCEPTED
     if not low <= ratio <= high:
         raise ValueError(
-            "la velocidad de jugador del fichero mide {:.3f} veces la derivada de la "
-            "posicion; en m/s daria ~1.0 (km/h daria ~3.6). No conviertas unidades "
-            "fiandote del metadato: vuelve a medirlas.".format(ratio))
+            "the player speed in the file is {:.3f} times the speed derived from "
+            "position; in m/s it would give ~1.0 (km/h would give ~3.6). Do not convert units "
+            "by trusting the metadata: measure them again.".format(ratio))
     return ratio
 
 
 def _parse_raw(raw_path, n_slots, n_frames):
-    """Parsea el TXT crudo a una matriz (n_frames, 1 + 3*n_slots + 3).
+    """Parses the raw TXT into a matrix (n_frames, 1 + 3*n_slots + 3).
 
-    Linea a linea en lugar de cargando el fichero entero: son ~200 MB y hacer replace
-    sobre todo el texto triplica la memoria sin ganar velocidad apreciable.
+    Line by line instead of loading the whole file: it is ~200 MB and doing a replace
+    over the whole text triples the memory without gaining noticeable speed.
     """
     n_cols = 1 + 3 * n_slots + 3
     out = np.full((n_frames, n_cols), np.nan, dtype=np.float32)
@@ -171,32 +171,32 @@ def _parse_raw(raw_path, n_slots, n_frames):
             values = line.translate(_TRANSLATE).split(",")
             if len(values) != n_cols:
                 raise ValueError(
-                    "{}:{}: esperaba {} campos ({} slots), hay {}. "
-                    "Comprueba que el fichero corresponde a este XML de metadatos."
+                    "{}:{}: expected {} fields ({} slots), got {}. "
+                    "Check that the file matches this metadata XML."
                     .format(os.path.basename(raw_path), lineno, n_cols, n_slots, len(values)))
             row = np.array(values, dtype=np.float32)
-            frame = int(row[0]) - 1          # frame_id cuenta desde 1
+            frame = int(row[0]) - 1          # frame_id counts from 1
             if not 0 <= frame < n_frames:
-                raise ValueError("{}:{}: frame_id {} fuera de rango"
+                raise ValueError("{}:{}: frame_id {} out of range"
                                  .format(os.path.basename(raw_path), lineno, int(row[0])))
             out[frame] = row
             seen[frame] = True
 
     if not seen.all():
         missing = int((~seen).sum())
-        raise ValueError("{}: faltan {} frames de {}".format(
+        raise ValueError("{}: missing {} frames out of {}".format(
             os.path.basename(raw_path), missing, n_frames))
     return out
 
 
 def load(source="tactical", game=GAME, n_frames=None, use_cache=True):
-    """Carga el tracking. Cachea el parseo en out/cache para las siguientes veces."""
+    """Loads the tracking. Caches the parse in out/cache for next times."""
     meta_path, raw_path = require(["atd_meta", "atd_raw"], source=source, game=game)
     team_of_slot, home_name, away_name = read_metadata(meta_path)
     n_slots = len(team_of_slot)
     if source == "tactical" and n_slots != N_TRACK_SLOTS:
-        # No es un error: solo avisa de que el bundle no es el esperado.
-        print("aviso: {} slots en el XML, esperaba {}".format(n_slots, N_TRACK_SLOTS))
+        # Not an error: it only warns that the bundle is not the expected one.
+        print("warning: {} slots in the XML, expected {}".format(n_slots, N_TRACK_SLOTS))
     if n_frames is None:
         n_frames = N_FRAMES if source == "tactical" else 164_488
 

@@ -1,8 +1,8 @@
-"""El pipeline completo: tracking -> features -> emisiones -> decodificacion -> entrega.
+"""The full pipeline: tracking -> features -> emissions -> decoding -> submission.
 
-Un solo sitio donde se encadena todo, para que `python -m mtah build` sea literalmente el
-comando que regenera el fichero entregado. El entregable lo exige: ejecutar este repo
-contra los datos tiene que reproducir el CSV, no aproximadamente sino el mismo fichero.
+A single place where everything is chained, so that `python -m mtah build` is literally the
+command that regenerates the submitted file. The deliverable requires it: running this repo
+against the data has to reproduce the CSV, not approximately but the very same file.
 """
 
 import numpy as np
@@ -18,9 +18,9 @@ from .models import boundary_detector, emissions, team_classifier
 
 
 def labels_from_tracking(tracking, config=None, team_tags=None):
-    """Etiquetas de longitud completa a partir de un objeto Tracking ya cargado.
+    """Full-length labels from an already loaded Tracking object.
 
-    `team_tags`: el Smart Tagging leido con `features.tagging.team_tags`, o None sin el.
+    `team_tags`: the Smart Tagging read with `features.tagging.team_tags`, or None without it.
     """
     config = config or DEFAULT
 
@@ -42,7 +42,7 @@ def labels_from_tracking(tracking, config=None, team_tags=None):
 
 
 def run(config=None, source="tactical", use_cache=True):
-    """Carga el tracking y devuelve las etiquetas de la entrega."""
+    """Loads the tracking and returns the submission labels."""
     tracking = atd.load(source=source, use_cache=use_cache)
     team_tags = tagging.team_tags(smart_tagging.load(source=source), tracking.n_frames)
     return labels_from_tracking(tracking, config, team_tags)

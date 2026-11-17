@@ -1,159 +1,163 @@
-# Posesiones sin balón: qué se midió el 11 y 12 de noviembre
+# Possessions without the ball: what was measured on November 11 and 12
 
-Carpeta de trabajo, fuera de `src/`. La entrega no cambia: `out/submission.csv`
-sigue siendo `e793835071b54afb`. **Actualización del 12-11:** la idea 1 de §8 se integró en la
-rama `equipo-sin-balon` (`features/team_signals.py`, `models/team_classifier.py`,
-`training/team_classifier.py`, 17 tests). La medición integrada reproduce la fila de (a)
-reducido de §4 al decimal: +16,01, +17,13 y +15,18 pp. Detalle en `ESTADO.md`, §2. Todo lo de abajo son medidas en los 7 partidos del IDSSE
-degradados, fuera de muestra por partido. La ventana pública del reto (5 min, 17 posesiones)
-solo se lee: una posesión mueve unos 6 puntos y no decide nada.
+Working folder, outside `src/`. The submission does not change: `out/submission.csv`
+is still `e793835071b54afb`. **Update from Nov 12:** idea 1 of §8 was integrated into the
+`equipo-sin-balon` branch (`features/team_signals.py`, `models/team_classifier.py`,
+`training/team_classifier.py`, 17 tests). The integrated measurement reproduces the reduced (a)
+row of §4 down to the decimal: +16.01, +17.13 and +15.18 pp. Details in `STATUS.md`, §2.
+Everything below is measured on the 7 degraded IDSSE matches, out of sample per match. The
+challenge's public window (5 min, 17 possessions) is only read: one possession moves about
+6 points and decides nothing.
 
-## 1. Lo que ya había se reproduce
+## 1. What was already there reproduces
 
-| Comprobación | Resultado |
+| Check | Result |
 |---|---|
-| Tests | 103 pasan |
-| `scripts/reproduce.sh` | regenera la entrega byte a byte |
-| Lectura pública de la entrega | spellF1 0,4148, macroF1 0,8003, 10 posesiones predichas de 17 |
-| LOMO anidado del detector de Simon | +1,08, +0,87 y +1,56 pp por semilla, media +1,17 pp |
+| Tests | 103 pass |
+| `scripts/reproduce.sh` | regenerates the submission byte for byte |
+| Public reading of the submission | spellF1 0.4148, macroF1 0.8003, 10 possessions predicted out of 17 |
+| Nested LOMO of Simon's detector | +1.08, +0.87 and +1.56 pp per seed, mean +1.17 pp |
 
-## 2. Dónde se pierde la nota (`diag.py`, semilla 0, huecos al azar)
+## 2. Where the score is lost (`diag.py`, seed 0, random gaps)
 
-| Tramo | Frames | Acierto por frame |
+| Segment | Frames | Per-frame accuracy |
 |---|---|---|
-| Balón visto | 59,1 % | 87,5 % |
-| Balón no visto | 40,9 % | 74,5 % |
+| Ball seen | 59.1% | 87.5% |
+| Ball not seen | 40.9% | 74.5% |
 
-| Posesiones reales recuperadas a IoU 0,5 | |
+| Real possessions recovered at IoU 0.5 | |
 |---|---|
-| Con 75 a 100 % de frames sin balón | 15,0 % |
-| Con 25 a 50 % | 55,2 % |
-| De menos de 3 s | 5,8 % |
-| De más de 25 s | 69,0 % |
+| With 75 to 100% of frames without the ball | 15.0% |
+| With 25 to 50% | 55.2% |
+| Shorter than 3 s | 5.8% |
+| Longer than 25 s | 69.0% |
 
-| Cambios reales encontrados a 1 s | Con balón | Sin balón |
+| Real changes found at 1 s | With ball | Without ball |
 |---|---|---|
-| A muerto | 82,0 % | 36,9 % |
-| Reinicio | 69,1 % | 28,4 % |
-| Robo | 18,5 % | 4,1 % |
+| To dead ball | 82.0% | 36.9% |
+| Restart | 69.1% | 28.4% |
+| Steal | 18.5% | 4.1% |
 
-La entrega predice 179 posesiones de media contra 278 reales. El fallo dominante sin balón es
-el equipo: 13,3 % de esos frames tienen el equipo cambiado, contra 8,2 % de muerto inventado
-y 4,1 % de muerto perdido.
+The submission predicts 179 possessions on average against 278 real ones. The dominant failure
+without the ball is the team: 13.3% of those frames have the team swapped, against 8.2% of
+invented dead ball and 4.1% of lost dead ball.
 
-## 3. La forma de los equipos dice quién tiene el balón (`feats.py`, `modelos.py`, `auc.py`)
+## 3. The shape of the teams says who has the ball (`feats.py`, `modelos.py`, `auc.py`)
 
-AUC fuera de muestra, semilla 0.
+Out-of-sample AUC, seed 0.
 
-| Señal | AUC |
+| Signal | AUC |
 |---|---|
-| Equipo, frames sin balón a 2 s: logit a mano de la entrega | 0,6996 |
-| Equipo, mismos frames: clasificador (a), solo jugadores | 0,9536 |
-| Muerto, frames sin balón: logit a mano | 0,9359 |
-| Muerto, mismos frames: clasificador (b) | 0,9735 |
+| Team, ball-absent frames at 2 s: the submission's hand-built logit | 0.6996 |
+| Team, same frames: classifier (a), players only | 0.9536 |
+| Dead ball, ball-absent frames: hand-built logit | 0.9359 |
+| Dead ball, same frames: classifier (b) | 0.9735 |
 
-(a) usa 9 señales por equipo y sentido de ataque (centroide, largo, ancho, líneas de defensa
-y ataque, marea, velocidad, jugadores en campo rival, sprints) en ventanas de 0,5, 1,5 y 4 s.
-La diferencia de anchura sola llega a 0,90.
+(a) uses 9 signals per team and attack direction (centroid, length, width, defense and attack
+lines, tide, speed, players in the opponent's half, sprints) in windows of 0.5, 1.5 and 4 s.
+The width difference alone reaches 0.90.
 
-## 4. Dentro del decodificador, huecos al azar, tres semillas (`exp.py`, `semillas.py`)
+## 4. Inside the decoder, random gaps, three seeds (`exp.py`, `semillas.py`)
 
-Modelos entrenados con la semilla 0 de los otros 6 partidos. Pesos fijados por la selección
-anidada de `exp.py`.
+Models trained with seed 0 of the other 6 matches. Weights set by the nested selection of
+`exp.py`.
 
-| Variante | Semilla 0 | Semilla 1 | Semilla 2 | Media | Partidos mejor |
+| Variant | Seed 0 | Seed 1 | Seed 2 | Mean | Matches improved |
 |---|---|---|---|---|---|
-| Entrega | 0,4111 | 0,4042 | 0,4290 | | |
-| (a) todas las señales, peso 2,0 | +16,00 | +17,29 | +15,29 | +16,19 pp | 21 de 21 |
-| (a) sin `opp`, `cen`, `len`, peso 2,0 | +16,01 | +17,13 | +15,18 | +16,11 pp | 21 de 21 |
-| (b) muerto aprendido | +4,33 | +3,70 | +2,44 | +3,49 pp | 20 de 21 |
-| (a) reducido + (b) | +20,86 | +21,74 | +19,91 | +20,84 pp | 21 de 21 |
+| Submission | 0.4111 | 0.4042 | 0.4290 | | |
+| (a) all signals, weight 2.0 | +16.00 | +17.29 | +15.29 | +16.19 pp | 21 of 21 |
+| (a) without `opp`, `cen`, `len`, weight 2.0 | +16.01 | +17.13 | +15.18 | +16.11 pp | 21 of 21 |
+| (b) learned dead ball | +4.33 | +3.70 | +2.44 | +3.49 pp | 20 of 21 |
+| reduced (a) + (b) | +20.86 | +21.74 | +19.91 | +20.84 pp | 21 of 21 |
 
-Con (a) reducido + (b) el spellF1 medio pasa de 0,41 a 0,62 y el macroF1 de 0,79 a 0,89.
+With reduced (a) + (b) the mean spellF1 goes from 0.41 to 0.62 and the macroF1 from 0.79 to 0.89.
 
-## 5. Huecos como los del partido real (`perfil.py`, `realista.py`, semilla 0)
+## 5. Gaps like those of the real match (`perfil.py`, `realista.py`, seed 0)
 
-El ATD pierde el balón sobre todo cuando los jugadores están parados: 93,9 % de frames sin
-balón en el tramo de menos actividad y 9,8 % en el de más. El proxy lo escondía al azar,
-cerca del 41 % en todos los tramos. `realista.py` recoloca los huecos según la actividad sin
-tocar a los jugadores: 84,8 % y 19,4 % en esos mismos tramos, una versión suave de la curva
-real. Con eso, el 68,3 % de los frames sin balón son de juego parado, contra 44,2 % al azar.
+The ATD loses the ball mostly when the players are standing still: 93.9% of frames without the
+ball in the least active segment and 9.8% in the most active one. The proxy hid it at random,
+close to 41% in all segments. `realista.py` repositions the gaps according to activity without
+touching the players: 84.8% and 19.4% in those same segments, a softer version of the real
+curve. With that, 68.3% of the frames without the ball are stopped play, against 44.2% at
+random.
 
-| Variante, pesos fijados de antemano | spellF1 | Diferencia | Partidos mejor |
+| Variant, weights fixed in advance | spellF1 | Difference | Matches improved |
 |---|---|---|---|
-| Entrega | 0,4511 | | |
-| Entrega sin detector de fronteras | 0,4372 | −1,38 pp | 1 de 7 |
-| Detector reentrenado con huecos realistas | 0,4514 | +0,03 pp | 4 de 7 |
-| (a) todas, peso 2,0 | 0,5780 | +12,70 pp | 7 de 7 |
-| (a) sin `opp`, `cen`, `len` | 0,5766 | +12,55 pp | 7 de 7 |
-| (b) muerto aprendido | 0,4898 | +3,87 pp | 7 de 7 |
-| (a) + (b) | 0,6273 | +17,62 pp | 7 de 7 |
-| (a) + (b) reentrenados con huecos realistas | 0,6321 | +18,10 pp | 7 de 7 |
+| Submission | 0.4511 | | |
+| Submission without boundary detector | 0.4372 | −1.38 pp | 1 of 7 |
+| Detector retrained with realistic gaps | 0.4514 | +0.03 pp | 4 of 7 |
+| (a) all, weight 2.0 | 0.5780 | +12.70 pp | 7 of 7 |
+| (a) without `opp`, `cen`, `len` | 0.5766 | +12.55 pp | 7 of 7 |
+| (b) learned dead ball | 0.4898 | +3.87 pp | 7 of 7 |
+| (a) + (b) | 0.6273 | +17.62 pp | 7 of 7 |
+| (a) + (b) retrained with realistic gaps | 0.6321 | +18.10 pp | 7 of 7 |
 
-Mover `ball_unseen_logit` en cualquier sentido empeora: de −0,25 a −2,84 pp. La entrega ya
-marca muerto en el 73,5 % de los frames sin balón y lo real es 68,3 %.
+Moving `ball_unseen_logit` in either direction makes it worse: from −0.25 to −2.84 pp. The
+submission already marks dead ball on 73.5% of the frames without the ball and the real value
+is 68.3%.
 
-## 6. El partido real no se parece del todo al IDSSE (`deriva.py`, `deriva_senal.py`, `robusto.py`)
+## 6. The real match is not quite like the IDSSE (`deriva.py`, `deriva_senal.py`, `robusto.py`)
 
-Sin etiquetas: un clasificador intenta distinguir el ATD del IDSSE degradado con las señales
-de equipo. 0,5 es indistinguible. La referencia es un partido del IDSSE contra los demás.
+Without labels: a classifier tries to tell the ATD apart from the degraded IDSSE using the team
+signals. 0.5 is indistinguishable. The reference is one IDSSE match against the others.
 
-| Señales de (a) | Columnas | AUC equipo IDSSE | Dominio, balón visto | Dominio, sin balón | Ganancia azar | Ganancia realista |
+| Signals of (a) | Columns | IDSSE team AUC | Domain, ball seen | Domain, without ball | Random gain | Realistic gain |
 |---|---|---|---|---|---|---|
-| Referencia entre partidos IDSSE | | | 0,53 | 0,59 | | |
-| Las 9 | 87 | 0,9518 | 0,933 | 0,873 | +16,00 | +12,70 |
-| Sin `opp` | 78 | 0,9512 | 0,923 | 0,843 | +16,51 | +13,04 |
-| Sin `opp`, `cen`, `len` | 57 | 0,9506 | 0,724 | 0,659 | +16,01 | +12,55 |
-| Anchura y líneas | 27 | 0,9180 | 0,701 | 0,659 | +7,98 | +5,35 |
-| Solo anchura | 9 | 0,9059 | 0,602 | 0,516 | +5,18 | +2,67 |
+| Reference between IDSSE matches | | | 0.53 | 0.59 | | |
+| All 9 | 87 | 0.9518 | 0.933 | 0.873 | +16.00 | +12.70 |
+| Without `opp` | 78 | 0.9512 | 0.923 | 0.843 | +16.51 | +13.04 |
+| Without `opp`, `cen`, `len` | 57 | 0.9506 | 0.724 | 0.659 | +16.01 | +12.55 |
+| Width and lines | 27 | 0.9180 | 0.701 | 0.659 | +7.98 | +5.35 |
+| Width only | 9 | 0.9059 | 0.602 | 0.516 | +5.18 | +2.67 |
 
-La deriva está en `opp` (0,91 por sí sola), `cen` y `len` (0,70). Quitarlas no cuesta nada en
-validación y deja el clasificador mucho más cerca de la distribución del partido real. El
-subconjunto se eligió mirando la distribución sin etiquetas del partido del reto, no su nota.
+The drift is in `opp` (0.91 on its own), `cen` and `len` (0.70). Removing them costs nothing in
+validation and leaves the classifier much closer to the distribution of the real match. The
+subset was chosen by looking at the unlabeled distribution of the challenge match, not its score.
 
-Otra diferencia que el proxy no reproduce: en el ATD faltan jugadores justo cuando falta el
-balón. 19,2 jugadores seguidos de media sin balón contra 21,4 con balón, y 14,3 % de frames
-con menos de 16 contra 1,0 %. En el IDSSE degradado son 20,4 y 6,4 % en los dos casos.
+Another difference that the proxy does not reproduce: in the ATD, players are missing exactly
+when the ball is missing. 19.2 tracked players on average without the ball against 21.4 with
+the ball, and 14.3% of frames with fewer than 16 against 1.0%. In the degraded IDSSE it is 20.4
+and 6.4% in both cases.
 
-## 7. Lectura en el partido real (`real.py`, `robusto.py`), no es criterio
+## 7. Reading on the real match (`real.py`, `robusto.py`), not a criterion
 
-| Candidato | spellF1 público | Posesiones de 17 | Posesiones en el partido | Frames iguales a la entrega |
+| Candidate | Public spellF1 | Possessions out of 17 | Possessions in the match | Frames equal to the submission |
 |---|---|---|---|---|
-| Entrega | 0,4148 | 10 | 202 | 100 % |
-| (a) todas | 0,6143 | 11 | 185 | 89,7 % |
-| (a) sin `opp`, `cen`, `len` | 0,6286 | 11 | 190 | 89,9 % |
-| (a) anchura y líneas | 0,3333 | 7 | 190 | 90,3 % |
-| (a) solo anchura | 0,3333 | 7 | 171 | 91,1 % |
-| (b) muerto aprendido | 0,4000 | | | |
+| Submission | 0.4148 | 10 | 202 | 100% |
+| (a) all | 0.6143 | 11 | 185 | 89.7% |
+| (a) without `opp`, `cen`, `len` | 0.6286 | 11 | 190 | 89.9% |
+| (a) width and lines | 0.3333 | 7 | 190 | 90.3% |
+| (a) width only | 0.3333 | 7 | 171 | 91.1% |
+| (b) learned dead ball | 0.4000 | | | |
 
-Los dos clasificadores débiles suben en IDSSE y bajan en la lectura pública: confirma que
-17 posesiones no ordenan candidatos.
+The two weak classifiers go up on IDSSE and down on the public reading: this confirms that
+17 possessions do not rank candidates.
 
-## 8. Ideas, por orden de valor esperado
+## 8. Ideas, in order of expected value
 
-1. **Adoptar (a) reducido, peso 2,0.** Es lo único con ganancia grande y estable: +16 pp en
-   tres semillas, +12,6 pp con huecos realistas, 28 de 28 comparaciones a favor. Pide un
-   artefacto nuevo entrenado con IDSSE, su test de reproducción y el crédito de licencia.
-2. **Reajustar los costes de cambio con (a) puesto.** 40, 34 y 14 se ajustaron cuando el
-   equipo sin balón era casi ruido. Solo se encuentra el 18,5 % de los robos con balón y con
-   (a) se predicen 206 posesiones de 278. Experimento anidado, todavía sin correr.
-3. **Quitar jugadores cuando falta el balón al degradar.** Cerraría la diferencia del punto 6
-   y diría si (a) aguanta con 16 a 19 jugadores. Sin correr.
-4. **Normalizar las señales por partido.** La deriva residual de (a) reducido es 0,72 y 0,66
-   contra 0,53 y 0,59. Centrar cada señal con la media del propio partido no usa etiquetas.
-   Sin correr.
-5. **(b) muerto aprendido.** +3,5 pp solo y unos +4,7 pp encima de (a) en IDSSE, pero no
-   mejora la lectura real y depende del contexto de balón, que es donde más difiere el proxy.
-   Segundo paso, no primero.
-6. **Saques del Smart Tagging como anclas de muerto** en tramos sin balón. Es la tarea de
-   Simon y encaja con el punto 2.
+1. **Adopt reduced (a), weight 2.0.** It is the only thing with a large and stable gain: +16 pp
+   over three seeds, +12.6 pp with realistic gaps, 28 of 28 comparisons in favor. It requires a
+   new artifact trained on the IDSSE, its reproduction test and the license credit.
+2. **Re-tune the switch costs with (a) in place.** 40, 34 and 14 were tuned when the team without
+   the ball was almost noise. Only 18.5% of steals are found with the ball and with (a) 206
+   possessions out of 278 are predicted. Nested experiment, not run yet.
+3. **Remove players when the ball is missing while degrading.** It would close the gap from
+   point 6 and tell us whether (a) holds up with 16 to 19 players. Not run.
+4. **Normalize the signals per match.** The residual drift of reduced (a) is 0.72 and 0.66
+   against 0.53 and 0.59. Centering each signal with the mean of its own match uses no labels.
+   Not run.
+5. **(b) learned dead ball.** +3.5 pp alone and about +4.7 pp on top of (a) on the IDSSE, but it
+   does not improve the real reading and depends on the ball context, which is where the proxy
+   differs most. Second step, not first.
+6. **Smart Tagging set pieces as dead-ball anchors** in stretches without the ball. It is Simon's
+   task and fits with point 2.
 
-Descartado con medida: mover `ball_unseen_logit`, reentrenar el detector con huecos
-realistas, un clasificador solo de anchura.
+Discarded based on measurement: moving `ball_unseen_logit`, retraining the detector with
+realistic gaps, a width-only classifier.
 
-## Pendiente de comprobar
+## Still to check
 
-- Huecos realistas solo en la semilla 0, y la curva es más suave que la real.
-- (a) contra las fases del Smart Tagging en frames sin balón da AUC 0,61 a 0,70. Es un
-  diagnóstico débil, las fases duran unos 18 s.
-- Integrado en `src/` solo (a) reducido, en la rama `equipo-sin-balon`. El resto no.
+- Realistic gaps only on seed 0, and the curve is smoother than the real one.
+- (a) against the Smart Tagging phases on frames without the ball gives AUC 0.61 to 0.70. It is
+  a weak diagnostic, the phases last about 18 s.
+- Only reduced (a) is integrated in `src/`, in the `equipo-sin-balon` branch. The rest is not.

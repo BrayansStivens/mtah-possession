@@ -1,4 +1,4 @@
-"""Piezas del detector de fronteras que no necesitan el IDSSE."""
+"""Pieces of the boundary detector that do not need the IDSSE."""
 
 import numpy as np
 
@@ -19,9 +19,9 @@ def test_objetivo_sin_cambios_es_todo_falso():
 def test_ventanas_antes_y_despues_no_incluyen_el_otro_lado():
     values = np.array([0.0] * 10 + [1.0] * 10)
     before, after = window_means(values, 4)
-    assert before[10] == 0.0 and after[10] == 1.0          # justo en el cambio
+    assert before[10] == 0.0 and after[10] == 1.0          # right at the change
     assert before[14] == 1.0 and after[6] == 0.0
-    assert np.isnan(before[0])                              # nada antes del primer frame
+    assert np.isnan(before[0])                              # nothing before the first frame
 
 
 def test_ventanas_ignoran_nan_y_dan_nan_si_no_hay_nada():
@@ -29,7 +29,7 @@ def test_ventanas_ignoran_nan_y_dan_nan_si_no_hay_nada():
     before, after = window_means(values, 2)
     assert before[3] == 3.0                                  # [1, 3): NaN, 3
     assert after[0] == 1.0                                   # [0, 2): 1, NaN
-    assert np.isnan(after[3])                                # [3, 5): todo NaN
+    assert np.isnan(after[3])                                # [3, 5): all NaN
 
 
 def test_los_nombres_de_columna_no_dependen_de_los_datos():

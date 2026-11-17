@@ -1,113 +1,113 @@
-# FC Medallo — More than a Hack 2027 · material de trabajo
+# FC Medallo — More than a Hack 2027 · working material
 
-Esta carpeta es el **trabajo**, no la entrega: documentos, figuras, scripts de medicion y
-las tablas de resultados con las que se tomaron las decisiones. El codigo que se entrega
-esta en la raiz de este mismo repositorio (`src/`, `tests/`, `vendor/`). El resumen de
-donde esta todo, que falta y que problemas se vieron esta en `../ESTADO.md`.
+This folder is the **work**, not the submission: documents, figures, measurement scripts and
+the results tables on which the decisions were based. The code that is submitted
+is at the root of this same repository (`src/`, `tests/`, `vendor/`). The summary of
+where everything is, what's left and what problems we ran into is in `../docs/STATUS.md`.
 
-(Esta carpeta se copio el 3-11 desde el repositorio de trabajo `mtah-2027-analisis`, que
-queda como historico.)
-Los `.pdf` son la version del 28-10 de los `.md` del mismo nombre; el `.md` es el vigente.
+(This folder was copied on Nov 3 from the working repository `mtah-2027-analisis`, which
+remains as a historical record.)
+The `.pdf` files are the Oct 28 versions of the `.md` files of the same name, kept in `../docs/archive-es/`; the `.md` is the current one.
 
-## Aviso sobre los datos
+## Data notice
 
-Los terminos de la competicion prohiben redistribuir los assets del partido:
-video, tracking ATD, homografia y Smart Tagging. **Nada de eso esta aqui** —
-`.gitignore` excluye `data/` y `staging-*/`, y no hay que des-ignorarlos.
+The competition terms forbid redistributing the match assets:
+video, ATD tracking, homography and Smart Tagging. **None of that is here** —
+`.gitignore` excludes `data/` and `staging-*/`, and they must not be un-ignored.
 
-Lo que si hay, y es seguro compartir:
+What is here, and is safe to share:
 
-- salidas de nuestro propio modelo (etiquetas H/A/D),
-- el ground truth **publico** de 5 minutos, que publican los organizadores,
-- estadisticas agregadas medidas sobre 7 partidos publicos de la Bundesliga.
+- outputs of our own model (H/A/D labels),
+- the **public** 5-minute ground truth, published by the organizers,
+- aggregate statistics measured on 7 public Bundesliga matches.
 
-## El reto, en tres lineas
+## The challenge, in three lines
 
-Etiquetar cada frame del partido como **H** (posesion local), **A** (visitante)
-o **D** (balon parado). La metrica es **spellF1**, que compara posesiones
-completas por solape temporal, no frames sueltos. El minimo oficial a batir es
-**0,2433**. Entrega: **17 de noviembre de 2026**.
+Label every frame of the match as **H** (home possession), **A** (away)
+or **D** (dead ball). The metric is **spellF1**, which compares whole possessions
+by temporal overlap, not individual frames. The official minimum to beat is
+**0.2433**. Submission: **November 17, 2026**.
 
-## Donde esta cada cosa
+## Where everything is
 
-| Ruta | Que es |
+| Path | What it is |
 |---|---|
-| `resumen-simple.md` | El reto explicado sin jerga. Empieza por aqui. |
-| `analisis-y-propuesta.md` | Analisis del reto y propuesta tecnica. |
-| `datos-externos.md` | Investigacion de datos externos para un modelo supervisado. |
-| `handoff-plugin-data/VALIDACION.md` | Validacion del modelo actual, hallazgo por hallazgo. |
-| `handoff-plugin-data/VALIDACION-CRUZADA.md` | Las 35 particiones. **Corrige a `VALIDACION.md`** en todo lo relativo al sobreajuste. |
-| `handoff-plugin-data/datos/` | Tablas de resultados en JSON y CSV. |
-| `handoff-plugin-data/*.py` | Los scripts que producen esas tablas. |
-| `handoff-plugin-data/regenera_datos.py` | Rehace los ficheros que alimentan el dashboard del equipo con el `config.py` de hoy (comprueba antes que reproduce los del 28-10). Correr tras cada cambio de `config.py`. |
-| `handoff-plugin-data/regenera_equipo.py` | Anade a esos ficheros las dos configuraciones que llevan modelos entrenados en el IDSSE (detector de fronteras y clasificador de equipo), cada partido puntuado con modelos que no lo vieron. Comprueba antes que reproduce `datos/equipo_sin_balon_lomo.json`. Correr despues de `regenera_datos.py`. |
-| `handoff-plugin-data/datos/equipo_sin_balon_jugadores.json` | Prueba de estres del 16-11: el clasificador de equipo con jugadores perdidos donde falta el balon, como en el ATD. Sale de `python -m mtah.training.missing_players` (copia de `out/missing_players.json`). Resumen en `ESTADO.md` §2. |
-| `sin-balon-1111/RESUMEN.md` | Diagnostico de los frames sin balon (11 y 12-11) y las ideas que salieron; sus scripts y tablas de agregados estan al lado. De aqui sale el clasificador de equipo (rama `equipo-sin-balon`, en `main` desde el 15-11). |
-| `figuras/` | Graficas para los documentos. |
+| `../docs/plain-summary.md` | The challenge explained without jargon. Start here. |
+| `../docs/analysis-and-proposal.md` | Analysis of the challenge and technical proposal. |
+| `../docs/external-data.md` | Research on external data for a supervised model. |
+| `handoff-plugin-data/VALIDATION.md` | Validation of the current model, finding by finding. |
+| `handoff-plugin-data/CROSS-VALIDATION.md` | The 35 splits. **Corrects `VALIDATION.md`** on everything related to overfitting. |
+| `handoff-plugin-data/datos/` | Results tables in JSON and CSV. |
+| `handoff-plugin-data/*.py` | The scripts that produce those tables. |
+| `handoff-plugin-data/regenera_datos.py` | Regenerates the files that feed the team dashboard with today's `config.py` (it first checks that it reproduces the Oct 28 ones). Run after every change to `config.py`. |
+| `handoff-plugin-data/regenera_equipo.py` | Adds to those files the two configurations that carry models trained on the IDSSE (boundary detector and team classifier), each match scored with models that did not see it. It first checks that it reproduces `datos/equipo_sin_balon_lomo.json`. Run after `regenera_datos.py`. |
+| `handoff-plugin-data/datos/equipo_sin_balon_jugadores.json` | Nov 16 stress test: the team classifier with missing players where the ball is missing, as in the ATD. It comes from `python -m mtah.training.missing_players` (a copy of `out/missing_players.json`). Summary in `STATUS.md` §2. |
+| `sin-balon-1111/SUMMARY.md` | Diagnosis of the frames without the ball (Nov 11 and 12) and the ideas that came out of it; its scripts and aggregate tables are alongside. The team classifier comes from here (branch `equipo-sin-balon`, in `main` since Nov 15). |
+| `../docs/figures/` | Charts for the documents. |
 
-## Estado de las mediciones (31-10-2026)
+## Measurement status (Oct 31, 2026)
 
-El dashboard del equipo (artefacto privado de claude.ai, "Posesion FC Medallo")
-se regenero el 2-11 con estos mismos numeros y el 15-11 con los del detector y el
-clasificador de equipo (`regenera_equipo.py`); sus ficheros son los de
+The team dashboard (private claude.ai artifact, "Posesion FC Medallo")
+was regenerated on Nov 2 with these same numbers and on Nov 15 with those of the
+boundary detector and the team classifier (`regenera_equipo.py`); its files are those in
 `handoff-plugin-data/datos/`.
 
-Sobre los 7 partidos externos, con `config.py` tal cual esta hoy (semilla 0 de
-degradacion):
+On the 7 external matches, with `config.py` exactly as it is today (degradation
+seed 0):
 
 | | spellF1 |
 |---|---|
-| ajuste (4 partidos) | 0,3878 |
-| validacion (3 partidos) | 0,4081 |
-| los 7 | **0,3965** |
+| fit set (4 matches) | 0.3878 |
+| validation set (3 matches) | 0.4081 |
+| all 7 | **0.3965** |
 
-Los numeros de antes (0,3905 / 0,3957 / 0,3927) eran de antes del 31-10, cuando
-`activity_smooth` valia 12. El 0,3957 ademas nunca lo producia el fichero: ver la
-seccion correspondiente de `VALIDACION-CRUZADA.md`.
+The earlier numbers (0.3905 / 0.3957 / 0.3927) were from before Oct 31, when
+`activity_smooth` was 12. Besides, the file never actually produced the 0.3957: see the
+corresponding section of `CROSS-VALIDATION.md`.
 
-El procedimiento de recalibracion, corrido sobre las 35 particiones posibles de
-4 ajuste / 3 validacion:
+The recalibration procedure, run over the 35 possible splits of
+4 fit / 3 validation:
 
-- **+1,71 pp** de media en los partidos que no se usaron para ajustarlo
-  (IC 95 % [+1,37, +2,05], mejora en 32/35),
-- **+3,27 pp** en los partidos de ajuste (35/35).
+- **+1.71 pp** on average on the matches that were not used to tune it
+  (95% CI [+1.37, +2.05], improvement in 32/35),
+- **+3.27 pp** on the fit matches (35/35).
 
-O sea: transfiere, pero aproximadamente **la mitad de la ganancia es
-sobreajuste**. Esa es la frase defendible; no vale decir "no se sobreajusto".
+That is: it transfers, but roughly **half the gain is
+overfitting**. That is the defensible sentence; it's not valid to say "it didn't overfit".
 
-## La rejilla ampliada: probada y descartada (31-10)
+## The expanded grid: tried and discarded (Oct 31)
 
-Siete parametros se clavaban en un borde de su lista de valores, asi que se
-amplio la rejilla (64 -> 82 valores) y se repitieron las 35 particiones con el
-mismo descenso. Comparando por pares, split a split:
+Seven parameters were pinned to an edge of their value list, so the grid was
+widened (64 -> 82 values) and the 35 splits were repeated with the
+same descent. Comparing in pairs, split by split:
 
-| | ajuste (4) | validacion (3) |
+| | fit set (4) | validation set (3) |
 |---|---|---|
-| rejilla original | +3,27 pp | +1,71 pp |
-| ampliada | +3,89 pp | +1,58 pp |
-| diferencia pareada | **+0,62 pp** [+0,34, +0,90] | **-0,13 pp** [-0,52, +0,26] |
+| original grid | +3.27 pp | +1.71 pp |
+| expanded | +3.89 pp | +1.58 pp |
+| paired difference | **+0.62 pp** [+0.34, +0.90] | **-0.13 pp** [-0.52, +0.26] |
 
-Ajusta mejor los partidos que ve y **no** mejora los que no ve: gana en 14 de 35
-particiones, menos de la mitad. La transferencia baja del 52 % al 41 %. Asi que
-**no se amplia la rejilla** en `recalibrate.py`, y no se cambian los valores a lo
-que elige el brazo ampliado. Detalle en `VALIDACION-CRUZADA.md`.
+It fits the matches it sees better and does **not** improve those it doesn't see: it wins in 14 of 35
+splits, fewer than half. Transfer drops from 52% to 41%. So
+**the grid is not widened** in `recalibrate.py`, and the values are not changed to
+what the expanded arm picks. Details in `CROSS-VALIDATION.md`.
 
-Ya ningun parametro se clava en un borde, luego el diagnostico era correcto: el
-optimo sobre el ajuste estaba fuera de la rejilla vieja. Lo que no se sostiene es
-que llegar a el sirva de algo.
+No parameter is pinned to an edge any more, so the diagnosis was correct: the
+optimum on the fit set was outside the old grid. What doesn't hold up is
+that reaching it serves any purpose.
 
-## Lo siguiente
+## Next
 
-Con 7 partidos de ajuste no hay senal para distinguir buena parte de los
-hiperparametros, y eso no lo arregla buscar mas: lo arreglan mas partidos. La via
-que queda abierta es el modelo supervisado de `datos-externos.md`, no seguir
-afinando este.
+With 7 fit matches there is no signal to tell apart a good part of the
+hyperparameters, and searching more won't fix that: more matches will. The route
+that remains open is the supervised model in `external-data.md`, not continuing to
+fine-tune this one.
 
-## Reproducir las mediciones
+## Reproducing the measurements
 
-Los scripts de `handoff-plugin-data/` importan `mtah` desde el repo de entrega y
-leen la cache de `mtah-possession/out/`, que no esta versionada. Hacen falta las
-dos cosas en local:
+The scripts in `handoff-plugin-data/` import `mtah` from the submission repo and
+read the cache in `mtah-possession/out/`, which is not versioned. Both
+are needed locally:
 
 ```sh
 git clone https://github.com/BrayansStivens/mtah-possession.git

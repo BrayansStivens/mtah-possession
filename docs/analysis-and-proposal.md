@@ -1,437 +1,432 @@
-# More than a Hack 2027 — análisis del reto y propuesta
+# More than a Hack 2027 — challenge analysis and proposal
 
-**FC Medallo** · Día 1 de trabajo · 24 de octubre de 2026
+**FC Medallo** · Work day 1 · October 24, 2026
 
-**En corto:** el pipeline ya produce una entrega válida de 199.319 filas. Va por **spellF1
-0,3902** medido sobre siete partidos completos, contra un suelo oficial de **0,2433**. El
-hallazgo del día es que **los 5 minutos de ground truth que publican no representan al
-partido** (88,2% de balón visible contra 59,3% del partido entero), y eso estaba
-descalibrando el detector de balón parado. Lo demás de este documento es el reto explicado
-de arriba abajo, qué propongo, y qué probé.
+**In short:** the pipeline already produces a valid submission of 199,319 rows. It stands at **spellF1
+0.3902** measured on seven full matches, against an official floor of **0.2433**. The
+finding of the day is that **the 5 minutes of ground truth they publish don't represent the
+match** (88.2% ball visible versus 59.3% for the whole match), and that was miscalibrating the
+dead-ball detector. The rest of this document is the challenge explained from top to bottom,
+what I propose, and what I tried.
 
 ---
 
-# PARTE 1 — Qué nos están pidiendo
+# PART 1 — What we're being asked
 
-## El problema, sin adornos
+## The problem, no frills
 
-Un partido: **Barcelona – Athletic**, LaLiga 2024-25, jornada 2. Nos dan el vídeo y el
-tracking automático, y hay que decir, **para cada uno de los 199.319 frames**, quién tiene
-el balón.
+One match: **Barcelona – Athletic**, LaLiga 2024-25, matchday 2. They give us the video and the
+automatic tracking, and we have to say, **for each one of the 199,319 frames**, who has
+the ball.
 
-Cuatro etiquetas:
+Four labels:
 
 | | |
 |---|---|
-| `H` | el Barça tiene el balón, con el juego vivo |
-| `A` | el Athletic tiene el balón, con el juego vivo |
-| `D` | balón parado, no está en juego |
-| `X` | no contesto |
+| `H` | Barça has the ball, with live play |
+| `A` | Athletic has the ball, with live play |
+| `D` | dead ball, not in play |
+| `X` | no answer |
 
-La entrega es un CSV de 199.319 filas. Ya está. Eso es lo que se puntúa.
+The submission is a CSV of 199,319 rows. That's it. That's what gets scored.
 
-De esos frames, **se puntúan 158.857** (unos 106 minutos): las dos partes. Lo de antes del
-saque, el descanso y lo de después del pitido final no cuenta, así que ahí podemos poner
-`X` tranquilamente.
+Of those frames, **158,857 are scored** (about 106 minutes): both halves. What comes before
+kick-off, half-time and what comes after the final whistle doesn't count, so there we can safely put
+`X`.
 
-## Lo que hace difícil el problema
+## What makes the problem hard
 
-Tres cosas, y conviene tenerlas claras porque condicionan todo:
+Three things, and it's worth being clear on them because they shape everything:
 
-**1. El balón no está en el 41% de los frames puntuados.** Y no es que no se vea en el
-vídeo: es que el tracker automático de Metrica lo pierde. Se pierde justo donde más
-importa — áreas abarrotadas, duelos aéreos, entradas.
+**1. The ball is absent in 41% of the scored frames.** And it's not that it can't be seen in the
+video: Metrica's automatic tracker loses it. It gets lost exactly where it matters
+most — crowded penalty areas, aerial duels, tackles.
 
-**2. No hay identidad de jugador.** Hay **46 "slots" de tracking para 22 jugadores**. Los
-slots aparecen, desaparecen y se intercambian la identidad según el tracker pierde y
-recupera gente. O sea: no puedes decir "el jugador 7 tiene el balón", solo puedes razonar
-de forma colectiva.
+**2. There is no player identity.** There are **46 tracking "slots" for 22 players**. The
+slots appear, disappear and swap identities as the tracker loses and recovers people. In other words: you can't say "player 7 has the ball", you can only reason
+collectively.
 
-**3. Solo publican 5 minutos de respuestas correctas.** 7.500 frames, 17 posesiones. El
-resto del ground truth es privado hasta que cierre la competición.
+**3. They only publish 5 minutes of correct answers.** 7,500 frames, 17 possessions. The
+rest of the ground truth is private until the competition closes.
 
-## Qué datos nos dan
+## What data we get
 
-| | **táctica** | **broadcast** |
+| | **tactical** | **broadcast** |
 |---|---|---|
-| papel | **la referencia — la fila *i* de la entrega es el frame *i*** | opcional, **no sincronizado** |
-| vídeo | 199.319 frames, 25 fps | su propia línea temporal, con cortes y repeticiones |
-| tracking (ATD) | 199.319 registros | 164.488 |
-| homografía | 100% utilizable | 65,8% |
-| Smart Tagging | 638 instancias | — |
-| balón visible | 56,9% | 50,5% |
+| role | **the reference — row *i* of the submission is frame *i*** | optional, **not synchronized** |
+| video | 199,319 frames, 25 fps | its own timeline, with cuts and repeats |
+| tracking (ATD) | 199,319 records | 164,488 |
+| homography | 100% usable | 65.8% |
+| Smart Tagging | 638 instances | — |
+| ball visible | 56.9% | 50.5% |
 
-- **ATD (Automatic Tracking Data)**: posición y velocidad de cada objeto por frame,
-  coordenadas normalizadas 0–1, velocidad en m/s, `NaN` donde falta. Es automático y **sin
-  corregir**.
-- **Smart Tagging**: 638 fases tácticas detectadas automáticamente (Build Up, Progression,
-  Set Pieces...), cada una con equipo. **No es ground truth**: lo genera Metrica del mismo
-  vídeo que tenemos, sin revisión. Es una pista gratis, no una respuesta.
-- **Homografía**: matriz 3×3 por frame para pasar de posición en el campo a píxel. Solo
-  hace falta si vamos a leer el vídeo.
+- **ATD (Automatic Tracking Data)**: position and velocity of each object per frame,
+  normalized coordinates 0–1, velocity in m/s, `NaN` where missing. It's automatic and **uncorrected**.
+- **Smart Tagging**: 638 tactical phases detected automatically (Build Up, Progression,
+  Set Pieces...), each with a team. **It is not ground truth**: Metrica generates it from the same
+  video we have, without review. It's a free hint, not an answer.
+- **Homography**: 3×3 matrix per frame to go from pitch position to pixel. It's only
+  needed if we're going to read the video.
 
-> Ojo con un detalle que tumba entregas: si vuestro fichero sale con ~164k filas,
-> indexasteis el vídeo broadcast por error.
+> Watch out for a detail that sinks submissions: if your file comes out with ~164k rows,
+> you indexed the broadcast video by mistake.
 
-## Cómo nos puntúan
+## How we're scored
 
-Dos métricas, y la que manda **no es la obvia**.
+Two metrics, and the one that rules **isn't the obvious one**.
 
-**`macroF1`** — F1 medio de las tres clases, frame a frame. Es la de toda la vida.
-Solo sirve de desempate.
+**`macroF1`** — mean F1 over the three classes, frame by frame. It's the classic one.
+It's only a tiebreaker.
 
-**`spellF1`** — **esta es la que rankea.** Trata cada posesión como **un objeto**, no como
-un montón de frames. Empareja cada posesión que predices con una real por solapamiento
-temporal, y promedia sobre cinco umbrales (0,3 a 0,7).
+**`spellF1`** — **this is the one that ranks.** It treats each possession as **one object**, not as
+a pile of frames. It matches each possession you predict with a real one by
+temporal overlap, and averages over five thresholds (0.3 to 0.7).
 
-La diferencia importa muchísimo. Mirad los baselines que ellos mismos publican — es
-**el mismo algoritmo cuatro veces**, cambiando solo la ventana de suavizado:
+The difference matters enormously. Look at the baselines they themselves publish — it's
+**the same algorithm four times**, changing only the smoothing window:
 
 | baseline | macroF1 | spellF1 |
 |---|---|---|
-| `baseline_raw` | 0,6532 | 0,0486 |
-| `baseline_smooth25` | **0,6752** | 0,1996 |
-| `baseline_smooth50` | 0,6724 | **0,2433** |
-| `baseline_smooth125` | 0,6356 | 0,2242 |
+| `baseline_raw` | 0.6532 | 0.0486 |
+| `baseline_smooth25` | **0.6752** | 0.1996 |
+| `baseline_smooth50` | 0.6724 | **0.2433** |
+| `baseline_smooth125` | 0.6356 | 0.2242 |
 
-`macroF1` se mueve 0,04 y prefiere una versión. `spellF1` **se mueve por un factor de
-cinco** y prefiere otra distinta. Un sistema puede acertar el 97% de los frames y quedar
-fatal si reporta el triple de posesiones de las que hubo.
+`macroF1` moves 0.04 and prefers one version. `spellF1` **moves by a factor of
+five** and prefers a different one. A system can get 97% of the frames right and end up terrible if it
+reports triple the possessions that there were.
 
-**El suelo oficial a batir es `baseline_smooth50`, spellF1 = 0,2433.**
+**The official floor to beat is `baseline_smooth50`, spellF1 = 0.2433.**
 
-Dos cosas más de la métrica:
+Two more things about the metric:
 
-- Un desfase de 1 frame sale **gratis**. Un segundo tarde te cuesta un tercio del resultado.
-- Una constante ("todo `H`") saca exactamente **0**.
+- A 1-frame offset is **free**. Being a second late costs you a third of the result.
+- A constant ("all `H`") scores exactly **0**.
 
-### Lo que hace la `X`
+### What the `X` does
 
-Esto es importante para diseñar:
+This matters for design:
 
-- Para `macroF1`, una `X` cuenta como fallo.
-- Para `spellF1`, **el scorer la rellena con tu etiqueta anterior** de esa parte.
+- For `macroF1`, an `X` counts as a miss.
+- For `spellF1`, **the scorer fills it in with your previous label** from that stretch.
 
-O sea: callarse equivale a repetir lo último que dijiste. **Dentro de una posesión sale
-gratis** — si pierdes el balón diez segundos, callarte es mejor que inventar y partir la
-posesión en dos. **En un cambio de posesión sale carísimo**, porque arrastras la etiqueta
-vieja al estado nuevo.
+In other words: staying quiet equals repeating the last thing you said. **Inside a possession it's
+free** — if you lose the ball for ten seconds, staying quiet is better than making things up and splitting the
+possession in two. **At a possession change it's very expensive**, because you carry the old
+label into the new state.
 
-### No hay jurado
+### There's no jury
 
-Esto cambió respecto a 2026. **No se puntúa nada más que el fichero.** Ni originalidad, ni
-presentación, ni uso de LLMs. El repo y el documento técnico no puntúan: existen para que
-el número signifique algo y se pueda reproducir.
+This changed compared to 2026. **Nothing but the file is scored.** Not originality, not
+presentation, not use of LLMs. The repo and the technical document aren't scored: they exist so that
+the number means something and can be reproduced.
 
-## Las reglas de posesión (lo que de verdad piden)
+## The possession rules (what they really ask for)
 
-Esto está en `CHALLENGE.md` y vale la pena leerlo entero, pero el resumen:
+This is in `CHALLENGE.md` and it's worth reading in full, but the summary:
 
-**Cambio de posesión** = un jugador del equipo contrario gana posesión **controlada**.
+**Possession change** = a player from the opposing team gains **controlled** possession.
 
-- Mientras el juego está vivo, **siempre hay un equipo en posesión**. No existe "disputado".
-- En fases de balón suelto o disputado, **la posesión se queda con el último equipo que la
-  tuvo**.
-- Tras una parada siempre hay un poseedor claro. Lo difícil es detectar cuándo cambia después.
+- While play is live, **there is always a team in possession**. There's no "contested".
+- In phases of loose or contested ball, **possession stays with the last team that
+  had it**.
+- After a stoppage there's always a clear possessor. The hard part is detecting when it changes afterwards.
 
-**Qué NO cuenta como cambio de posesión:**
-- un simple toque sin control
-- un desvío de un pase que no lo intercepta
-- un duelo aéreo ganado sin control posterior
+**What does NOT count as a possession change:**
+- a mere touch without control
+- a deflection of a pass that doesn't intercept it
+- an aerial duel won without subsequent control
 
-**Lo que ya está cerrado:**
-- Tres estados y no más. No hay "disputado" ni "desconocido".
-- **Una posesión es una racha máxima de un equipo con el balón vivo.** `H H H A A` son dos
-  posesiones. `H H D D H H` son dos posesiones con una parada en medio, no una.
-- Balón parado es una parada, **nunca** una posesión.
-- **No preguntan de quién es el balón cuando está parado.** Si está parado, la respuesta
-  es `D` y punto.
+**What's already settled:**
+- Three states and no more. There's no "contested" or "unknown".
+- **A possession is a maximal run of one team with the live ball.** `H H H A A` is two
+  possessions. `H H D D H H` is two possessions with a stoppage in between, not one.
+- Dead ball is a stoppage, **never** a possession.
+- **They don't ask whose ball it is when it's dead.** If it's dead, the answer
+  is `D`, full stop.
 
-**Y el dato más útil de todos:** el ground truth **se deriva mecánicamente del tracking
-corregido**. No es una persona viendo el vídeo. Un frame es `D` donde el tracking corregido
-marca el balón muerto, y si no, toma el equipo que el tracking dice que lo tiene. **Nada se
-suaviza ni se interpola después.**
+**And the most useful fact of all:** the ground truth **is derived mechanically from the corrected
+tracking**. It's not a person watching the video. A frame is `D` where the corrected tracking
+marks the ball dead, and otherwise it takes the team the tracking says has it. **Nothing is
+smoothed or interpolated afterwards.**
 
-O sea que la pregunta no es "cómo etiquetó el humano", es "qué entiende el tracking
-corregido por muerto y por poseer". Y los 5 minutos públicos son donde se puede mirar.
+So the question isn't "how did the human label it", it's "what does the corrected tracking
+understand by dead and by possessing". And the 5 public minutes are where you can look.
 
-## Qué se puede usar y qué no
+## What can be used and what can't
 
-**Se puede casi todo**: cualquier lenguaje, framework, modelo preentrenado, datos externos,
-LLMs. Con dos condiciones: que los organizadores puedan acceder e inspeccionarlo, y que el
-documento técnico lo explique.
+**Almost everything is allowed**: any language, framework, pretrained model, external data,
+LLMs. With two conditions: that the organizers can access and inspect it, and that the
+technical document explains it.
 
-Incluso **mejorar o sustituir el tracking que nos dan es explícitamente legítimo**. Nos lo
-dan para que nadie tenga que montar detección y calibración antes de llegar a la pregunta
-de verdad.
+Even **improving or replacing the tracking they give us is explicitly legitimate**. They give it to us
+so nobody has to build detection and calibration before getting to the real question.
 
-**Lo que NO se puede, y descalifica:**
+**What is NOT allowed, and disqualifies:**
 
-1. **Etiquetar a mano, en cualquier cantidad y para cualquier uso, sobre este partido.**
-   Ni para la entrega, ni para entrenar, ni para validar. Y **corregir a mano el tracking**
-   de este partido (posiciones del balón, cambios de identidad, lo que sea) cuenta como
-   etiquetar a mano. Sobre **otros partidos** sí: etiqueta lo que quieras, siempre que los
-   organizadores puedan acceder y el documento lo explique.
+1. **Labeling by hand, in any amount and for any use, on this match.**
+   Not for the submission, not for training, not for validating. And **manually correcting the tracking**
+   of this match (ball positions, identity swaps, whatever) counts as hand labeling. On
+   **other matches** you can: label whatever you want, as long as the
+   organizers can access it and the document explains it.
 
-   > Esto cambió el **22 y 23 de octubre**. Antes decía que etiquetar a mano para entrenar o
-   > validar estaba permitido. Ya no. Quien lleve la parte de visión tiene que saberlo.
+   > This changed on **October 22 and 23**. It used to say that labeling by hand for training or
+   > validating was allowed. No longer. Whoever handles the vision part has to know this.
 
-   Y hay dos reglas nuevas en la misma línea:
+   And there are two new rules along the same line:
 
-   - **Los 5 minutos públicos no son conjunto de entrenamiento ni de ajuste.** Son para
-     comprobar que el pipeline es correcto. Lo dicen literalmente: *«That is a rule, not
-     just advice»*. Eso incluye sacar de ahí medianas, pesos o constantes.
-   - **Nada producido por humanos sobre este partido, de ninguna fuente**: ni eventos de
-     Opta, StatsBomb, Wyscout o LaLiga, ni tracking corregido, ni anotaciones. Sobre otros
-     partidos, sí.
-2. **Usar el ground truth privado**, o cualquier cosa derivada de él, más allá de los 5
-   minutos publicados.
-3. **Entregar un fichero que el repo no pueda regenerar.** Mismo fichero, no parecido.
+   - **The 5 public minutes are not a training or tuning set.** They are for
+     checking that the pipeline is correct. They say so literally: *«That is a rule, not
+     just advice»*. That includes drawing medians, weights or constants from there.
+   - **Nothing produced by humans about this match, from any source**: no Opta, StatsBomb,
+     Wyscout or LaLiga events, no corrected tracking, no annotations. On other
+     matches, yes.
+2. **Using the private ground truth**, or anything derived from it, beyond the 5
+   published minutes.
+3. **Submitting a file that the repo can't regenerate.** The same file, not a similar one.
 
-Y una que nos toca directamente: **los términos prohíben subir el vídeo, los datos "o
-cualquier extracto" a un LLM en cloud.** Usarlos para escribir código no tiene problema;
-pegarles filas del ATD sí.
+And one that affects us directly: **the terms forbid uploading the video, the data "or
+any extract" to a cloud LLM.** Using them to write code is no problem;
+pasting ATD rows into them is.
 
-## Calendario
+## Schedule
 
 | | |
 |---|---|
-| datos liberados | 20 de octubre |
-| **entrega** | **17 de noviembre** |
-| resultados | antes del 26 de noviembre |
+| data released | October 20 |
+| **submission** | **November 17** |
+| results | before November 26 |
 
-Quedan **24 días**.
+**24 days** left.
 
 ---
 
-# PARTE 2 — Qué propongo nosotros
+# PART 2 — What we propose
 
-## La idea
+## The idea
 
-Un modelo **geométrico, sin entrenamiento**, que lee solo el tracking. Tres piezas:
-features geométricos → coste por frame y estado → un Viterbi que segmenta.
+A **geometric, training-free** model that reads only the tracking. Three pieces:
+geometric features → cost per frame and state → a Viterbi that segments.
 
-La decisión de diseño que lo sostiene todo es **partir la pregunta en dos**:
+The design decision that holds everything up is **splitting the question in two**:
 
 ```
-P(H) = P(vivo) · P(local | vivo)
-P(A) = P(vivo) · P(visitante | vivo)
-P(D) = P(muerto)
+P(H) = P(live) · P(home | live)
+P(A) = P(live) · P(away | live)
+P(D) = P(dead)
 ```
 
-¿Por qué? Porque las dos mitades se apoyan en cosas distintas:
+Why? Because the two halves rely on different things:
 
-- **¿Está el balón en juego?** Se responde con la **cinemática de los jugadores**. Con el
-  juego parado la gente anda; con el balón vivo corre. **No necesita ver el balón.**
-- **¿De quién es?** Se responde con la **geometría balón-jugador**. Sí lo necesita.
+- **Is the ball in play?** It's answered with the **players' kinematics**. When play is
+  stopped people walk; with the live ball they run. **It doesn't need to see the ball.**
+- **Whose is it?** It's answered with the **ball-player geometry**. That one does need it.
 
-Como el balón falta en el 41% de los frames puntuados, meter las dos preguntas en un solo
-clasificador significa tirar a la basura la mitad que sí funciona en esos frames. Separadas,
-cuando no hay balón la segunda se queda en 0,5 (el frame no opina) y el decodificador
-arrastra el estado anterior — que es justo lo que `spellF1` premia.
+Since the ball is missing in 41% of the scored frames, putting both questions into a single
+classifier means throwing away the half that does work in those frames. Kept separate,
+when there is no ball the second one stays at 0.5 (the frame has no opinion) and the decoder
+carries over the previous state — which is exactly what `spellF1` rewards.
 
-Y el control del balón se calcula como **suma de `exp(−d/τ)` sobre todos los jugadores del
-equipo**, no como "el más cercano gana". Con 46 slots que aparecen y desaparecen, una
-decisión basada en un solo jugador salta de equipo en cuanto ese slot se pierde un frame.
+And ball control is computed as a **sum of `exp(−d/τ)` over all the players of the
+team**, not as "the closest wins". With 46 slots that appear and disappear, a decision based on a
+single player jumps teams as soon as that slot is lost for one frame.
 
-## Por qué no un modelo supervisado de entrada
+## Why not a supervised model from the start
 
-Porque hay **17 posesiones** de ground truth. No da para entrenar. Y como se ve abajo,
-esos 5 minutos además no representan al partido.
-
----
-
-# PARTE 3 — Cómo lo estoy llevando
-
-## La regla
-
-Todo lo que he hecho hoy sale de una sola decisión metodológica:
-
-> **Ningún parámetro puede salir de los 5 minutos públicos.**
-> Cada valor tiene que salir, o de **datos externos etiquetados** (otros partidos), o de una
-> **medición sin etiquetas sobre el partido completo**.
-
-Desde el 22 de octubre esto es regla, no criterio. Y hay que decirlo claro: **hoy el modelo
-no la cumple del todo.** Yo re-derivé el umbral de balón parado de forma limpia, pero el
-resto de constantes vienen de antes y salen de la ventana pública: las medianas por clase
-de cada señal, los pesos elegidos por AUC, las ventanas de suavizado, los costes de
-transición (*«12 de los 16 cambios son directos»*) y la duración mínima (*«6 de 17 duran
-menos de 4 s»*). Son **dieciséis valores** en el fichero de configuración, repartidos en unas diez decisiones. Hay que volver a derivarlos todos desde los 7
-partidos externos y desde estadísticas sin etiquetas — y es lo primero que hay que hacer,
-porque el documento técnico tiene que poder afirmar que no queda nada de la ventana.
-
-## El problema de fondo: no teníamos con qué medir
-
-Hasta hoy, cualquier decisión nuestra se apoyaba en 17 posesiones. Eso es muy poco y además
-engañoso. Así que dediqué buena parte del día a **construir un instrumento de medida**.
+Because there are **17 possessions** of ground truth. That's not enough to train. And as shown below,
+those 5 minutes moreover don't represent the match.
 
 ---
 
-# PARTE 4 — Qué probé y qué salió
+# PART 3 — How I'm going about it
 
-## Lo primero: buscar datos externos
+## The rule
 
-Revisé los candidatos públicos de tracking de fútbol (Metrica sample data, SkillCorner,
-SoccerNet, StatsBomb, PFF, SoccerTrack). El ganador claro es el **dataset IDSSE**:
+Everything I've done today follows from a single methodological decision:
 
-- 7 partidos completos de Bundesliga, licencia **CC-BY 4.0**, descarga directa.
-- Tracking a **25 Hz**, igual que nuestro vídeo.
-- Y lo importante: cada frame trae **`BallPossession`** (1 local, 2 visitante) y
-  **`BallStatus`** (1 vivo, 0 parado). O sea, **la etiqueta `H`/`A`/`D` literal, por frame**.
-- Son ~1,0 millón de frames etiquetados contra los 7.500 que tenemos. **×133.**
+> **No parameter may come from the 5 public minutes.**
+> Every value must come either from **labeled external data** (other matches), or from an
+> **unlabeled measurement on the full match**.
 
-> Trampa que casi me cuesta todo: la librería que lo carga entrega **la velocidad en km/h
-> sin convertir**. Si no lo pillas, el umbral de "balón parado" da todos los frames por
-> vivos y el modelo entrena contra basura sin fallar en ningún sitio. Lo detecté comparando
-> con la velocidad derivada de la posición: ratio 3,590 ≈ 3,6.
+Since October 22 this is a rule, not a criterion. And it has to be said clearly: **today the model
+doesn't fully comply.** I re-derived the dead-ball threshold cleanly, but the
+rest of the constants come from before and come out of the public window: the per-class medians
+of each signal, the weights chosen by AUC, the smoothing windows, the transition costs
+(*«12 of the 16 changes are direct»*) and the minimum duration (*«6 of 17 last
+less than 4 s»*). They are **sixteen values** in the configuration file, spread over about ten decisions. All of them have to be re-derived from the 7 external matches and from unlabeled statistics — and that is the first thing to do,
+because the technical document has to be able to state that nothing is left from the window.
 
-## Hallazgo 1: los 5 minutos públicos no representan al partido
+## The underlying problem: we had nothing to measure with
 
-Este es el que sostiene todo lo demás. Medido sobre el ATD real:
+Until today, any decision of ours rested on 17 possessions. That's very little and, what's more,
+misleading. So I spent a good part of the day **building a measuring instrument**.
 
-| | ventana pública | partido completo |
+---
+
+# PART 4 — What I tried and what came out
+
+## First: finding external data
+
+I reviewed the public football tracking candidates (Metrica sample data, SkillCorner,
+SoccerNet, StatsBomb, PFF, SoccerTrack). The clear winner is the **IDSSE dataset**:
+
+- 7 full Bundesliga matches, **CC-BY 4.0** license, direct download.
+- Tracking at **25 Hz**, same as our video.
+- And the important part: each frame carries **`BallPossession`** (1 home, 2 away) and
+  **`BallStatus`** (1 live, 0 dead). That is, **the literal `H`/`A`/`D` label, per frame**.
+- That's ~1.0 million labeled frames against the 7,500 we have. **×133.**
+
+> A trap that almost cost me everything: the library that loads it returns **the speed in km/h,
+> unconverted**. If you don't catch it, the "dead ball" threshold calls every frame
+> live and the model trains against garbage without failing anywhere. I detected it by comparing
+> with the speed derived from position: ratio 3.590 ≈ 3.6.
+
+## Finding 1: the 5 public minutes don't represent the match
+
+This is the one that supports everything else. Measured on the real ATD:
+
+| | public window | full match |
 |---|---|---|
-| Balón visible | **88,2%** | **59,3%** |
-| Frames en balón parado | **19,6%** | ~45% |
+| Ball visible | **88.2%** | **59.3%** |
+| Dead-ball frames | **19.6%** | ~45% |
 
-Son los primeros 5 minutos tras el saque: el tramo con menos interrupciones y mejor
-seguimiento de cámara. **Cualquier estadística medida ahí y llevada al partido entero
-aterriza en el sitio equivocado.**
+They are the first 5 minutes after kick-off: the stretch with the fewest interruptions and the best
+camera tracking. **Any statistic measured there and carried over to the whole match
+lands in the wrong place.**
 
-## Hallazgo 2: eso estaba rompiendo el detector de balón parado
+## Finding 2: that was breaking the dead-ball detector
 
-El umbral de "balón parado" estaba fijado como el cruce de las medianas de las dos clases
-sobre la actividad de los jugadores. Las medianas estaban **bien medidas**. El problema es
-que **un cruce de medianas depende de la mezcla de clases de la muestra**.
+The "dead ball" threshold was set as the crossover of the per-class medians of the two
+classes on player activity. The medians were **well measured**. The problem
+is that **a crossover of medians depends on the class mix of the sample**.
 
-Trasplantado al partido completo, ese umbral caía en el **percentil 56** de la actividad
-real, y el modelo acababa diciendo `D` en el **55,4%** de los frames.
+Transplanted to the full match, that threshold fell at the **56th percentile** of the real
+activity, and the model ended up saying `D` in **55.4%** of the frames.
 
-Lo corregí usando como objetivo la tasa de balón parado medida en los 7 partidos completos
-del IDSSE (**44,9%**) y la distribución real de actividad de nuestro partido, que se mide
-**sin usar ninguna etiqueta**. Es el cambio que más ha dado del día.
+I fixed it by using as the target the dead-ball rate measured on the 7 full matches
+of IDSSE (**44.9%**) and the real activity distribution of our match, which is measured
+**without using any label**. It's the change that gave the most today.
 
-## Hallazgo 3: el balón no se pierde en oclusiones, se pierde en bloques de minutos
+## Finding 3: the ball isn't lost in occlusions, it's lost in blocks of minutes
 
 ```
-150 bloques sin balón | mediana 10,7 s | máximo 3,7 minutos
-solo el 9% de las rachas duran 5 frames o menos
+150 ball-absent blocks | median 10.7 s | max 3.7 minutes
+only 9% of the runs last 5 frames or fewer
 ```
 
-La posesión media dura 14,2 s. **Un hueco típico se come casi una posesión entera.** No hay
-que aguantar oclusiones de medio segundo: hay que aguantar cegueras de diez segundos.
+The average possession lasts 14.2 s. **A typical gap eats up almost a whole possession.** There's no
+need to ride out half-second occlusions: we have to ride out ten-second blindnesses.
 
-## La POC: un conjunto de validación de 7 partidos completos
+## The POC: a validation set of 7 full matches
 
-La idea: **coger un partido limpio del IDSSE y ensuciarlo hasta que sus estadísticas
-coincidan con las del ATD**, pasarle nuestro pipeline y puntuar contra sus etiquetas reales.
+The idea: **take a clean IDSSE match and dirty it until its statistics
+match those of the ATD**, run our pipeline on it and score against its real labels.
 
-Los parámetros de la degradación se miden sobre nuestro ATD **sin usar etiquetas**. Cómo
-quedó la imitación:
+The degradation parameters are measured on our ATD **without using labels**. How the
+imitation came out:
 
-| | ATD real | degradado |
+| | real ATD | degraded |
 |---|---|---|
-| Balón visible | 59,31% | 59,39% |
-| Objetos por frame | 20,49 | 20,46 |
-| Racha sin balón, mediana | 268 frames | 275 |
-| Racha sin balón, máximo | 5.537 frames | 5.537 |
+| Ball visible | 59.31% | 59.39% |
+| Objects per frame | 20.49 | 20.46 |
+| Ball-absent run, median | 268 frames | 275 |
+| Ball-absent run, max | 5,537 frames | 5,537 |
 
-También hubo que **alinear el convenio**: el dataset alemán parte la posesión en cada toque
-(421 posesiones por partido, 7,7 s de media) y el reto las fusiona (17 posesiones, 14,2 s).
-Sin corregir eso le pedíamos al modelo acertar 421 posesiones cuando está diseñado para
-producir ~220.
+We also had to **align the convention**: the German dataset splits possession at every touch
+(421 possessions per match, 7.7 s on average) and the challenge merges them (17 possessions, 14.2 s).
+Without correcting that we were asking the model to get 421 possessions right when it's designed to
+produce ~220.
 
-## Resultados
+## Results
 
 ```
-spellF1 ventana pública de 5 min ....... 0.4727   (empezamos el día en 0.3200)
-spellF1 7 partidos completos ........... 0.3902   (empezamos en 0.3156)
-suelo oficial .......................... 0.2433
+spellF1 public 5-min window ............ 0.4727   (we started the day at 0.3200)
+spellF1 7 full matches ................. 0.3902   (we started at 0.3156)
+official floor ......................... 0.2433
 ```
 
-**El número bueno es el 0,3902**, no el 0,4727. La ventana pública es muy optimista.
+**The good number is 0.3902**, not 0.4727. The public window is very optimistic.
 
-Y una honestidad importante: **0,3902 tampoco es una predicción de nuestra puntuación**.
-El proxy tiene sesgos en las dos direcciones y ninguno está cuantificado:
+And one important point of honesty: **0.3902 isn't a prediction of our score either**.
+The proxy has biases in both directions and none is quantified:
 
-- *Optimista*: coloca las rachas sin balón al azar, mientras que el ATD las concentra en los
-  frames difíciles. Tampoco imita los cambios de identidad entre slots.
-- *Incierto*: la Bundesliga no es este partido.
+- *Optimistic*: it places the ball-absent runs at random, whereas the ATD concentrates them in the
+  hard frames. It also doesn't imitate identity swaps between slots.
+- *Uncertain*: the Bundesliga is not this match.
 
-Sirve para **comparar versiones entre sí**, que ya es infinitamente más de lo que teníamos.
+It serves to **compare versions against each other**, which is already infinitely more than we had.
 
-## Lo que probé y NO funcionó
+## What I tried that did NOT work
 
-**Subir el peso de "balón no visible".** Su cociente de verosimilitudes medido es +1,79 y el
-modelo usa +0,50. Parecía infraponderado. A tasa de balón parado igualada, **no mejora**, y
-pasado 2,5 se hunde.
+**Raising the weight of "ball not visible".** Its measured likelihood ratio is +1.79 and the
+model uses +0.50. It looked underweighted. At matched dead-ball rate, **it doesn't improve**, and
+beyond 2.5 it collapses.
 
-**Bajar el peso de la forma de equipo.** Su AUC real es 0,632 y no el 0,812 que decía la
-ventana pública, así que lo bajé. Validado con 7 partidos × 3 semillas: **indistinguible**.
-Revertido.
+**Lowering the weight of team shape.** Its real AUC is 0.632 and not the 0.812 that the public
+window said, so I lowered it. Validated with 7 matches × 3 seeds: **indistinguishable**.
+Reverted.
 
-> **La lección, que me salió dos veces:** el modelo suma logits, y eso supone que las
-> señales son independientes. **No lo son.** La visibilidad del balón va del 9,7% al 90,0%
-> según la actividad de los jugadores, porque las causa lo mismo: el tracker en apuros.
-> Un AUC o una verosimilitud marginal **no te dicen el peso correcto**.
+> **The lesson, which came up twice:** the model sums logits, and that assumes the
+> signals are independent. **They are not.** Ball visibility goes from 9.7% to 90.0%
+> depending on player activity, because the same thing causes both: the tracker in trouble.
+> An AUC or a marginal likelihood **doesn't tell you the right weight**.
 
 ---
 
-# PARTE 5 — Dónde estamos y qué sigue
+# PART 5 — Where we are and what's next
 
-Hoy el pipeline produce un CSV válido de 199.319 filas que pasa el validador oficial, con
-55 tests en verde. Si todo se parase ahora, hay algo que entregar.
+Today the pipeline produces a valid CSV of 199,319 rows that passes the official validator, with
+55 tests passing. If everything stopped now, there is something to submit.
 
-Lo que yo haría a continuación, por orden:
+What I would do next, in order:
 
-0. ~~Re-derivar los dieciséis valores heredados de la ventana pública~~ — **hecho el 28-10**
-   con `training/recalibrate.py`: centros de clase por medianas sobre 4 partidos externos
-   degradados, el resto por barrido en esos 4 y comprobación en 3 reservados. Cambiaron 7
-   valores; `config.py` documenta la procedencia de cada uno y **ninguno depende ya de la
-   ventana pública.** Validado del 29 al 31-10 sobre las 35 particiones posibles: el
-   procedimiento gana +1,7 pp (IC 95 % [+1,4, +2,1]) en partidos que no se usaron para
-   ajustarlo y +3,3 pp en los de ajuste, así que la mitad de la ganancia es sobreajuste.
-   Ampliar la rejilla no mejora la validación (−0,13 pp) y se descartó. El 31-10
-   `activity_smooth` volvió a 50 (+1,1 pp en validación con las tres semillas). Con el
-   fichero de hoy: ajuste 0,3878, validación 0,4081, los siete 0,3965.
-1. **Quitarle el optimismo al conjunto de validación**, haciendo que las rachas sin balón se
-   concentren donde se concentran de verdad (zonas abarrotadas, balones aéreos).
-2. **Un detector de balón propio sobre el vídeo.** El 41% ausente no es que el balón no se
-   vea: es que el tracker lo pierde. Recuperar parte de esos frames mejoraría la mitad del
-   modelo que hoy está ciega. Esto conecta directo con la línea de visión por computador.
-3. **Conectar el Smart Tagging** como pista para los reinicios.
-4. **Una emisión aprendida** sobre los datos externos degradados — pero solo si el arnés dice
-   que hay margen.
+0. ~~Re-derive the sixteen values inherited from the public window~~ — **done on Oct 28**
+   with `training/recalibrate.py`: class centers by medians over 4 degraded external matches, the rest by sweep over those 4 and checking on 3 held out. 7
+   values changed; `config.py` documents the provenance of each one and **none depends any more on the
+   public window.** Validated Oct 29 to 31 over the 35 possible splits: the
+   procedure gains +1.7 pp (95% CI [+1.4, +2.1]) on matches that were not used to
+   tune it and +3.3 pp on the fit matches, so half the gain is overfitting.
+   Widening the grid doesn't improve validation (−0.13 pp) and was discarded. On Oct 31
+   `activity_smooth` went back to 50 (+1.1 pp on validation with the three seeds). With
+   today's file: fit 0.3878, validation 0.4081, all seven 0.3965.
+1. **Take the optimism out of the validation set**, making the ball-absent runs
+   concentrate where they really concentrate (crowded areas, aerial balls).
+2. **Our own ball detector on the video.** The absent 41% is not that the ball can't be
+   seen: it's that the tracker loses it. Recovering part of those frames would improve the half of the
+   model that is blind today. This connects directly with the computer vision line.
+3. **Connect Smart Tagging** as a hint for restarts.
+4. **A learned emission** on the degraded external data — but only if the harness says
+   there's room.
 
-## Cómo encaja esto con las otras líneas
+## How this fits with the other lines
 
-Quedamos en que cada uno mirase una alternativa y luego comparásemos. Por lo que he visto
-hoy, **esto no es una competición entre las tres**: la de visión y la mía se alimentan.
+We agreed that each of us would look at one alternative and then compare. From what I've seen
+today, **this is not a competition between the three**: the vision one and mine feed each other.
 
-El 41% de frames sin balón es el cuello de botella de todo mi modelo. Es donde la mitad que
-decide "de quién es" se queda ciega y lo único que queda es arrastrar el estado anterior. Y
-ese 41% **no es que el balón no se vea en el vídeo** — es que el tracker de Metrica lo
-pierde. Un detector propio que recupere aunque sea una parte de esos frames **entra directo
-en mi pipeline sin tocar el diseño**, y además cambiaría los parámetros del conjunto de
-validación: habría que ensuciar menos.
+The 41% of frames without ball is the bottleneck of my whole model. It's where the half that
+decides "whose is it" goes blind and the only thing left is to carry over the previous state. And
+that 41% **isn't that the ball can't be seen in the video** — it's that Metrica's tracker
+loses it. Our own detector that recovers even part of those frames **goes straight
+into my pipeline without touching the design**, and it would also change the parameters of the
+validation set: we'd have to degrade less.
 
-Lo mismo con el Smart Tagging. Sus 59 saques marcan reinicios, que es justo donde el modelo
-más se equivoca hoy.
+The same goes for Smart Tagging. Its 59 set pieces mark restarts, which is exactly where the model
+goes most wrong today.
 
-Así que cuando comparemos, la pregunta útil igual no es *cuál de las tres es mejor* sino
-*qué le da cada una a las otras*.
+So when we compare, the useful question may not be *which of the three is better* but
+*what each one gives to the others*.
 
-## Cosas que necesito que alguien mire con ojo crítico
+## Things I need someone to look at with a critical eye
 
-Tres decisiones mías de hoy. Tienen criterio detrás, pero ninguna es una verdad:
+Three decisions of mine from today. They have reasoning behind them, but none is a truth:
 
-1. Que la tasa de balón parado del dataset alemán (44,9%) sea comparable a lo que el reto
-   llama `D`.
-2. ~~Alinear el convenio apuntando a 14,2 s de duración media~~ — retirado: ese número salía
-   de la ventana pública. La regla de fusión sale ahora de la definición de *posesión
-   controlada* del reto (un contacto del rival de menos de unos segundos, sin control, no
-   cambia la posesión), aplicada a los partidos externos. La duración media resultante es
-   una medición, no un objetivo.
-3. Que el pipeline esté usando **solo el ATD táctico**. La homografía, el Smart Tagging y el
-   ATD del broadcast tienen el código de lectura escrito pero **no están conectados**.
-   ¿Decisión o se quedó a medias?
+1. That the dead-ball rate of the German dataset (44.9%) is comparable to what the challenge
+   calls `D`.
+2. ~~Aligning the convention by aiming at a 14.2 s average duration~~ — withdrawn: that number came
+   from the public window. The merge rule now comes from the challenge's definition of *controlled
+   possession* (a contact by the opponent of less than a few seconds, without control, doesn't
+   change possession), applied to the external matches. The resulting average duration is
+   a measurement, not a target.
+3. That the pipeline is using **only the tactical ATD**. The homography, Smart Tagging and the
+   broadcast ATD have the reading code written but **are not connected**.
+   A decision, or was it left half-done?
